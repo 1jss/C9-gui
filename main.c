@@ -34,39 +34,47 @@ void draw_superellipse(SDL_Renderer *renderer, i32 center_x, i32 center_y, i32 r
     f32 float_y = center_y + rad * sin(t);
     i32 nearest_x = round(float_x);
     i32 nearest_y = round(float_y);
-    f32 distance = sqrt(pow(float_x - nearest_x, 2) + pow(float_y - nearest_y, 2));
-    f32 percent_x = float_x - nearest_x;
-    f32 percent_y = float_y - nearest_y;
-    if(fabs(distance) > 0.5 && percent_x < 0) {
-      // draw the pixel to the left of the nearest pixel
-      u8 opacity = (1 + percent_x) * 100;
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
-      SDL_RenderDrawPoint(renderer, nearest_x - 1, nearest_y);
-    }
-    else if(fabs(distance) > 0.5 && percent_y < 0) {
-      // draw the pixel above the nearest pixel
-      u8 opacity = (1 + percent_y) * 100;
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
-      SDL_RenderDrawPoint(renderer, nearest_x, nearest_y - 1);
-    }
-    else if(fabs(distance) > 0.5 && percent_x > 0) {
-      // draw the pixel to the right of the nearest pixel
-      u8 opacity = (1 - percent_x) * 100;
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
-      SDL_RenderDrawPoint(renderer, nearest_x + 1, nearest_y);
-    }
-    else if(fabs(distance) > 0.5 && percent_y > 0) {
-      // draw the pixel below the nearest pixel
-      u8 opacity = (1 - percent_y) * 100;
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
-      SDL_RenderDrawPoint(renderer, nearest_x, nearest_y + 1);
-    }
-    
-    u8 opacity = (1 - distance) * 255;
+    i32 left_x = (i32)float_x;
+    i32 top_y = (i32)float_y;
+    i32 right_x = left_x + 1;
+    i32 bottom_y = top_y + 1;
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
-
-    SDL_RenderDrawPoint(renderer, nearest_x, nearest_y);
+    // Smudge rightwards
+    if (t <= M_PI / 4 || t >= 7 * M_PI / 4) {
+      f32 x_diff = float_x - left_x;
+      u8 opacity = (1 - x_diff) * 255;
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
+      SDL_RenderDrawPoint(renderer, left_x, nearest_y);
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255 - opacity);
+      SDL_RenderDrawPoint(renderer, right_x, nearest_y);
+    }
+    // Smudge downwards
+    else if (t <= 3 * M_PI / 4) {
+      f32 y_diff = float_y - top_y;
+      u8 opacity = (1 - y_diff) * 255;
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
+      SDL_RenderDrawPoint(renderer, nearest_x, top_y);
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255 - opacity);
+      SDL_RenderDrawPoint(renderer, nearest_x, bottom_y);
+    }
+    // Smudge leftwards
+    else if (t <= 5 * M_PI / 4) {
+      f32 x_diff = float_x - right_x;
+      u8 opacity = x_diff * 255;
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
+      SDL_RenderDrawPoint(renderer, right_x, nearest_y);
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255 - opacity);
+      SDL_RenderDrawPoint(renderer, left_x, nearest_y);
+    }
+    // Smudge upwards
+    else {
+      f32 y_diff = float_y - bottom_y;
+      u8 opacity = y_diff * 255;
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
+      SDL_RenderDrawPoint(renderer, nearest_x, bottom_y);
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255 - opacity);
+      SDL_RenderDrawPoint(renderer, nearest_x, top_y);
+    }
   }
 }
 
@@ -152,16 +160,13 @@ i32 main() {
       return -1;
     }
 
-    // Draw a white dot at mouse position
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawPoint(renderer, mouse_x, mouse_y);
-
     // Draw a squircle at mouse position
     draw_superellipse(renderer, 320, 320, 200);
     draw_superellipse(renderer, 320, 320, 100);
     draw_superellipse(renderer, 320, 320, 50);
 
     // Draw text at mouse position
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
     draw_text(renderer, Inter, "Hello, World!", mouse_x, mouse_y);
 
     // Draw back buffer to screen
