@@ -205,7 +205,7 @@ void draw_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rectangle_
 // Draws a filled rectangle with superellipse corners
 void draw_filled_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rectangle_width, i32 rectangle_height, i32 corner_radius, C9_RGB color) {
   // Cap corner radius to half of the rectangle width or height
-  if (2 * corner_radius < rectangle_width || 2 * corner_radius < rectangle_height) {
+  if (2 * corner_radius >= rectangle_width || 2 * corner_radius >= rectangle_height) {
     corner_radius = rectangle_width < rectangle_height ? rectangle_width / 2 : rectangle_height / 2;
   }
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
@@ -213,7 +213,7 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rec
   SDL_Rect top_bottom_rect = {x + corner_radius, y, 1 + rectangle_width - 2 * corner_radius, rectangle_height + 1};
   SDL_RenderFillRect(renderer, &top_bottom_rect);
   // A rect that filles the left and right lines and the area between them
-  SDL_Rect left_right_rect = {x, y + corner_radius, rectangle_width, rectangle_height - 2 * corner_radius};
+  SDL_Rect left_right_rect = {x, y + corner_radius, rectangle_width + 1, 1 + rectangle_height - 2 * corner_radius};
   SDL_RenderFillRect(renderer, &left_right_rect);
 
   // Draw corners
@@ -313,8 +313,7 @@ i32 main() {
       C9_RGB red = {255, 100, 100};
       C9_RGB green = {100, 255, 100};
       C9_RGB blue = {100, 100, 255};
-      C9_RGB light_green = {200, 255, 200};
-      C9_RGB dark_green = {0, 100, 0};
+
       // Draw squircles
       draw_superellipse(renderer, 320, 320, 300, red);
       draw_superellipse(renderer, 320, 320, 200, green);
@@ -322,9 +321,10 @@ i32 main() {
 
       C9_RGB gray = {100, 100, 100};
       C9_RGB white = {255, 255, 255};
-      // Draw filled squircle with border
+
+      // Draw filled squircle
       draw_filled_superellipse(renderer, 320, 320, 50, gray);
-      draw_superellipse(renderer, 320, 320, 50, white);
+      draw_filled_superellipse(renderer, 320, 320, 40, white);
 
       // Draw rectangle with rounded corners
       draw_rounded_rectangle(renderer, 100, 100, 300, 400, 60, gray);
@@ -332,8 +332,8 @@ i32 main() {
       draw_rounded_rectangle(renderer, 10, 10, 600, 40, 30, gray);
 
       // Draw filled rectangle with rounded corners
-      draw_filled_rounded_rectangle(renderer, 10, 100, 200, 20, 10, green);
-      draw_rounded_rectangle(renderer, 10, 100, 200, 20, 10, dark_green);
+      draw_filled_rounded_rectangle(renderer, 10, 100, 200, 200, 10, gray);
+      draw_filled_rounded_rectangle(renderer, 12, 102, 196, 196, 8, white);
 
       // Draw text at mouse position
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
