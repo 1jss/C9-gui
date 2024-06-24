@@ -204,16 +204,20 @@ void draw_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rectangle_
 
 // Draws a filled rectangle with superellipse corners
 void draw_filled_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rectangle_width, i32 rectangle_height, i32 corner_radius, C9_RGB color) {
+  // Smallest acceptable corner radius is 10px
+  if (corner_radius < 10) {
+    corner_radius = 10;
+  }
   // Cap corner radius to half of the rectangle width or height
   if (2 * corner_radius >= rectangle_width || 2 * corner_radius >= rectangle_height) {
     corner_radius = rectangle_width < rectangle_height ? rectangle_width / 2 : rectangle_height / 2;
   }
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
   // A rect that filles the top and bottom lines and the area between them
-  SDL_Rect top_bottom_rect = {x + corner_radius, y, 1 + rectangle_width - 2 * corner_radius, rectangle_height + 1};
+  SDL_Rect top_bottom_rect = {x + corner_radius, y, rectangle_width - 2 * corner_radius + 1, rectangle_height + 1};
   SDL_RenderFillRect(renderer, &top_bottom_rect);
   // A rect that filles the left and right lines and the area between them
-  SDL_Rect left_right_rect = {x, y + corner_radius, rectangle_width + 1, 1 + rectangle_height - 2 * corner_radius};
+  SDL_Rect left_right_rect = {x, y + corner_radius, rectangle_width + 1, rectangle_height - 2 * corner_radius + 1};
   SDL_RenderFillRect(renderer, &left_right_rect);
 
   // Draw corners
@@ -227,6 +231,33 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rec
     draw_filled_superellipse_border_point(renderer, x + corner_radius, y + corner_radius, corner_radius, t + M_PI, color);
     // Top right corner (t + 3 * M_PI / 2)
     draw_filled_superellipse_border_point(renderer, x + rectangle_width - corner_radius, y + corner_radius, corner_radius, t + 3 * M_PI / 2, color);
+  }
+}
+
+void draw_rectangle_with_border(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, i32 border_radius, i32 border_width, C9_RGB content_color, C9_RGB border_color) {
+  draw_filled_rounded_rectangle(renderer, x, y, width, height, border_radius, content_color);
+  draw_filled_rounded_rectangle(renderer, x + border_width, y + border_width, width - 2 * border_width, height - 2 * border_width, border_radius - border_width, border_color);
+}
+
+void draw_horizontal_gradient(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, C9_Gradient gradient) {
+  for (i32 i = 0; i < width; i++) {
+    f32 t = 1.0 * i / width;
+    C9_RGB color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, x + i, y, x + i, y + height);
+  }
+}
+
+void draw_vertical_gradient(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, C9_Gradient gradient) {
+  for (i32 i = 0; i < height; i++) {
+    f32 t = 1.0 * i / height;
+    C9_RGB color = {
+      gradient.start.r + t * (gradient.end.r - gradient.start.r),
+      gradient.start.g + t * (gradient.end.g - gradient.start.g),
+      gradient.start.b + t * (gradient.end.b - gradient.start.b)
+    };
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, x, y + i, x + width, y + i);
   }
 }
 
@@ -284,7 +315,7 @@ i32 main() {
       } else if (event.type == SDL_MOUSEMOTION) {
         mouse_x = event.motion.x;
         mouse_y = event.motion.y;
-        redraw = true;
+        //redraw = true;
         // printf("Mouse motion %d, %d\n", mouse_x, mouse_y);
         // Flush event queue to only use one event
         // Otherwise renderer laggs behind while emptying event queue
@@ -314,6 +345,11 @@ i32 main() {
       C9_RGB green = {100, 255, 100};
       C9_RGB blue = {100, 100, 255};
 
+      // Draw background gradients
+      C9_Gradient red_blue_gradient = {red, blue};
+      draw_horizontal_gradient(renderer, 0, 0, 320, 640, red_blue_gradient);
+      draw_vertical_gradient(renderer, 320, 0, 320, 640, red_blue_gradient);
+
       // Draw squircles
       draw_superellipse(renderer, 320, 320, 300, red);
       draw_superellipse(renderer, 320, 320, 200, green);
@@ -323,17 +359,16 @@ i32 main() {
       C9_RGB white = {255, 255, 255};
 
       // Draw filled squircle
-      draw_filled_superellipse(renderer, 320, 320, 50, gray);
-      draw_filled_superellipse(renderer, 320, 320, 40, white);
+      draw_filled_superellipse(renderer, 320, 320, 50, white);
 
       // Draw rectangle with rounded corners
       draw_rounded_rectangle(renderer, 100, 100, 300, 400, 60, gray);
       draw_rounded_rectangle(renderer, 200, 110, 400, 300, 150, gray);
-      draw_rounded_rectangle(renderer, 10, 10, 600, 40, 30, gray);
 
       // Draw filled rectangle with rounded corners
-      draw_filled_rounded_rectangle(renderer, 10, 100, 200, 200, 10, gray);
-      draw_filled_rounded_rectangle(renderer, 12, 102, 196, 196, 8, white);
+      draw_filled_rounded_rectangle(renderer, 10, 100, 200, 200, 60, white);
+      draw_rectangle_with_border(renderer, 30, 120, 50, 50, 25, 1, gray, white);
+      draw_rectangle_with_border(renderer, 100, 120, 50, 50, 25, 1, gray, white);
 
       // Draw text at mouse position
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
