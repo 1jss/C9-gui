@@ -13,10 +13,9 @@
 #include "include/string.h"
 #include "include/types.h"
 
-const SDL_Color SDL_WHITE = {255, 255, 255, SDL_ALPHA_OPAQUE};
-
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y) {
-  SDL_Surface *surface = TTF_RenderText_Blended(font, text, SDL_WHITE);
+  const SDL_Color dark_gray = {50, 50, 50, SDL_ALPHA_OPAQUE};
+  SDL_Surface *surface = TTF_RenderText_Blended(font, text, dark_gray);
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   SDL_Rect rect = {x, y, surface->w, surface->h};
   SDL_RenderCopy(renderer, texture, NULL, &rect);
@@ -239,6 +238,12 @@ void draw_rectangle_with_border(SDL_Renderer *renderer, i32 x, i32 y, i32 width,
   draw_filled_rounded_rectangle(renderer, x + border_width, y + border_width, width - 2 * border_width, height - 2 * border_width, border_radius - border_width, border_color);
 }
 
+void draw_filled_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, C9_RGB color) {
+  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+  SDL_Rect rect = {x, y, width, height};
+  SDL_RenderFillRect(renderer, &rect);
+}
+
 void draw_horizontal_gradient(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, C9_Gradient gradient) {
   for (i32 i = 0; i < width; i++) {
     f32 t = 1.0 * i / width;
@@ -335,44 +340,43 @@ i32 main() {
 
     if (redraw) {
       // Clear back buffer
-      SDL_SetRenderDrawColor(renderer, 36, 36, 36, SDL_ALPHA_OPAQUE);
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
       if (SDL_RenderClear(renderer)) {
         printf("SDL_RenderClear: %s\n", SDL_GetError());
         return -1;
       }
 
-      C9_RGB red = {255, 100, 100};
-      C9_RGB green = {100, 255, 100};
-      C9_RGB blue = {100, 100, 255};
-
-      // Draw background gradients
-      C9_Gradient red_blue_gradient = {red, blue};
-      draw_horizontal_gradient(renderer, 0, 0, 320, 640, red_blue_gradient);
-      draw_vertical_gradient(renderer, 320, 0, 320, 640, red_blue_gradient);
-
-      // Draw squircles
-      draw_superellipse(renderer, 320, 320, 300, red);
-      draw_superellipse(renderer, 320, 320, 200, green);
-      draw_superellipse(renderer, 320, 320, 100, blue);
-
-      C9_RGB gray = {100, 100, 100};
       C9_RGB white = {255, 255, 255};
+      C9_RGB gray_1 = {250, 250, 250};
+      C9_RGB gray_2 = {240, 240, 240};
+      C9_RGB gray_3 = {230, 230, 230};
+      C9_RGB gray_4 = {220, 220, 220};
+      C9_Gradient gray_1_shade = {gray_1, gray_2};
+      C9_Gradient gray_2_shade = {gray_2, gray_3};
 
+      // Top pane backgrounds
+      draw_filled_rectangle(renderer, 0, 0, 640, 50, gray_2);
+      draw_vertical_gradient(renderer, 0, 40, 640, 10, gray_2_shade);
+      draw_filled_rectangle(renderer, 0, 49, 640, 1, gray_4);
+
+      // Search bar
+      draw_rectangle_with_border(renderer, 210, 10, 420, 30, 15, 1, gray_3, white);
+      draw_text(renderer, Inter, "Search", 220, 15);
+
+      // Side pane backgrounds
+      draw_filled_rectangle(renderer, 0, 50, 200, 590, gray_1);
+      draw_horizontal_gradient(renderer, 190, 50, 10, 590, gray_1_shade);
+      draw_filled_rectangle(renderer, 199, 50, 1, 590, gray_3);
+
+      // Menu item
+      draw_filled_rounded_rectangle(renderer, 10, 60, 180, 30, 15, gray_3);
+      draw_text(renderer, Inter, "Hello, World!", 20, 65);
+
+      C9_RGB blue = {100, 100, 255};
+      // Draw border of squircle
+      draw_superellipse(renderer, 25, 25, 15, blue);
       // Draw filled squircle
-      draw_filled_superellipse(renderer, 320, 320, 50, white);
-
-      // Draw rectangle with rounded corners
-      draw_rounded_rectangle(renderer, 100, 100, 300, 400, 60, gray);
-      draw_rounded_rectangle(renderer, 200, 110, 400, 300, 150, gray);
-
-      // Draw filled rectangle with rounded corners
-      draw_filled_rounded_rectangle(renderer, 10, 100, 200, 200, 60, white);
-      draw_rectangle_with_border(renderer, 30, 120, 50, 50, 25, 1, gray, white);
-      draw_rectangle_with_border(renderer, 100, 120, 50, 50, 25, 1, gray, white);
-
-      // Draw text at mouse position
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-      draw_text(renderer, Inter, "Hello, World!", mouse_x, mouse_y);
+      draw_filled_superellipse(renderer, 65, 25, 15, blue);
 
       // Draw back buffer to screen
       SDL_RenderPresent(renderer);
