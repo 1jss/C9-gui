@@ -347,29 +347,36 @@ i32 main() {
       }
 
       C9_RGB white = {255, 255, 255};
-      C9_RGB gray_1 = {250, 250, 250};
-      C9_RGB gray_2 = {240, 240, 240};
-      C9_RGB gray_3 = {230, 230, 230};
-      C9_RGB gray_4 = {220, 220, 220};
+      C9_RGB white_2 = {248, 248, 248};
+      C9_Gradient white_shade = {white, white_2};
+
+      C9_RGB gray_1 = {248, 249, 250};
+      C9_RGB gray_2 = {242, 243, 244};
+
       C9_Gradient gray_1_shade = {gray_1, gray_2};
-      C9_Gradient gray_2_shade = {gray_2, gray_3};
+      C9_RGB border_color = {222, 226, 230};
+
+      // Pathbar primary with alpha 0.05
 
       // Top pane backgrounds
-      draw_filled_rectangle(renderer, 0, 0, 640, 50, gray_2);
-      draw_vertical_gradient(renderer, 0, 40, 640, 10, gray_2_shade);
-      draw_filled_rectangle(renderer, 0, 49, 640, 1, gray_4);
+      draw_filled_rectangle(renderer, 0, 0, 640, 50, white);
+      draw_horizontal_gradient(renderer, 190, 0, 10, 50, white_shade);
+      // draw_vertical_gradient(renderer, 0, 40, 640, 10, white_shade);
 
       // Search bar
-      draw_rectangle_with_border(renderer, 210, 10, 420, 30, 15, 1, gray_3, white);
+      draw_rectangle_with_border(renderer, 210, 10, 420, 30, 15, 1, border_color, white);
       draw_text(renderer, Inter, "Search", 220, 15);
 
       // Side pane backgrounds
       draw_filled_rectangle(renderer, 0, 50, 200, 590, gray_1);
       draw_horizontal_gradient(renderer, 190, 50, 10, 590, gray_1_shade);
-      draw_filled_rectangle(renderer, 199, 50, 1, 590, gray_3);
+
+      // Borders
+      draw_filled_rectangle(renderer, 0, 49, 640, 1, border_color);
+      draw_filled_rectangle(renderer, 199, 0, 1, 640, border_color);
 
       // Menu item
-      draw_filled_rounded_rectangle(renderer, 10, 60, 180, 30, 15, gray_3);
+      draw_filled_rounded_rectangle(renderer, 10, 60, 180, 30, 15, border_color);
       draw_text(renderer, Inter, "Hello, World!", 20, 65);
 
       C9_RGB blue = {100, 100, 255};
