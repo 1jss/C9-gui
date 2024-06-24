@@ -7,6 +7,7 @@ SDL2, SDL2_ttf and SDL2_image libraries are required to compile and run this pro
 
 ### MacOS
 Download sdl2, sdl2_ttf and sdl2_image from official releases and move them to `/Library/Frameworks`
+https://stackoverflow.com/questions/60202947/vscode-intellisense-not-recognising-sdl-image-extension-library-for-sdl-framewor
 
 ## Compiling and running
 
