@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <dirent.h>
+#include <math.h>
 #include <stdbool.h> // bool
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,16 +23,25 @@ void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y)
   SDL_DestroyTexture(texture);
 }
 
+f32 calculate_superellipse_radius(f32 radius, f32 t) {
+  f32 radius_pow_2 = radius * radius;
+  f32 radius_cos_t = radius * cosf(t);
+  f32 radius_sin_t = radius * sinf(t);
+  f32 cos_pow_4 = radius_cos_t * radius_cos_t * radius_cos_t * radius_cos_t;
+  f32 sin_pow_4 = radius_sin_t * radius_sin_t * radius_sin_t * radius_sin_t;
+  return radius_pow_2 / powf(cos_pow_4 + sin_pow_4, 0.25f);
+}
+
 void draw_superellipse(SDL_Renderer *renderer, i32 center_x, i32 center_y, i32 radius) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
-  // Calculate radian step size so that every pixel around the radius is drawn
-  f32 step = 0.8 / radius;
+  // Calculate radian step size so that every border pixel is drawn
+  f32 step = 0.85 / radius;
 
   for (f32 t = 0; t < 2 * M_PI; t += step) {
-    f32 rad = pow(radius, 2) / pow(pow(fabs(radius * cos(t)), 4) + pow(fabs(radius * sin(t)), 4), 0.25);
-    f32 float_x = center_x + rad * cos(t);
-    f32 float_y = center_y + rad * sin(t);
+    f32 rad = calculate_superellipse_radius(radius, t);
+    f32 float_x = 1.0 * center_x + rad * cos(t);
+    f32 float_y = 1.0 * center_y + rad * sin(t);
     i32 nearest_x = round(float_x);
     i32 nearest_y = round(float_y);
     i32 left_x = (i32)float_x;
@@ -60,7 +70,7 @@ void draw_superellipse(SDL_Renderer *renderer, i32 center_x, i32 center_y, i32 r
     // Smudge leftwards
     else if (t <= 5 * M_PI / 4) {
       f32 x_diff = float_x - right_x;
-      u8 opacity = x_diff * 255;
+      u8 opacity = (1 + x_diff) * 255;
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
       SDL_RenderDrawPoint(renderer, right_x, nearest_y);
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255 - opacity);
@@ -69,7 +79,7 @@ void draw_superellipse(SDL_Renderer *renderer, i32 center_x, i32 center_y, i32 r
     // Smudge upwards
     else {
       f32 y_diff = float_y - bottom_y;
-      u8 opacity = y_diff * 255;
+      u8 opacity = (1 + y_diff) * 255;
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
       SDL_RenderDrawPoint(renderer, nearest_x, bottom_y);
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255 - opacity);
@@ -119,7 +129,9 @@ i32 main() {
 
   // Begin main loop
   bool done = false;
+  bool redraw = true;
   while (!done) {
+    // Check for events
     if (SDL_WaitEvent(&event)) {
       if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -130,20 +142,15 @@ i32 main() {
       } else if (event.type == SDL_MOUSEMOTION) {
         mouse_x = event.motion.x;
         mouse_y = event.motion.y;
+        redraw = true;
         // printf("Mouse motion %d, %d\n", mouse_x, mouse_y);
         // Flush event queue to only use one event
         // Otherwise renderer laggs behind while emptying event queue
         SDL_FlushEvent(SDL_MOUSEMOTION);
       } else if (event.type == SDL_MOUSEWHEEL) {
-        // scroll up
-        if (event.wheel.y > 0) {
+        // scroll up or down
+        if (event.wheel.y != 0) {
           scroll_y += event.wheel.y;
-          printf("scroll: %d\n", scroll_y);
-        }
-        // scroll down
-        else if (event.wheel.y < 0) {
-          scroll_y += event.wheel.y;
-          printf("scroll: %d\n", scroll_y);
         }
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -153,24 +160,28 @@ i32 main() {
       }
     }
 
-    // Clear back buffer
-    SDL_SetRenderDrawColor(renderer, 36, 36, 36, SDL_ALPHA_OPAQUE);
-    if (SDL_RenderClear(renderer)) {
-      printf("SDL_RenderClear: %s\n", SDL_GetError());
-      return -1;
+    if (redraw) {
+      // Clear back buffer
+      SDL_SetRenderDrawColor(renderer, 36, 36, 36, SDL_ALPHA_OPAQUE);
+      if (SDL_RenderClear(renderer)) {
+        printf("SDL_RenderClear: %s\n", SDL_GetError());
+        return -1;
+      }
+
+      // Draw a squircle at mouse position
+      draw_superellipse(renderer, 320, 320, 300);
+      draw_superellipse(renderer, 320, 320, 200);
+      draw_superellipse(renderer, 320, 320, 100);
+      draw_superellipse(renderer, 320, 320, 50);
+
+      // Draw text at mouse position
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+      draw_text(renderer, Inter, "Hello, World!", mouse_x, mouse_y);
+
+      // Draw back buffer to screen
+      SDL_RenderPresent(renderer);
+      redraw = false;
     }
-
-    // Draw a squircle at mouse position
-    draw_superellipse(renderer, 320, 320, 200);
-    draw_superellipse(renderer, 320, 320, 100);
-    draw_superellipse(renderer, 320, 320, 50);
-
-    // Draw text at mouse position
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    draw_text(renderer, Inter, "Hello, World!", mouse_x, mouse_y);
-
-    // Draw back buffer to screen
-    SDL_RenderPresent(renderer);
 
     // Throttle frame rate to 60fps
     SDL_Delay(1000 / 60);
