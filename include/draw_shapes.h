@@ -1,7 +1,7 @@
 #ifndef C9_DRAW_SHAPES
 #include <SDL2/SDL.h>
 #include <math.h> // cosf, sinf, powf
-#include "color.h" // RGBA, C9_Gradient
+#include "color.h" // RGBA, getGradientColor, C9_Gradient, red, green, blue, alpha
 #include "types.h" // u8, f32, i32
 
 f32 calculate_superellipse_radius(f32 radius, f32 t) {

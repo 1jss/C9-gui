@@ -3,7 +3,6 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include "array.h" // array_get
-#include "color.h"
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle, draw_superellipse, draw_filled_superellipse
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32

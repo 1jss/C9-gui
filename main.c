@@ -133,27 +133,29 @@ i32 main() {
 
       C9_Gradient white_shade = {
         .start_color = white,
-        .end_color = white_2
+        .end_color = white_2,
+        .start_at = 0.95,
+        .end_at = 1
       };
       C9_Gradient gray_1_shade = {
         .start_color = gray_1,
-        .end_color = gray_2
+        .end_color = gray_2,
+        .start_at = 0.95,
+        .end_at = 1
       };
 
       // Pathbar primary with alpha 0.05
 
       // Top pane backgrounds
       draw_filled_rectangle(renderer, 0, 0, 640, 50, white);
-      draw_horizontal_gradient(renderer, 190, 0, 10, 50, white_shade);
-      // draw_vertical_gradient(renderer, 0, 40, 640, 10, white_shade);
+      draw_horizontal_gradient(renderer, 0, 0, 200, 50, white_shade);
 
       // Search bar
       draw_rectangle_with_border(renderer, 210, 10, 420, 30, 15, 1, border_color, white);
       draw_text(renderer, Inter, "Search", 220, 15);
 
-      // Side pane backgrounds
-      draw_filled_rectangle(renderer, 0, 50, 200, 590, gray_1);
-      draw_horizontal_gradient(renderer, 190, 50, 10, 590, gray_1_shade);
+      // Side pane background
+      draw_horizontal_gradient(renderer, 0, 50, 200, 590, gray_1_shade);
 
       // Borders
       draw_filled_rectangle(renderer, 0, 49, 640, 1, border_color);
