@@ -77,7 +77,7 @@ i32 main() {
   Element *child = add_child_element(element_tree, element_tree->root, test_element);
   printf("Child width: %d\n", child->width);
   set_dimensions(element_tree);
-  if(element_tree->root->children == 0){
+  if (element_tree->root->children == 0) {
     printf("No children\n");
   }
   // printf("Number of children: %zu\n", array_length(element_tree->root->children));
@@ -125,15 +125,20 @@ i32 main() {
         return -1;
       }
 
-      C9_RGB white = {255, 255, 255};
-      C9_RGB white_2 = {248, 248, 248};
-      C9_Gradient white_shade = {white, white_2};
+      RGBA white = 0xFFFFFFFF;
+      RGBA white_2 = 0xF8F8F8FF;
+      RGBA gray_1 = 0xF8F9FAFF;
+      RGBA gray_2 = 0xF2F3F4FF;
+      RGBA border_color = 0xDEE2E6FF;
 
-      C9_RGB gray_1 = {248, 249, 250};
-      C9_RGB gray_2 = {242, 243, 244};
-
-      C9_Gradient gray_1_shade = {gray_1, gray_2};
-      C9_RGB border_color = {222, 226, 230};
+      C9_Gradient white_shade = {
+        .start_color = white,
+        .end_color = white_2
+      };
+      C9_Gradient gray_1_shade = {
+        .start_color = gray_1,
+        .end_color = gray_2
+      };
 
       // Pathbar primary with alpha 0.05
 
@@ -158,7 +163,7 @@ i32 main() {
       draw_filled_rounded_rectangle(renderer, 10, 60, 180, 30, 15, border_color);
       draw_text(renderer, Inter, "Hello, World!", 20, 65);
 
-      C9_RGB blue = {100, 100, 255};
+      RGBA blue = 0x0000FFFF;
       // Draw border of squircle
       draw_superellipse(renderer, 25, 25, 15, blue);
       // Draw filled squircle

@@ -2,17 +2,13 @@
 
 #include "arena.h" // Arena
 #include "array.h" // Array
-#include "color.h" // C9_RGB, C9_Gradient, gradient
+#include "color.h" // RGBA, C9_Gradient, gradient
 #include "string.h" // s8
 #include "types.h" // u8, i32
 
-const C9_RGB C9_default_background_color = (C9_RGB){255, 255, 255};
-const C9_RGB C9_default_text_color = (C9_RGB){0, 0, 0};
-const C9_RGB C9_default_border_color = (C9_RGB){0, 0, 0};
-const C9_Gradient C9_default_background_gradient = {
-  .start = (C9_RGB){255, 255, 255},
-  .end = (C9_RGB){255, 255, 255}
-};
+const RGBA C9_default_background_color = 0xFFFFFFFF;
+const RGBA C9_default_text_color = 0x000000FF;
+const RGBA C9_default_border_color = 0x000000FF;
 
 // Element type
 typedef struct {
@@ -109,13 +105,13 @@ const LayoutProps empty_layout_props = {
 typedef struct {
   i32 width;
   i32 radius;
-  C9_RGB color;
+  RGBA color;
 } BorderProps;
 
 const BorderProps empty_border_props = {
   .width = 0,
   .radius = 0,
-  .color = {0, 0, 0},
+  .color = C9_default_border_color,
 };
 
 typedef struct {
@@ -136,14 +132,14 @@ const PaddingProps empty_padding_props = {
 typedef struct Element {
   u8 element_type;
   u8 background_type;
-  C9_RGB background_color;
+  RGBA background_color;
   C9_Gradient background_gradient;
   u8 element_sizing;
   i32 width;
   i32 height;
   i32 gutter;
   s8 text;
-  C9_RGB text_color;
+  RGBA text_color;
   OnClick on_click; // Function pointer
   PaddingProps padding;
   BorderProps border;
@@ -154,24 +150,26 @@ typedef struct Element {
 
 Element empty_element = {
   .element_type = 0,
-  .background_type = 0,
-  .background_color = {255, 255, 255},
+  .background_type = 0, // No background color
+  .background_color = C9_default_background_color,
   .background_gradient = {
-    .start = {255, 255, 255},
-    .end = {255, 255, 255},
+    .start_color = 0xFFFFFFFF,
+    .end_color = 0xFFFFFFFF,
+    .start_at = 0,
+    .end_at = 1,
   },
   .element_sizing = 0,
   .width = 0,
   .height = 0,
   .gutter = 0,
   .text = {0},
-  .text_color = {0, 0, 0},
+  .text_color = C9_default_text_color,
   .on_click = 0,
   .padding = {0, 0, 0, 0},
   .border = {
     .width = 0,
     .radius = 0,
-    .color = {0, 0, 0},
+    .color = C9_default_border_color,
   },
   .children = 0,
   .layout_direction = 0,

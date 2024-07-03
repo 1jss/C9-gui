@@ -23,10 +23,10 @@ typedef struct {
   RGBA end_color;
   f32 start_at; // 0 to 1
   f32 end_at; // 0 to 1
-} Gradient;
+} C9_Gradient;
 
 // Get the color at a given position in a gradient.
-RGBA GetGradientColorAt(Gradient gradient, f32 position) {
+RGBA getGradientColor(C9_Gradient gradient, f32 position) {
   // Destruct the gradient
   RGBA start_color = gradient.start_color;
   RGBA end_color = gradient.end_color;
@@ -64,34 +64,6 @@ RGBA GetGradientColorAt(Gradient gradient, f32 position) {
 
   RGBA color = (r << 24) | (g << 16) | (b << 8) | a;
   return color;
-}
-
-C9_RGB rgbaToRgb(RGBA color) {
-  return (C9_RGB){
-    .r = (color & 0xFF000000) >> 24,
-    .g = (color & 0x00FF0000) >> 16,
-    .b = (color & 0x0000FF00) >> 8
-  };
-}
-
-typedef struct {
-  u8 r;
-  u8 g;
-  u8 b;
-} C9_RGB;
-
-typedef struct {
-  C9_RGB start;
-  C9_RGB end;
-} C9_Gradient;
-
-// getGradientColor returns a color between the start and end colors of a gradient. The t parameter is a value between 0 and 1.
-C9_RGB getGradientColor(C9_Gradient gradient, f32 t) {
-  return (C9_RGB){
-    .r = gradient.start.r + (gradient.end.r - gradient.start.r) * t,
-    .g = gradient.start.g + (gradient.end.g - gradient.start.g) * t,
-    .b = gradient.start.b + (gradient.end.b - gradient.start.b) * t
-  };
 }
 
 #define C9_COLOR
