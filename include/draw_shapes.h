@@ -243,5 +243,25 @@ void draw_vertical_gradient(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32
   }
 }
 
+void draw_border(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, i32 top, i32 right, i32 bottom, i32 left, RGBA color) {
+  printf("Drawing border\n");
+  // Draw top border
+  if (top > 0) {
+    draw_filled_rectangle(renderer, x, y, width, top, color);
+  }
+  // Draw right border
+  if (right > 0) {
+    draw_filled_rectangle(renderer, x + width - right, y, right, height, color);
+  }
+  // Draw bottom border
+  if (bottom > 0) {
+    draw_filled_rectangle(renderer, x, y + height - bottom, width, bottom, color);
+  }
+  // Draw left border
+  if (left > 0) {
+    draw_filled_rectangle(renderer, x, y, left, height, color);
+  }
+}
+
 #define C9_DRAW_SHAPES
 #endif

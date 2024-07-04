@@ -46,7 +46,7 @@ typedef struct {
 
 const LayoutDirection layout_direction = {
   .horizontal = 0,
-  .vertical = 0,
+  .vertical = 1,
 };
 
 // Element sizing
@@ -103,30 +103,18 @@ const LayoutProps empty_layout_props = {
 };
 
 typedef struct {
-  i32 width;
-  i32 radius;
-  RGBA color;
-} BorderProps;
-
-const BorderProps empty_border_props = {
-  .width = 0,
-  .radius = 0,
-  .color = C9_default_border_color,
-};
+  i32 top;
+  i32 right;
+  i32 bottom;
+  i32 left;
+} Padding;
 
 typedef struct {
   i32 top;
   i32 right;
   i32 bottom;
   i32 left;
-} PaddingProps;
-
-const PaddingProps empty_padding_props = {
-  .top = 0,
-  .right = 0,
-  .bottom = 0,
-  .left = 0,
-};
+} Border;
 
 // element tree nodes
 typedef struct Element {
@@ -141,8 +129,10 @@ typedef struct Element {
   s8 text;
   RGBA text_color;
   OnClick on_click; // Function pointer
-  PaddingProps padding;
-  BorderProps border;
+  Padding padding;
+  Border border;
+  i32 border_radius;
+  RGBA border_color;
   Array *children; // Flexible array of child elements of type Element
   u8 layout_direction;
   LayoutProps layout; // Props set by the layout engine
@@ -166,11 +156,9 @@ Element empty_element = {
   .text_color = C9_default_text_color,
   .on_click = 0,
   .padding = {0, 0, 0, 0},
-  .border = {
-    .width = 0,
-    .radius = 0,
-    .color = C9_default_border_color,
-  },
+  .border = {0, 0, 0, 0},
+  .border_radius = 0,
+  .border_color = C9_default_border_color,
   .children = 0,
   .layout_direction = 0,
   .layout = {
@@ -200,7 +188,7 @@ ElementTree *new_element_tree(Arena *arena) {
   *root = (Element){
     .element_sizing = element_sizing.grow,
     .padding = {0, 0, 0, 0},
-    .border = {0, 0, C9_default_border_color},
+    .border = {0, 0, 0, 0},
     .children = 0,
     .layout_direction = layout_direction.vertical,
     .layout = {0, 0, 0, 0, 0, 0},

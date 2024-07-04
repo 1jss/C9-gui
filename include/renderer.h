@@ -17,7 +17,28 @@ void draw_elements(SDL_Renderer *renderer, Element *element) {
     width = element->layout.scroll_width;
     height = element->layout.scroll_height;
   }
-  draw_rounded_rectangle(renderer, x, y, width, height, element->border.radius, element->border.color);
+  if (element->background_type == background_type.none) {
+    if (element->border_radius > 0) {
+      draw_rounded_rectangle(renderer, x, y, width, height, element->border_radius, element->border_color);
+    }
+  } else if (element->background_type == background_type.color) {
+    if (element->border_radius > 0) {
+      if (element->border.top == 1 && element->border.right == 1 && element->border.bottom == 1 && element->border.left == 1) {
+        draw_rectangle_with_border(renderer, x, y, width, height, element->border_radius, 1, element->background_color, element->border_color);
+      } else {
+        draw_filled_rounded_rectangle(renderer, x, y, width, height, element->border_radius, element->background_color);
+      }
+    } else {
+      draw_filled_rectangle(renderer, x, y, width, height, element->background_color);
+      draw_border(renderer, x, y, width, height, element->border.top, element->border.right, element->border.bottom, element->border.left, element->border_color);
+    }
+  } else if (element->background_type == background_type.horizontal_gradient) {
+    draw_horizontal_gradient(renderer, x, y, width, height, element->background_gradient);
+    draw_border(renderer, x, y, width, height, element->border.top, element->border.right, element->border.bottom, element->border.left, element->border_color);
+  } else if (element->background_type == background_type.vertical_gradient) {
+    draw_vertical_gradient(renderer, x, y, width, height, element->background_gradient);
+    draw_border(renderer, x, y, width, height, element->border.top, element->border.right, element->border.bottom, element->border.left, element->border_color);
+  }
   Array *children = element->children;
   if (children == 0) return;
   for (size_t i = 0; i < array_length(children); i++) {

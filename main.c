@@ -29,6 +29,26 @@ i32 main() {
   i32 mouse_y = 0;
   i32 scroll_y = 0;
 
+  RGBA white = 0xFFFFFFFF;
+  RGBA white_2 = 0xF8F8F8FF;
+  RGBA gray_1 = 0xF8F9FAFF;
+  RGBA gray_2 = 0xF2F3F4FF;
+  RGBA border_color = 0xDEE2E6FF;
+
+  C9_Gradient white_shade = {
+    .start_color = white,
+    .end_color = white_2,
+    .start_at = 0.95,
+    .end_at = 1
+  };
+
+  C9_Gradient gray_1_shade = {
+    .start_color = gray_1,
+    .end_color = gray_2,
+    .start_at = 0.95,
+    .end_at = 1
+  };
+
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO)) {
     printf("SDL_Init: %s\n", SDL_GetError());
@@ -64,23 +84,90 @@ i32 main() {
   SDL_Event event;
 
   Arena *element_arena = arena_open(1024);
+  // Root element
   ElementTree *element_tree = new_element_tree(element_arena);
   element_tree->root->width = 640;
   element_tree->root->height = 640;
-  element_tree->root->padding = (PaddingProps){10, 10, 10, 10};
-  Element test_element = new_element();
-  test_element = (Element){
+  element_tree->root->layout_direction = layout_direction.vertical;
+
+  // Top panel
+  Element top_panel = new_element();
+  top_panel = (Element){
     .element_sizing = element_sizing.fixed,
-    .width = 100,
-    .height = 100,
+    .width = 640,
+    .height = 50,
+    .layout_direction = layout_direction.horizontal,
   };
-  Element *child = add_child_element(element_tree, element_tree->root, test_element);
-  printf("Child width: %d\n", child->width);
+  Element *top_panel_ref = add_child_element(element_tree, element_tree->root, top_panel);
+
+  // Bottom panel
+  Element bottom_panel = new_element();
+  bottom_panel = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 640,
+    .height = 590,
+    .layout_direction = layout_direction.horizontal,
+  };
+  Element *bottom_panel_ref = add_child_element(element_tree, element_tree->root, bottom_panel);
+
+  // Logo panel
+  Element top_left_panel = new_element();
+  top_left_panel = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 200,
+    .height = 50,
+    .background_type = background_type.horizontal_gradient,
+    .background_gradient = white_shade,
+    .padding = (Padding){10, 10, 10, 10},
+    .border_color = border_color,
+    .border = (Border){0, 1, 1, 0},
+  };
+  add_child_element(element_tree, top_panel_ref, top_left_panel);
+
+  Element top_right_panel = new_element();
+  top_right_panel = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 440,
+    .height = 50,
+    .background_type = background_type.color,
+    .background_color = white,
+    .padding = (Padding){10, 10, 10, 10},
+    .border_color = border_color,
+    .border = (Border){0, 0, 1, 0},
+  };
+  add_child_element(element_tree, top_panel_ref, top_right_panel);
+
+  // Side panel
+  Element side_panel = new_element();
+  side_panel = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 200,
+    .height = 640,
+    .background_type = background_type.horizontal_gradient,
+    .background_gradient = gray_1_shade,
+    .padding = (Padding){10, 10, 10, 10},
+    .border_color = border_color,
+    .border = (Border){0, 1, 0, 0},
+  };
+  add_child_element(element_tree, bottom_panel_ref, side_panel);
+
+  // Content pane
+  Element content_panel = new_element();
+  content_panel = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 440,
+    .height = 590,
+    .background_type = background_type.color,
+    .background_color = white,
+    .padding = (Padding){10, 10, 10, 10},
+  };
+  add_child_element(element_tree, bottom_panel_ref, content_panel);
+
   set_dimensions(element_tree);
   if (element_tree->root->children == 0) {
     printf("No children\n");
   }
-  // printf("Number of children: %zu\n", array_length(element_tree->root->children));
+  printf("Number of children: %zu\n", array_length(element_tree->root->children));
 
   // Begin main loop
   bool done = false;
@@ -124,25 +211,6 @@ i32 main() {
         printf("SDL_RenderClear: %s\n", SDL_GetError());
         return -1;
       }
-
-      RGBA white = 0xFFFFFFFF;
-      RGBA white_2 = 0xF8F8F8FF;
-      RGBA gray_1 = 0xF8F9FAFF;
-      RGBA gray_2 = 0xF2F3F4FF;
-      RGBA border_color = 0xDEE2E6FF;
-
-      C9_Gradient white_shade = {
-        .start_color = white,
-        .end_color = white_2,
-        .start_at = 0.95,
-        .end_at = 1
-      };
-      C9_Gradient gray_1_shade = {
-        .start_color = gray_1,
-        .end_color = gray_2,
-        .start_at = 0.95,
-        .end_at = 1
-      };
 
       // Pathbar primary with alpha 0.05
 
