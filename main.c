@@ -135,7 +135,7 @@ i32 main() {
     .border_color = border_color,
     .border = (Border){0, 0, 1, 0},
   };
-  add_child_element(element_tree, top_panel_ref, top_right_panel);
+  Element *top_right_panel_ref = add_child_element(element_tree, top_panel_ref, top_right_panel);
 
   // Side panel
   Element side_panel = new_element();
@@ -146,10 +146,12 @@ i32 main() {
     .background_type = background_type.horizontal_gradient,
     .background_gradient = gray_1_shade,
     .padding = (Padding){10, 10, 10, 10},
+    .gutter = 10,
     .border_color = border_color,
+    .layout_direction = layout_direction.vertical,
     .border = (Border){0, 1, 0, 0},
   };
-  add_child_element(element_tree, bottom_panel_ref, side_panel);
+  Element *side_panel_ref = add_child_element(element_tree, bottom_panel_ref, side_panel);
 
   // Content pane
   Element content_panel = new_element();
@@ -162,6 +164,47 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
   };
   add_child_element(element_tree, bottom_panel_ref, content_panel);
+
+  // Menu element
+  Element menu_item = new_element();
+  menu_item = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 180,
+    .height = 30,
+    .background_type = background_type.color,
+    .background_color = border_color,
+    .padding = (Padding){10, 10, 10, 10},
+    .border_radius = 15,
+  };
+  add_child_element(element_tree, side_panel_ref, menu_item);
+
+  // Menu element 2
+  Element menu_item_2 = new_element();
+  menu_item_2 = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 180,
+    .height = 30,
+    .background_type = background_type.color,
+    .background_color = border_color,
+    .padding = (Padding){10, 10, 10, 10},
+    .border_radius = 15,
+  };
+  add_child_element(element_tree, side_panel_ref, menu_item_2);
+
+  // Search bar
+  Element search_bar = new_element();
+  search_bar = (Element){
+    .element_sizing = element_sizing.fixed,
+    .width = 420,
+    .height = 30,
+    .background_type = background_type.color,
+    .background_color = white,
+    .padding = (Padding){10, 10, 10, 10},
+    .border_radius = 15,
+    .border_color = border_color,
+    .border = (Border){1, 1, 1, 1},
+  };
+  add_child_element(element_tree, top_right_panel_ref, search_bar);
 
   set_dimensions(element_tree);
   if (element_tree->root->children == 0) {
@@ -211,39 +254,9 @@ i32 main() {
         printf("SDL_RenderClear: %s\n", SDL_GetError());
         return -1;
       }
-
-      // Pathbar primary with alpha 0.05
-
-      // Top pane backgrounds
-      draw_filled_rectangle(renderer, 0, 0, 640, 50, white);
-      draw_horizontal_gradient(renderer, 0, 0, 200, 50, white_shade);
-
-      // Search bar
-      draw_rectangle_with_border(renderer, 210, 10, 420, 30, 15, 1, border_color, white);
-      draw_text(renderer, Inter, "Search", 220, 15);
-
-      // Side pane background
-      draw_horizontal_gradient(renderer, 0, 50, 200, 590, gray_1_shade);
-
-      // Borders
-      draw_filled_rectangle(renderer, 0, 49, 640, 1, border_color);
-      draw_filled_rectangle(renderer, 199, 0, 1, 640, border_color);
-
-      // Menu item
-      draw_filled_rounded_rectangle(renderer, 10, 60, 180, 30, 15, border_color);
-      draw_text(renderer, Inter, "Hello, World!", 20, 65);
-
-      RGBA blue = 0x0000FFFF;
-      // Draw border of squircle
-      draw_superellipse(renderer, 25, 25, 15, blue);
-      // Draw filled squircle
-      draw_filled_superellipse(renderer, 65, 25, 15, blue);
-
-      // Draw a dot that follows the mouse
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-      SDL_RenderDrawPoint(renderer, mouse_x, mouse_y);
-
       render_element_tree(renderer, element_tree);
+      draw_text(renderer, Inter, "Hello, World!", 20, 65);
+      draw_text(renderer, Inter, "Search", 220, 15);
       // Draw back buffer to screen
       SDL_RenderPresent(renderer);
       redraw = false;

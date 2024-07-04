@@ -24,7 +24,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element) {
   } else if (element->background_type == background_type.color) {
     if (element->border_radius > 0) {
       if (element->border.top == 1 && element->border.right == 1 && element->border.bottom == 1 && element->border.left == 1) {
-        draw_rectangle_with_border(renderer, x, y, width, height, element->border_radius, 1, element->background_color, element->border_color);
+        draw_rectangle_with_border(renderer, x, y, width, height, element->border_radius, 1, element->border_color, element->background_color);
       } else {
         draw_filled_rounded_rectangle(renderer, x, y, width, height, element->border_radius, element->background_color);
       }

@@ -214,9 +214,9 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 rec
   }
 }
 
-void draw_rectangle_with_border(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, i32 border_radius, i32 border_width, RGBA content_color, RGBA border_color) {
-  draw_filled_rounded_rectangle(renderer, x, y, width, height, border_radius, content_color);
-  draw_filled_rounded_rectangle(renderer, x + border_width, y + border_width, width - 2 * border_width, height - 2 * border_width, border_radius - border_width, border_color);
+void draw_rectangle_with_border(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, i32 border_radius, i32 border_width, RGBA border_color, RGBA content_color) {
+  draw_filled_rounded_rectangle(renderer, x, y, width, height, border_radius, border_color);
+  draw_filled_rounded_rectangle(renderer, x + border_width, y + border_width, width - 2 * border_width, height - 2 * border_width, border_radius - border_width, content_color);
 }
 
 void draw_filled_rectangle(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, RGBA color) {
@@ -244,7 +244,6 @@ void draw_vertical_gradient(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32
 }
 
 void draw_border(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, i32 top, i32 right, i32 bottom, i32 left, RGBA color) {
-  printf("Drawing border\n");
   // Draw top border
   if (top > 0) {
     draw_filled_rectangle(renderer, x, y, width, top, color);
