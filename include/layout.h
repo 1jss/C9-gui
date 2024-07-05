@@ -201,10 +201,10 @@ ElementTree *new_element_tree(Arena *arena) {
 }
 
 // Add a new child element to a parent and return a pointer to it
-Element *add_new_element(ElementTree *tree, Element *parent) {
+Element *add_new_element(Arena *arena, Element *parent) {
   // If the parent element has no children, create a new array
   if (parent->children == 0) {
-    parent->children = array_create(tree->arena, sizeof(Element));
+    parent->children = array_create(arena, sizeof(Element));
   }
   // Add a new child element to the parent element
   array_push(parent->children, &empty_element);
@@ -215,7 +215,8 @@ Element *add_new_element(ElementTree *tree, Element *parent) {
 // Recursively sets width of an element
 i32 set_width(Element *element) {
   i32 self_width = element->width;
-  i32 child_width = element->padding.left + element->padding.right;
+  i32 element_padding = element->padding.left + element->padding.right;
+  i32 child_width = element_padding;
   Array *children = element->children;
   // No child array is initalized
   if (children == 0) return self_width;
@@ -233,7 +234,7 @@ i32 set_width(Element *element) {
     else {
       i32 current_child_width = set_width(child);
       if (child_width < current_child_width) {
-        child_width = current_child_width;
+        child_width = current_child_width + element_padding;
       }
     }
   }
@@ -249,7 +250,8 @@ i32 set_width(Element *element) {
 // Recursively sets height of an element
 i32 set_height(Element *element) {
   i32 self_height = element->height;
-  i32 child_height = element->padding.top + element->padding.bottom;
+  i32 element_padding = element->padding.top + element->padding.bottom;
+  i32 child_height = element_padding;
   Array *children = element->children;
   // No child array is initalized
   if (children == 0) return self_height;
@@ -267,10 +269,10 @@ i32 set_height(Element *element) {
     else {
       i32 current_child_height = set_height(child);
       if (child_height < current_child_height) {
-        child_height = current_child_height;
+        child_height = current_child_height + element_padding;
       }
     }
-  }
+  }     
   if (child_height > self_height) {
     element->layout.scroll_height = child_height;
     return child_height;

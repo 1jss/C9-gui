@@ -86,46 +86,28 @@ i32 main() {
   Arena *element_arena = arena_open(1024);
   // Root element
   ElementTree *element_tree = new_element_tree(element_arena);
-  element_tree->root->width = 640;
-  element_tree->root->height = 640;
   element_tree->root->layout_direction = layout_direction.vertical;
 
   // Top panel
-  Element *top_panel = add_new_element(element_tree, element_tree->root);
-  *top_panel = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 640,
-    .height = 50,
-    .layout_direction = layout_direction.horizontal,
-  };
+  Element *top_panel = add_new_element(element_arena, element_tree->root);
 
   // Bottom panel
-  Element *bottom_panel = add_new_element(element_tree, element_tree->root);
-  *bottom_panel = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 640,
-    .height = 590,
-    .layout_direction = layout_direction.horizontal,
-  };
+  Element *bottom_panel = add_new_element(element_arena, element_tree->root);
 
   // Logo panel
-  Element *top_left_panel = add_new_element(element_tree, top_panel);
+  Element *top_left_panel = add_new_element(element_arena, top_panel);
   *top_left_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 200,
     .height = 50,
     .background_type = background_type.horizontal_gradient,
     .background_gradient = white_shade,
-    .padding = (Padding){10, 10, 10, 10},
     .border_color = border_color,
     .border = (Border){0, 1, 1, 0},
   };
 
-  Element *top_right_panel = add_new_element(element_tree, top_panel);
+  Element *top_right_panel = add_new_element(element_arena, top_panel);
   *top_right_panel = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 440,
-    .height = 50,
     .background_type = background_type.color,
     .background_color = white,
     .padding = (Padding){10, 10, 10, 10},
@@ -134,7 +116,7 @@ i32 main() {
   };
 
   // Side panel
-  Element *side_panel = add_new_element(element_tree, bottom_panel);
+  Element *side_panel = add_new_element(element_arena, bottom_panel);
   *side_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 200,
@@ -149,7 +131,7 @@ i32 main() {
   };
 
   // Content pane
-  Element *content_panel = add_new_element(element_tree, bottom_panel);
+  Element *content_panel = add_new_element(element_arena, bottom_panel);
   *content_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 440,
@@ -160,7 +142,7 @@ i32 main() {
   };
 
   // Menu element
-  Element *menu_item = add_new_element(element_tree, side_panel);
+  Element *menu_item = add_new_element(element_arena, side_panel);
   *menu_item = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 180,
@@ -172,7 +154,7 @@ i32 main() {
   };
 
   // Menu element 2
-  Element *menu_item_2 = add_new_element(element_tree, side_panel);
+  Element *menu_item_2 = add_new_element(element_arena, side_panel);
   *menu_item_2 = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 180,
@@ -184,14 +166,13 @@ i32 main() {
   };
 
   // Search bar
-  Element *search_bar = add_new_element(element_tree, top_right_panel);
+  Element *search_bar = add_new_element(element_arena, top_right_panel);
   *search_bar = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 420,
     .height = 30,
     .background_type = background_type.color,
     .background_color = white,
-    .padding = (Padding){10, 10, 10, 10},
     .border_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
@@ -201,7 +182,6 @@ i32 main() {
   if (element_tree->root->children == 0) {
     printf("No children\n");
   }
-  printf("Number of children: %zu\n", array_length(element_tree->root->children));
 
   // Begin main loop
   bool done = false;

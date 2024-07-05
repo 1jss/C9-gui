@@ -41,3 +41,10 @@ Render image to surface and then to texture:
 
 Render image directly to texture:
 `SDL_Texture *icon_application_texture =  IMG_LoadTexture(renderer,"icons/application-x-executable.bmp");`
+
+
+## Todo
+- Text editing
+- Button clicking
+- Active element
+- Make props into structs
