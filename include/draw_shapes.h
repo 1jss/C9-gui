@@ -13,7 +13,6 @@ f32 calculate_superellipse_radius(f32 radius, f32 t) {
   return radius_pow_2 / powf(cos_pow_4 + sin_pow_4, 0.25f);
 }
 
-
 typedef struct {
   i32 center_x;
   i32 center_y;
@@ -186,16 +185,32 @@ void draw_rounded_rectangle(SDL_Renderer *renderer, Rectangle rectangle, i32 cor
   f32 step = 0.85 / corner_radius;
   for (f32 t = 0; t <= M_PI / 2; t += step) {
     // Bottom right corner (t)
-    Circle bottom_right_corner = {rectangle.x + rectangle.width - corner_radius, rectangle.y + rectangle.height - corner_radius, corner_radius};
+    Circle bottom_right_corner = {
+      .center_x = rectangle.x + rectangle.width - corner_radius,
+      .center_y = rectangle.y + rectangle.height - corner_radius,
+      .radius = corner_radius
+    };
     draw_superellipse_border_point(renderer, bottom_right_corner, t, border_color);
     // Bottom left corner (t + M_PI / 2)
-    Circle bottom_left_corner = {rectangle.x + corner_radius, rectangle.y + rectangle.height - corner_radius, corner_radius};
+    Circle bottom_left_corner = {
+      .center_x = rectangle.x + corner_radius,
+      .center_y = rectangle.y + rectangle.height - corner_radius,
+      .radius = corner_radius
+    };
     draw_superellipse_border_point(renderer, bottom_left_corner, t + M_PI / 2, border_color);
     // Top left corner (t + M_PI)
-    Circle top_left_corner = {rectangle.x + corner_radius, rectangle.y + corner_radius, corner_radius};
+    Circle top_left_corner = {
+      .center_x = rectangle.x + corner_radius,
+      .center_y = rectangle.y + corner_radius,
+      .radius = corner_radius
+    };
     draw_superellipse_border_point(renderer, top_left_corner, t + M_PI, border_color);
     // Top right corner (t + 3 * M_PI / 2)
-    Circle top_right_corner = {rectangle.x + rectangle.width - corner_radius, rectangle.y + corner_radius, corner_radius};
+    Circle top_right_corner = {
+      .center_x = rectangle.x + rectangle.width - corner_radius,
+      .center_y = rectangle.y + corner_radius,
+      .radius = corner_radius
+    };
     draw_superellipse_border_point(renderer, top_right_corner, t + 3 * M_PI / 2, border_color);
   }
 }

@@ -44,7 +44,7 @@ Render image directly to texture:
 
 
 ## Todo
-- Text editing
+- Text rendering
+- Text input
 - Button clicking
 - Active element
-- Make props into structs
