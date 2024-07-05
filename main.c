@@ -91,28 +91,26 @@ i32 main() {
   element_tree->root->layout_direction = layout_direction.vertical;
 
   // Top panel
-  Element top_panel = new_element();
-  top_panel = (Element){
+  Element *top_panel = add_new_element(element_tree, element_tree->root);
+  *top_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 640,
     .height = 50,
     .layout_direction = layout_direction.horizontal,
   };
-  Element *top_panel_ref = add_child_element(element_tree, element_tree->root, top_panel);
 
   // Bottom panel
-  Element bottom_panel = new_element();
-  bottom_panel = (Element){
+  Element *bottom_panel = add_new_element(element_tree, element_tree->root);
+  *bottom_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 640,
     .height = 590,
     .layout_direction = layout_direction.horizontal,
   };
-  Element *bottom_panel_ref = add_child_element(element_tree, element_tree->root, bottom_panel);
 
   // Logo panel
-  Element top_left_panel = new_element();
-  top_left_panel = (Element){
+  Element *top_left_panel = add_new_element(element_tree, top_panel);
+  *top_left_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 200,
     .height = 50,
@@ -122,10 +120,9 @@ i32 main() {
     .border_color = border_color,
     .border = (Border){0, 1, 1, 0},
   };
-  add_child_element(element_tree, top_panel_ref, top_left_panel);
 
-  Element top_right_panel = new_element();
-  top_right_panel = (Element){
+  Element *top_right_panel = add_new_element(element_tree, top_panel);
+  *top_right_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 440,
     .height = 50,
@@ -135,11 +132,10 @@ i32 main() {
     .border_color = border_color,
     .border = (Border){0, 0, 1, 0},
   };
-  Element *top_right_panel_ref = add_child_element(element_tree, top_panel_ref, top_right_panel);
 
   // Side panel
-  Element side_panel = new_element();
-  side_panel = (Element){
+  Element *side_panel = add_new_element(element_tree, bottom_panel);
+  *side_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 200,
     .height = 640,
@@ -151,11 +147,10 @@ i32 main() {
     .layout_direction = layout_direction.vertical,
     .border = (Border){0, 1, 0, 0},
   };
-  Element *side_panel_ref = add_child_element(element_tree, bottom_panel_ref, side_panel);
 
   // Content pane
-  Element content_panel = new_element();
-  content_panel = (Element){
+  Element *content_panel = add_new_element(element_tree, bottom_panel);
+  *content_panel = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 440,
     .height = 590,
@@ -163,11 +158,10 @@ i32 main() {
     .background_color = white,
     .padding = (Padding){10, 10, 10, 10},
   };
-  add_child_element(element_tree, bottom_panel_ref, content_panel);
 
   // Menu element
-  Element menu_item = new_element();
-  menu_item = (Element){
+  Element *menu_item = add_new_element(element_tree, side_panel);
+  *menu_item = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 180,
     .height = 30,
@@ -176,11 +170,10 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
     .border_radius = 15,
   };
-  add_child_element(element_tree, side_panel_ref, menu_item);
 
   // Menu element 2
-  Element menu_item_2 = new_element();
-  menu_item_2 = (Element){
+  Element *menu_item_2 = add_new_element(element_tree, side_panel);
+  *menu_item_2 = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 180,
     .height = 30,
@@ -189,11 +182,10 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
     .border_radius = 15,
   };
-  add_child_element(element_tree, side_panel_ref, menu_item_2);
 
   // Search bar
-  Element search_bar = new_element();
-  search_bar = (Element){
+  Element *search_bar = add_new_element(element_tree, top_right_panel);
+  *search_bar = (Element){
     .element_sizing = element_sizing.fixed,
     .width = 420,
     .height = 30,
@@ -204,7 +196,6 @@ i32 main() {
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
   };
-  add_child_element(element_tree, top_right_panel_ref, search_bar);
 
   set_dimensions(element_tree);
   if (element_tree->root->children == 0) {

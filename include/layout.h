@@ -200,20 +200,14 @@ ElementTree *new_element_tree(Arena *arena) {
   return tree;
 }
 
-// Create a default element
-Element new_element() {
-  Element element = empty_element;
-  return element;
-}
-
-// Add a child element to a parent element and return a pointer to it
-Element *add_child_element(ElementTree *tree, Element *parent, Element child) {
+// Add a new child element to a parent and return a pointer to it
+Element *add_new_element(ElementTree *tree, Element *parent) {
   // If the parent element has no children, create a new array
   if (parent->children == 0) {
     parent->children = array_create(tree->arena, sizeof(Element));
   }
-  // Add the child element to the parent element
-  array_push(parent->children, &child);
+  // Add a new child element to the parent element
+  array_push(parent->children, &empty_element);
   // Return a pointer to the child element
   return array_get(parent->children, array_last(parent->children));
 }
