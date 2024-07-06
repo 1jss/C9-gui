@@ -24,6 +24,23 @@ void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y)
   SDL_DestroyTexture(texture);
 }
 
+#if 0
+i32 resizeWatcher(void *data, SDL_Event *event) {
+  if (event->type == SDL_WINDOWEVENT &&
+      event->window.event == SDL_WINDOWEVENT_RESIZED) {
+    SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
+    if (window == (SDL_Window *)data) {
+      i32 width;
+      i32 height;
+      SDL_GetWindowSize(window, &width, &height);
+
+      printf("width: %d, height: %d\n", width, height);
+    }
+  }
+  return 0;
+}
+#endif
+
 i32 main() {
   i32 mouse_x = 0;
   i32 mouse_y = 0;
@@ -66,6 +83,8 @@ i32 main() {
     printf("SDL_CreateWindow: %s\n", SDL_GetError());
     return -1;
   }
+
+  // SDL_AddEventWatch(resizeWatcher, window);
 
   // Create SDL renderer
   SDL_Renderer *renderer =
@@ -170,9 +189,7 @@ i32 main() {
   };
 
   i32 min_width = get_min_width(element_tree->root);
-  printf("Min width: %d\n", min_width);
   i32 min_height = get_min_height(element_tree->root);
-  printf("Min height: %d\n", min_height);
   set_dimensions(element_tree, window_width, window_height);
 
   if (element_tree->root->children == 0) {
