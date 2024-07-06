@@ -161,6 +161,7 @@ i32 main() {
   Element *search_bar = add_new_element(element_arena, top_right_panel);
   *search_bar = (Element){
     .height = 30,
+    .min_width = 100,
     .background_type = background_type.color,
     .background_color = white,
     .border_radius = 15,

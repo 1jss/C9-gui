@@ -49,19 +49,6 @@ const LayoutDirection layout_direction = {
   .vertical = 1,
 };
 
-// Element sizing
-typedef struct {
-  u8 shrink; // Uses the size of children
-  u8 grow; // Fills the remaining space
-  u8 fixed; // Uses element width and height
-} ElementSizing;
-
-const ElementSizing element_sizing = {
-  .shrink = 0,
-  .grow = 1,
-  .fixed = 2,
-};
-
 // Background type
 typedef struct {
   u8 none; // No background color
@@ -120,9 +107,10 @@ typedef struct Element {
   u8 background_type;
   RGBA background_color;
   C9_Gradient background_gradient;
-  u8 element_sizing;
   i32 width;
   i32 height;
+  i32 min_width;
+  i32 min_height;
   i32 gutter;
   s8 text;
   RGBA text_color;
@@ -146,9 +134,10 @@ Element empty_element = {
     .start_at = 0,
     .end_at = 1,
   },
-  .element_sizing = 0,
   .width = 0,
   .height = 0,
+  .min_width = 0,
+  .min_height = 0,
   .gutter = 0,
   .text = {0},
   .text_color = C9_default_text_color,
@@ -184,7 +173,6 @@ ElementTree *new_element_tree(Arena *arena) {
   Element *root = (Element *)arena_fill(arena, sizeof(Element));
   // Initialize the root element
   *root = (Element){
-    .element_sizing = element_sizing.grow,
     .padding = {0, 0, 0, 0},
     .border = {0, 0, 0, 0},
     .children = 0,
@@ -211,8 +199,8 @@ Element *add_new_element(Arena *arena, Element *parent) {
 }
 
 // Recursively sets width of an element
-i32 set_width(Element *element) {
-  i32 self_width = element->width;
+i32 fill_min_width(Element *element) {
+  i32 self_width = element->width > element->min_width ? element->width : element->min_width;
   i32 element_padding = element->padding.left + element->padding.right;
   i32 child_width = element_padding;
   Array *children = element->children;
@@ -228,11 +216,11 @@ i32 set_width(Element *element) {
       if (i != 0) {
         child_width += element->gutter;
       }
-      child_width += set_width(child);
+      child_width += fill_min_width(child);
     }
     // Vertical layout uses largest width
     else {
-      i32 current_child_width = set_width(child);
+      i32 current_child_width = fill_min_width(child);
       if (child_width < current_child_width) {
         child_width = current_child_width + element_padding;
       }
@@ -248,8 +236,8 @@ i32 set_width(Element *element) {
 }
 
 // Recursively sets height of an element
-i32 set_height(Element *element) {
-  i32 self_height = element->height;
+i32 fill_min_height(Element *element) {
+  i32 self_height = element->height > element->min_height ? element->height : element->min_height;
   i32 element_padding = element->padding.top + element->padding.bottom;
   i32 child_height = element_padding;
   Array *children = element->children;
@@ -265,11 +253,11 @@ i32 set_height(Element *element) {
       if (i != 0) {
         child_height += element->gutter;
       }
-      child_height += set_height(child);
+      child_height += fill_min_height(child);
     }
     // Horizontal layout uses largest height
     else {
-      i32 current_child_height = set_height(child);
+      i32 current_child_height = fill_min_height(child);
       if (child_height < current_child_height) {
         child_height = current_child_height + element_padding;
       }
@@ -440,8 +428,8 @@ i32 set_y(Element *element, i32 y) {
 
 // Loop through element tree and set LayoutProp dimensions
 void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
-  set_width(tree->root);
-  set_height(tree->root);
+  fill_min_width(tree->root);
+  fill_min_height(tree->root);
   fill_max_width(tree->root, window_width);
   fill_max_height(tree->root, window_height);
   set_x(tree->root, 0);
@@ -451,7 +439,11 @@ void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
 i32 get_min_width(Element *element) {
   Array *children = element->children;
   if (children == 0) {
-    return element->width;
+    if(element->width > element->min_width) {
+      return element->width;
+    } else {
+      return element->min_width;
+    }
   }
   i32 element_padding = element->padding.left + element->padding.right;
   i32 width = element_padding;
@@ -473,7 +465,11 @@ i32 get_min_width(Element *element) {
 i32 get_min_height(Element *element) {
   Array *children = element->children;
   if (children == 0) {
-    return element->height;
+    if(element->height > element->min_height) {
+      return element->height;
+    } else {
+      return element->min_height;
+    }
   }
   i32 element_padding = element->padding.top + element->padding.bottom;
   i32 height = element_padding;
