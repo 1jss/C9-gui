@@ -199,7 +199,7 @@ i32 main() {
           if (height < min_height) {
             height = min_height;
           }
-
+          // Cap to min width and height
           SDL_SetWindowSize(window, width, height);
           set_dimensions(element_tree, width, height);
           redraw = true;
