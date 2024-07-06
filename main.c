@@ -36,8 +36,8 @@ i32 resizeWatcher(void *data, SDL_Event *event) {
 #endif
 
 i32 main() {
-  i32 mouse_x = 0;
-  i32 mouse_y = 0;
+  // i32 mouse_x = 0;
+  // i32 mouse_y = 0;
   i32 scroll_y = 0;
   i32 window_width = 640;
   i32 window_height = 640;
@@ -207,8 +207,8 @@ i32 main() {
       } else if (event.type == SDL_KEYDOWN) {
         printf("Key press\n");
       } else if (event.type == SDL_MOUSEMOTION) {
-        mouse_x = event.motion.x;
-        mouse_y = event.motion.y;
+        //mouse_x = event.motion.x;
+        //mouse_y = event.motion.y;
         //redraw = true;
         // printf("Mouse motion %d, %d\n", mouse_x, mouse_y);
         // Flush event queue to only use one event
@@ -222,7 +222,12 @@ i32 main() {
         }
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-        printf("Mouse button down\n");
+        i32 mouse_down_x = event.button.x;
+        i32 mouse_down_y = event.button.y;
+        element_tree->active_element = get_element_at(element_tree->root, mouse_down_x, mouse_down_y);
+        // if (element_tree->active_element) {
+        //   printf("Active element: %d\n", element_tree->active_element->layout.x);
+        // }
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;

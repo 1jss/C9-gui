@@ -436,6 +436,25 @@ void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
   set_y(tree->root, 0);
 }
 
+// Get the leaf element at a given position
+Element *get_element_at(Element *element, i32 x, i32 y) {
+  Array *children = element->children;
+  if (children == 0) {
+    return element;
+  }
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    i32 child_x = child->layout.x;
+    i32 child_y = child->layout.y;
+    i32 child_width = child->width > 0 ? child->width : child->layout.max_width;
+    i32 child_height = child->height > 0 ? child->height : child->layout.max_height;
+    if (x >= child_x && x <= child_x + child_width && y >= child_y && y <= child_y + child_height) {
+      return get_element_at(child, x, y);
+    }
+  }
+  return element;
+};
+
 i32 get_min_width(Element *element) {
   Array *children = element->children;
   if (children == 0) {
