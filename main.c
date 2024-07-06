@@ -116,7 +116,6 @@ i32 main() {
   // Bottom panel
   Element *bottom_panel = add_new_element(element_arena, element_tree->root);
 
-  // Logo panel
   Element *top_left_panel = add_new_element(element_arena, top_panel);
   *top_left_panel = (Element){
     .width = 200,
@@ -179,7 +178,6 @@ i32 main() {
   // Search bar
   Element *search_bar = add_new_element(element_arena, top_right_panel);
   *search_bar = (Element){
-    .height = 30,
     .min_width = 100,
     .background_type = background_type.color,
     .background_color = white,
