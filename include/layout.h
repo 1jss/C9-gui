@@ -51,17 +51,15 @@ const LayoutDirection layout_direction = {
 
 // Element sizing
 typedef struct {
-  u8 none;
-  u8 fixed; // Uses element width and height
   u8 shrink; // Uses the size of children
   u8 grow; // Fills the remaining space
+  u8 fixed; // Uses element width and height
 } ElementSizing;
 
 const ElementSizing element_sizing = {
-  .none = 0,
-  .fixed = 1,
-  .shrink = 2,
-  .grow = 3,
+  .shrink = 0,
+  .grow = 1,
+  .fixed = 2,
 };
 
 // Background type
@@ -87,8 +85,8 @@ typedef void (*OnClick)(void *, void *);
 typedef struct {
   i32 x;
   i32 y;
-  i32 scroll_width; // combined width of children
-  i32 scroll_height; // combined height of children
+  i32 max_width; // Flexible width
+  i32 max_height; // Flexible height
   i32 scroll_x; // current horizontal scroll
   i32 scroll_y; // current vertical scroll
 } LayoutProps;
@@ -96,8 +94,8 @@ typedef struct {
 const LayoutProps empty_layout_props = {
   .x = 0,
   .y = 0,
-  .scroll_width = 0,
-  .scroll_height = 0,
+  .max_width = 0,
+  .max_height = 0,
   .scroll_x = 0,
   .scroll_y = 0,
 };
@@ -164,8 +162,8 @@ Element empty_element = {
   .layout = {
     .x = 0,
     .y = 0,
-    .scroll_width = 0,
-    .scroll_height = 0,
+    .max_width = 0,
+    .max_height = 0,
     .scroll_x = 0,
     .scroll_y = 0,
   },
@@ -218,8 +216,10 @@ i32 set_width(Element *element) {
   i32 element_padding = element->padding.left + element->padding.right;
   i32 child_width = element_padding;
   Array *children = element->children;
-  // No child array is initalized
-  if (children == 0) return self_width;
+  if (children == 0) {
+    element->layout.max_width = self_width;
+    return self_width;
+  }
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     // Horizontal layout adds widths
@@ -239,10 +239,10 @@ i32 set_width(Element *element) {
     }
   }
   if (child_width > self_width) {
-    element->layout.scroll_width = child_width;
+    element->layout.max_width = child_width;
     return child_width;
   } else {
-    element->layout.scroll_width = self_width;
+    element->layout.max_width = self_width;
     return self_width;
   }
 }
@@ -253,8 +253,10 @@ i32 set_height(Element *element) {
   i32 element_padding = element->padding.top + element->padding.bottom;
   i32 child_height = element_padding;
   Array *children = element->children;
-  // No child array is initalized
-  if (children == 0) return self_height;
+  if (children == 0) {
+    element->layout.max_height = self_height;
+    return self_height;
+  }
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     // Vertical layout adds heights
@@ -272,13 +274,103 @@ i32 set_height(Element *element) {
         child_height = current_child_height + element_padding;
       }
     }
-  }     
+  }
   if (child_height > self_height) {
-    element->layout.scroll_height = child_height;
+    element->layout.max_height = child_height;
     return child_height;
   } else {
-    element->layout.scroll_height = self_height;
+    element->layout.max_height = self_height;
     return self_height;
+  }
+}
+
+// Increases width of an element and it's children to fill the parent if element-sizing is set to grow
+void fill_max_width(Element *element, i32 max_width) {
+  i32 child_width = element->layout.max_width;
+  if (element->width == 0) {
+    element->layout.max_width = max_width;
+  } else {
+    element->layout.max_width = element->width;
+    max_width = element->width;
+  }
+
+  Array *children = element->children;
+  if (children == 0) return; // No children
+
+  if (element->layout_direction == layout_direction.horizontal) {
+    i32 extra_width = 0;
+    if (max_width > child_width) {
+      extra_width = max_width - child_width;
+    }
+    // How many children have flexible width
+    i32 grow_count = 0;
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      if (child->width == 0) grow_count++;
+    }
+    // Split extra width between children
+    if (extra_width > 0 && grow_count > 0) {
+      extra_width = extra_width / grow_count;
+    }
+    // Set extra width for children
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      i32 new_max_width = child->layout.max_width + extra_width;
+      fill_max_width(child, new_max_width);
+    }
+  }
+  // If layout direction is vertical, set same width for all children
+  else {
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      i32 child_width = max_width - element->padding.left - element->padding.right;
+      fill_max_width(child, child_width);
+    }
+  }
+}
+
+// Increases height of an element and it's children to fill the parent if element-sizing is set to grow
+void fill_max_height(Element *element, i32 max_height) {
+  i32 child_height = element->layout.max_height;
+  if (element->height == 0) {
+    element->layout.max_height = max_height;
+  } else {
+    element->layout.max_height = element->height;
+    max_height = element->height;
+  }
+
+  Array *children = element->children;
+  if (children == 0) return; // No children
+
+  if (element->layout_direction == layout_direction.vertical) {
+    i32 extra_height = 0;
+    if (max_height > child_height) {
+      extra_height = max_height - child_height;
+    }
+    // How many children have flexible height
+    i32 grow_count = 0;
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      if (child->height == 0) grow_count++;
+    }
+    // Split extra height between children
+    if (extra_height > 0 && grow_count > 0) {
+      extra_height = extra_height / grow_count;
+    }
+    // Set extra height for children
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      i32 new_max_height = child->layout.max_height + extra_height;
+      fill_max_height(child, new_max_height);
+    }
+  }
+  // If layout direction is horizontal, set same height for all children
+  else {
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      i32 child_height = max_height - element->padding.top - element->padding.bottom;
+      fill_max_height(child, child_height);
+    }
   }
 }
 
@@ -288,7 +380,13 @@ i32 set_x(Element *element, i32 x) {
   i32 child_x = x + element->layout.scroll_x + element->padding.left;
   Array *children = element->children;
   // No child array is initalized
-  if (children == 0) return x + element->width;
+  if (children == 0) {
+    if (element->width > 0) {
+      return x + element->width;
+    } else {
+      return x + element->layout.max_width;
+    }
+  };
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     // Horizontal layout sets children after each another
@@ -301,10 +399,10 @@ i32 set_x(Element *element, i32 x) {
       set_x(child, child_x);
     }
   }
-  if (element->element_sizing == element_sizing.fixed) {
+  if (element->width > 0) {
     return x + element->width;
   } else {
-    return x + element->layout.scroll_width;
+    return x + element->layout.max_width;
   }
 }
 
@@ -314,7 +412,13 @@ i32 set_y(Element *element, i32 y) {
   i32 child_y = y + element->layout.scroll_y + element->padding.top;
   Array *children = element->children;
   // No child array is initalized
-  if (children == 0) return y + element->height;
+  if (children == 0) {
+    if (element->height > 0) {
+      return y + element->height;
+    } else {
+      return y + element->layout.max_height;
+    }
+  };
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     // Vertical layout sets children after each another
@@ -327,19 +431,65 @@ i32 set_y(Element *element, i32 y) {
       set_y(child, child_y);
     }
   }
-  if (element->element_sizing == element_sizing.fixed) {
+  if (element->height > 0) {
     return y + element->height;
   } else {
-    return y + element->layout.scroll_height;
+    return y + element->layout.max_height;
   }
 }
 
 // Loop through element tree and set LayoutProp dimensions
-void set_dimensions(ElementTree *tree) {
+void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
   set_width(tree->root);
   set_height(tree->root);
+  fill_max_width(tree->root, window_width);
+  fill_max_height(tree->root, window_height);
   set_x(tree->root, 0);
   set_y(tree->root, 0);
+}
+
+i32 get_min_width(Element *element) {
+  Array *children = element->children;
+  if (children == 0) {
+    return element->width;
+  }
+  i32 element_padding = element->padding.left + element->padding.right;
+  i32 width = element_padding;
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    i32 child_width = get_min_width(child);
+    if (element->layout_direction == layout_direction.horizontal) {
+      width += child_width;
+      if (i != 0) {
+        width += element->gutter;
+      }
+    } else if (child_width + element_padding > width) {
+      width = child_width + element_padding;
+    }
+  }
+  return width;
+}
+
+i32 get_min_height(Element *element) {
+  Array *children = element->children;
+  if (children == 0) {
+    return element->height;
+  }
+  i32 element_padding = element->padding.top + element->padding.bottom;
+  i32 height = element_padding;
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    i32 child_height = get_min_height(child);
+    if (element->layout_direction == layout_direction.vertical) {
+      height += child_height;
+      if (i != 0) {
+        height += element->gutter;
+      }
+    } else if (child_height + element_padding > height) {
+      height = child_height + element_padding;
+    }
+  }
+  return height;
 }
 
 #define C9_LAYOUT

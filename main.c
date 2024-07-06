@@ -28,6 +28,8 @@ i32 main() {
   i32 mouse_x = 0;
   i32 mouse_y = 0;
   i32 scroll_y = 0;
+  i32 window_width = 640;
+  i32 window_height = 640;
 
   RGBA white = 0xFFFFFFFF;
   RGBA white_2 = 0xF8F8F8FF;
@@ -58,7 +60,7 @@ i32 main() {
   // Create SDL window
   SDL_Window *window = SDL_CreateWindow(
     "Window Title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-    640, 640, 0
+    window_width, window_height, SDL_WINDOW_RESIZABLE
   );
   if (!window) {
     printf("SDL_CreateWindow: %s\n", SDL_GetError());
@@ -90,6 +92,7 @@ i32 main() {
 
   // Top panel
   Element *top_panel = add_new_element(element_arena, element_tree->root);
+  top_panel->height = 50;
 
   // Bottom panel
   Element *bottom_panel = add_new_element(element_arena, element_tree->root);
@@ -97,9 +100,7 @@ i32 main() {
   // Logo panel
   Element *top_left_panel = add_new_element(element_arena, top_panel);
   *top_left_panel = (Element){
-    .element_sizing = element_sizing.fixed,
     .width = 200,
-    .height = 50,
     .background_type = background_type.horizontal_gradient,
     .background_gradient = white_shade,
     .border_color = border_color,
@@ -118,9 +119,7 @@ i32 main() {
   // Side panel
   Element *side_panel = add_new_element(element_arena, bottom_panel);
   *side_panel = (Element){
-    .element_sizing = element_sizing.fixed,
     .width = 200,
-    .height = 640,
     .background_type = background_type.horizontal_gradient,
     .background_gradient = gray_1_shade,
     .padding = (Padding){10, 10, 10, 10},
@@ -133,9 +132,6 @@ i32 main() {
   // Content pane
   Element *content_panel = add_new_element(element_arena, bottom_panel);
   *content_panel = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 440,
-    .height = 590,
     .background_type = background_type.color,
     .background_color = white,
     .padding = (Padding){10, 10, 10, 10},
@@ -144,8 +140,6 @@ i32 main() {
   // Menu element
   Element *menu_item = add_new_element(element_arena, side_panel);
   *menu_item = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 180,
     .height = 30,
     .background_type = background_type.color,
     .background_color = border_color,
@@ -156,8 +150,6 @@ i32 main() {
   // Menu element 2
   Element *menu_item_2 = add_new_element(element_arena, side_panel);
   *menu_item_2 = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 180,
     .height = 30,
     .background_type = background_type.color,
     .background_color = border_color,
@@ -168,8 +160,6 @@ i32 main() {
   // Search bar
   Element *search_bar = add_new_element(element_arena, top_right_panel);
   *search_bar = (Element){
-    .element_sizing = element_sizing.fixed,
-    .width = 420,
     .height = 30,
     .background_type = background_type.color,
     .background_color = white,
@@ -178,7 +168,12 @@ i32 main() {
     .border = (Border){1, 1, 1, 1},
   };
 
-  set_dimensions(element_tree);
+  i32 min_width = get_min_width(element_tree->root);
+  printf("Min width: %d\n", min_width);
+  i32 min_height = get_min_height(element_tree->root);
+  printf("Min height: %d\n", min_height);
+  set_dimensions(element_tree, window_width, window_height);
+
   if (element_tree->root->children == 0) {
     printf("No children\n");
   }
@@ -191,7 +186,18 @@ i32 main() {
     if (SDL_WaitEvent(&event)) {
       if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-          printf("Window resized\n");
+          i32 width = event.window.data1;
+          i32 height = event.window.data2;
+          if (width < min_width) {
+            width = min_width;
+          }
+          if (height < min_height) {
+            height = min_height;
+          }
+
+          SDL_SetWindowSize(window, width, height);
+          set_dimensions(element_tree, width, height);
+          redraw = true;
         }
       } else if (event.type == SDL_KEYDOWN) {
         printf("Key press\n");
@@ -225,6 +231,7 @@ i32 main() {
         printf("SDL_RenderClear: %s\n", SDL_GetError());
         return -1;
       }
+
       render_element_tree(renderer, element_tree);
       draw_text(renderer, Inter, "Hello, World!", 20, 65);
       draw_text(renderer, Inter, "Search", 220, 15);

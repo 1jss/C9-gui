@@ -15,10 +15,16 @@ void draw_elements(SDL_Renderer *renderer, Element *element) {
     .width = element->width,
     .height = element->height
   };
-  if (element->element_sizing != element_sizing.fixed) {
-    rectangle.width = element->layout.scroll_width;
-    rectangle.height = element->layout.scroll_height;
+  if (rectangle.width == 0) {
+    rectangle.width = element->layout.max_width;
   }
+  if (rectangle.height == 0) {
+    rectangle.height = element->layout.max_height;
+  }
+  // Invalid shape
+  if (rectangle.width == 0 || rectangle.height == 0) {
+    return;
+  };
   BorderSize border_size = {
     .top = element->border.top,
     .right = element->border.right,
@@ -57,7 +63,6 @@ void draw_elements(SDL_Renderer *renderer, Element *element) {
 }
 
 void render_element_tree(SDL_Renderer *renderer, ElementTree *element_tree) {
-  printf("Rendering element tree\n");
   draw_elements(renderer, element_tree->root);
 }
 
