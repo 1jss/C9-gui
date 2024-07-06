@@ -1,18 +1,12 @@
-#include <SDL2/SDL.h>
-#include <dirent.h>
+#include <SDL2/SDL.h> // SDL_CreateWindow, SDL_DestroyWindow, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_SetRenderDrawColor, SDL_RenderClear, SDL_RenderPresent, SDL_Delay, SDL_Event, SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEMOTION, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT
 #include <stdbool.h> // bool
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "include/SDL_ttf.h"
-#include "include/arena.h"
-#include "include/array.h"
-#include "include/color.h"
-#include "include/draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle, draw_superellipse, draw_filled_superellipse
-#include "include/layout.h"
-#include "include/renderer.h"
-#include "include/string.h"
-#include "include/types.h"
+#include <stdio.h> // printf
+#include "include/SDL_ttf.h" // TTF_Init, TTF_OpenFont, TTF_RenderText_Blended, TTF_CloseFont
+#include "include/arena.h" // Arena, arena_open, arena_close
+#include "include/color.h" // RGBA, C9_Gradient
+#include "include/layout.h" // Element, ElementTree, new_element_tree, add_new_element, get_min_width, get_min_height, set_dimensions, layout_direction, background_type, background_gradient, Border, Padding
+#include "include/renderer.h" // render_element_tree
+#include "include/types.h" // i32
 
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y) {
   const SDL_Color dark_gray = {50, 50, 50, SDL_ALPHA_OPAQUE};
