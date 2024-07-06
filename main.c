@@ -134,7 +134,6 @@ i32 main() {
     .border = (Border){0, 0, 1, 0},
   };
 
-  // Side panel
   Element *side_panel = add_new_element(element_arena, bottom_panel);
   *side_panel = (Element){
     .width = 200,
@@ -147,7 +146,6 @@ i32 main() {
     .border = (Border){0, 1, 0, 0},
   };
 
-  // Content pane
   Element *content_panel = add_new_element(element_arena, bottom_panel);
   *content_panel = (Element){
     .background_type = background_type.color,
@@ -155,7 +153,6 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
   };
 
-  // Menu element
   Element *menu_item = add_new_element(element_arena, side_panel);
   *menu_item = (Element){
     .height = 30,
@@ -165,7 +162,6 @@ i32 main() {
     .border_radius = 15,
   };
 
-  // Menu element 2
   Element *menu_item_2 = add_new_element(element_arena, side_panel);
   *menu_item_2 = (Element){
     .height = 30,
@@ -175,7 +171,6 @@ i32 main() {
     .border_radius = 15,
   };
 
-  // Search bar
   Element *search_bar = add_new_element(element_arena, top_right_panel);
   *search_bar = (Element){
     .min_width = 100,
