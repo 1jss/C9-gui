@@ -36,13 +36,8 @@ s8 to_s8(char *string) {
   return (s8){(uint8_t *)string, length};
 }
 
-char *to_char(Arena *arena, s8 string) {
-  char *chars = (char *)arena_fill(arena, string.length + 1);
-  for (size_t i = 0; i < string.length; i++) {
-    chars[i] = string.data[i];
-  }
-  chars[string.length] = '\0';
-  return chars;
+char *to_char(s8 string){
+  return (char*)(string.data);
 }
 
 void print_s8(s8 string) {

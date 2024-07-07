@@ -8,16 +8,6 @@
 #include "include/renderer.h" // render_element_tree
 #include "include/types.h" // i32
 
-void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y) {
-  const SDL_Color dark_gray = {50, 50, 50, SDL_ALPHA_OPAQUE};
-  SDL_Surface *surface = TTF_RenderText_Blended(font, text, dark_gray);
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  SDL_Rect rect = {x, y, surface->w, surface->h};
-  SDL_RenderCopy(renderer, texture, NULL, &rect);
-  SDL_FreeSurface(surface);
-  SDL_DestroyTexture(texture);
-}
-
 #if 0
 i32 resizeWatcher(void *data, SDL_Event *event) {
   if (event->type == SDL_WINDOWEVENT &&
@@ -43,6 +33,10 @@ void click_item_2(void *item) {
   printf("Clicked menu item 2\n");
 }
 
+void click_item_3(void *item) {
+  printf("Clicked menu item 3\n");
+}
+
 void click_serach_bar(void *item) {
   printf("Clicked search bar\n");
 }
@@ -59,6 +53,7 @@ i32 main() {
   RGBA gray_1 = 0xF8F9FAFF;
   RGBA gray_2 = 0xF2F3F4FF;
   RGBA border_color = 0xDEE2E6FF;
+  RGBA text_color = 0x555555FF;
 
   C9_Gradient white_shade = {
     .start_color = white,
@@ -166,17 +161,29 @@ i32 main() {
     .background_color = border_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
+    .text = to_s8("Menu item 1"),
+    .text_color = text_color,
     .on_click = &click_item_1,
   };
 
   Element *menu_item_2 = add_new_element(tree, side_panel);
   *menu_item_2 = (Element){
     .height = 30,
-    .background_type = background_type.color,
-    .background_color = border_color,
+    .background_type = background_type.none,
     .padding = (Padding){5, 10, 5, 10},
-    .border_radius = 15,
+    .text = to_s8("Menu item 2"),
+    .text_color = text_color,
     .on_click = &click_item_2,
+  };
+
+  Element *menu_item_3 = add_new_element(tree, side_panel);
+  *menu_item_3 = (Element){
+    .height = 30,
+    .background_type = background_type.none,
+    .padding = (Padding){5, 10, 5, 10},
+    .text = to_s8("Menu item 3"),
+    .text_color = text_color,
+    .on_click = &click_item_3,
   };
 
   Element *search_bar = add_new_element(tree, top_right_panel);
@@ -188,6 +195,8 @@ i32 main() {
     .border_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
+    .text = to_s8("Search"),
+    .text_color = text_color,
     .on_click = &click_serach_bar,
   };
 
@@ -256,9 +265,7 @@ i32 main() {
         return -1;
       }
 
-      render_element_tree(renderer, tree);
-      draw_text(renderer, Inter, "Hello, World!", 20, 65);
-      draw_text(renderer, Inter, "Search", 220, 15);
+      render_element_tree(renderer, Inter, tree);
       // Draw back buffer to screen
       SDL_RenderPresent(renderer);
       redraw = false;

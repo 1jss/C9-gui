@@ -139,7 +139,7 @@ Element empty_element = {
   .min_width = 0,
   .min_height = 0,
   .gutter = 0,
-  .text = {0},
+  .text = {.data = 0, .length = 0},
   .text_color = C9_default_text_color,
   .on_click = 0,
   .padding = {0, 0, 0, 0},
@@ -458,7 +458,7 @@ Element *get_element_at(Element *element, i32 x, i32 y) {
 i32 get_min_width(Element *element) {
   Array *children = element->children;
   if (children == 0) {
-    if(element->width > element->min_width) {
+    if (element->width > element->min_width) {
       return element->width;
     } else {
       return element->min_width;
@@ -484,7 +484,7 @@ i32 get_min_width(Element *element) {
 i32 get_min_height(Element *element) {
   Array *children = element->children;
   if (children == 0) {
-    if(element->height > element->min_height) {
+    if (element->height > element->min_height) {
       return element->height;
     } else {
       return element->min_height;

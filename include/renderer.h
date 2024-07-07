@@ -8,7 +8,7 @@
 #include "types.h" // i32
 
 // Recursively draws all elements
-void draw_elements(SDL_Renderer *renderer, Element *element) {
+void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element) {
   Rectangle rectangle = {
     .x = element->layout.x,
     .y = element->layout.y,
@@ -54,16 +54,23 @@ void draw_elements(SDL_Renderer *renderer, Element *element) {
     draw_vertical_gradient(renderer, rectangle, element->background_gradient);
     draw_border(renderer, rectangle, border_size, element->border_color);
   }
+  if (element->text.length > 0) {
+    i32 text_x = rectangle.x + element->padding.left;
+    i32 text_y = rectangle.y + element->padding.top;
+    draw_text(
+      renderer, font, to_char(element->text), text_x, text_y, element->text_color
+    );
+  }
   Array *children = element->children;
   if (children == 0) return;
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, child);
+    draw_elements(renderer, font, child);
   }
 }
 
-void render_element_tree(SDL_Renderer *renderer, ElementTree *element_tree) {
-  draw_elements(renderer, element_tree->root);
+void render_element_tree(SDL_Renderer *renderer, TTF_Font *font, ElementTree *element_tree) {
+  draw_elements(renderer, font, element_tree->root);
 }
 
 #define C9_RENDERER
