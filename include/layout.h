@@ -67,7 +67,7 @@ const BackgroundType background_type = {
 // Function pointer typedef for onclick.
 // The function takes a pointer to the clicked element and a pointer to any other data as arguments.
 // Todo: Fix the type of the first pointer
-typedef void (*OnClick)(void *, void *);
+typedef void (*OnClick)(void *);
 
 typedef struct {
   i32 x;
@@ -505,6 +505,12 @@ i32 get_min_height(Element *element) {
     }
   }
   return height;
+}
+
+void click_handler(Element *element) {
+  if (element != 0 && element->on_click != 0) {
+    element->on_click(element);
+  }
 }
 
 #define C9_LAYOUT

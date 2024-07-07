@@ -35,6 +35,18 @@ i32 resizeWatcher(void *data, SDL_Event *event) {
 }
 #endif
 
+void click_item_1(void *item) {
+  printf("Clicked menu item 1\n");
+}
+
+void click_item_2(void *item) {
+  printf("Clicked menu item 2\n");
+}
+
+void click_serach_bar(void *item) {
+  printf("Clicked search bar\n");
+}
+
 i32 main() {
   // i32 mouse_x = 0;
   // i32 mouse_y = 0;
@@ -152,8 +164,9 @@ i32 main() {
     .height = 30,
     .background_type = background_type.color,
     .background_color = border_color,
-    .padding = (Padding){10, 10, 10, 10},
+    .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
+    .on_click = &click_item_1,
   };
 
   Element *menu_item_2 = add_new_element(element_arena, side_panel);
@@ -161,8 +174,9 @@ i32 main() {
     .height = 30,
     .background_type = background_type.color,
     .background_color = border_color,
-    .padding = (Padding){10, 10, 10, 10},
+    .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
+    .on_click = &click_item_2,
   };
 
   Element *search_bar = add_new_element(element_arena, top_right_panel);
@@ -170,9 +184,11 @@ i32 main() {
     .min_width = 100,
     .background_type = background_type.color,
     .background_color = white,
+    .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
+    .on_click = &click_serach_bar,
   };
 
   i32 min_width = get_min_width(element_tree->root);
@@ -225,9 +241,7 @@ i32 main() {
         i32 mouse_down_x = event.button.x;
         i32 mouse_down_y = event.button.y;
         element_tree->active_element = get_element_at(element_tree->root, mouse_down_x, mouse_down_y);
-        // if (element_tree->active_element) {
-        //   printf("Active element: %d\n", element_tree->active_element->layout.x);
-        // }
+        click_handler(element_tree->active_element);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;
