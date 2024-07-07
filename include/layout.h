@@ -187,10 +187,10 @@ ElementTree *new_element_tree(Arena *arena) {
 }
 
 // Add a new child element to a parent and return a pointer to it
-Element *add_new_element(Arena *arena, Element *parent) {
+Element *add_new_element(ElementTree *tree, Element *parent) {
   // If the parent element has no children, create a new array
   if (parent->children == 0) {
-    parent->children = array_create(arena, sizeof(Element));
+    parent->children = array_create(tree->arena, sizeof(Element));
   }
   // Add a new child element to the parent element
   array_push(parent->children, &empty_element);

@@ -112,17 +112,17 @@ i32 main() {
 
   Arena *element_arena = arena_open(1024);
   // Root element
-  ElementTree *element_tree = new_element_tree(element_arena);
-  element_tree->root->layout_direction = layout_direction.vertical;
+  ElementTree *tree = new_element_tree(element_arena);
+  tree->root->layout_direction = layout_direction.vertical;
 
   // Top panel
-  Element *top_panel = add_new_element(element_arena, element_tree->root);
+  Element *top_panel = add_new_element(tree, tree->root);
   top_panel->height = 50;
 
   // Bottom panel
-  Element *bottom_panel = add_new_element(element_arena, element_tree->root);
+  Element *bottom_panel = add_new_element(tree, tree->root);
 
-  Element *top_left_panel = add_new_element(element_arena, top_panel);
+  Element *top_left_panel = add_new_element(tree, top_panel);
   *top_left_panel = (Element){
     .width = 200,
     .background_type = background_type.horizontal_gradient,
@@ -131,7 +131,7 @@ i32 main() {
     .border = (Border){0, 1, 1, 0},
   };
 
-  Element *top_right_panel = add_new_element(element_arena, top_panel);
+  Element *top_right_panel = add_new_element(tree, top_panel);
   *top_right_panel = (Element){
     .background_type = background_type.color,
     .background_color = white,
@@ -140,7 +140,7 @@ i32 main() {
     .border = (Border){0, 0, 1, 0},
   };
 
-  Element *side_panel = add_new_element(element_arena, bottom_panel);
+  Element *side_panel = add_new_element(tree, bottom_panel);
   *side_panel = (Element){
     .width = 200,
     .background_type = background_type.horizontal_gradient,
@@ -152,14 +152,14 @@ i32 main() {
     .border = (Border){0, 1, 0, 0},
   };
 
-  Element *content_panel = add_new_element(element_arena, bottom_panel);
+  Element *content_panel = add_new_element(tree, bottom_panel);
   *content_panel = (Element){
     .background_type = background_type.color,
     .background_color = white,
     .padding = (Padding){10, 10, 10, 10},
   };
 
-  Element *menu_item = add_new_element(element_arena, side_panel);
+  Element *menu_item = add_new_element(tree, side_panel);
   *menu_item = (Element){
     .height = 30,
     .background_type = background_type.color,
@@ -169,7 +169,7 @@ i32 main() {
     .on_click = &click_item_1,
   };
 
-  Element *menu_item_2 = add_new_element(element_arena, side_panel);
+  Element *menu_item_2 = add_new_element(tree, side_panel);
   *menu_item_2 = (Element){
     .height = 30,
     .background_type = background_type.color,
@@ -179,7 +179,7 @@ i32 main() {
     .on_click = &click_item_2,
   };
 
-  Element *search_bar = add_new_element(element_arena, top_right_panel);
+  Element *search_bar = add_new_element(tree, top_right_panel);
   *search_bar = (Element){
     .min_width = 100,
     .background_type = background_type.color,
@@ -191,11 +191,11 @@ i32 main() {
     .on_click = &click_serach_bar,
   };
 
-  i32 min_width = get_min_width(element_tree->root);
-  i32 min_height = get_min_height(element_tree->root);
-  set_dimensions(element_tree, window_width, window_height);
+  i32 min_width = get_min_width(tree->root);
+  i32 min_height = get_min_height(tree->root);
+  set_dimensions(tree, window_width, window_height);
 
-  if (element_tree->root->children == 0) {
+  if (tree->root->children == 0) {
     printf("No children\n");
   }
 
@@ -217,7 +217,7 @@ i32 main() {
           }
           // Cap to min width and height
           SDL_SetWindowSize(window, width, height);
-          set_dimensions(element_tree, width, height);
+          set_dimensions(tree, width, height);
           redraw = true;
         }
       } else if (event.type == SDL_KEYDOWN) {
@@ -240,8 +240,8 @@ i32 main() {
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         i32 mouse_down_x = event.button.x;
         i32 mouse_down_y = event.button.y;
-        element_tree->active_element = get_element_at(element_tree->root, mouse_down_x, mouse_down_y);
-        click_handler(element_tree->active_element);
+        tree->active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
+        click_handler(tree->active_element);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;
@@ -256,7 +256,7 @@ i32 main() {
         return -1;
       }
 
-      render_element_tree(renderer, element_tree);
+      render_element_tree(renderer, tree);
       draw_text(renderer, Inter, "Hello, World!", 20, 65);
       draw_text(renderer, Inter, "Search", 220, 15);
       // Draw back buffer to screen
