@@ -110,7 +110,7 @@ i32 main() {
   TTF_Font *Inter = TTF_OpenFont("Inter-Regular.ttf", 16);
   SDL_Event event;
 
-  Arena *element_arena = arena_open(1024);
+  Arena *element_arena = arena_open(4096);
   // Root element
   ElementTree *tree = new_element_tree(element_arena);
   tree->root->layout_direction = layout_direction.vertical;
