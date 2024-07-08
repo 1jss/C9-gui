@@ -33,7 +33,7 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element) {
   };
   i32 border_width = element->border.top;
   if (element->background_type == background_type.none) {
-    if (element->border_radius > 0) {
+    if (element->border_radius > 0 && element->border.top == 1) {
       draw_rounded_rectangle(renderer, rectangle, element->border_radius, element->border_color);
     }
   } else if (element->background_type == background_type.color) {

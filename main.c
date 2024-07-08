@@ -25,19 +25,46 @@ i32 resizeWatcher(void *data, SDL_Event *event) {
 }
 #endif
 
-void click_item_1(void *item) {
+void reset_menu_elements(Element *side_panel) {
+  // Loop through all children and set background color to none
+  Array *children = side_panel->children;
+  if (children == 0) {
+    return;
+  }
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    child->background_type = background_type.none;
+  }
+}
+
+void set_active_menu_element(Element *element) {
+  element->background_type = background_type.color;
+}
+
+void set_menu(ElementTree *tree, Element *side_panel){
+Element *active_element = tree->active_element;
+  reset_menu_elements(side_panel);
+  set_active_menu_element(active_element);
+  tree->rerender = rerender_type.selected;
+  tree->rerender_element = side_panel;
+}
+
+void click_item_1(ElementTree *tree, void *data) {
+  set_menu(tree, (Element *)data);
   printf("Clicked menu item 1\n");
 }
 
-void click_item_2(void *item) {
+void click_item_2(ElementTree *tree, void *data) {
+  set_menu(tree, (Element *)data);
   printf("Clicked menu item 2\n");
 }
 
-void click_item_3(void *item) {
+void click_item_3(ElementTree *tree, void *data) {
+  set_menu(tree, (Element *)data);
   printf("Clicked menu item 3\n");
 }
 
-void click_serach_bar(void *item) {
+void click_serach_bar(ElementTree *tree, void *data) {
   printf("Clicked search bar\n");
 }
 
@@ -156,8 +183,9 @@ i32 main() {
 
   Element *menu_item = add_new_element(tree, side_panel);
   *menu_item = (Element){
+    .element_group = 1,
     .height = 30,
-    .background_type = background_type.color,
+    .background_type = background_type.none,
     .background_color = border_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
@@ -168,9 +196,12 @@ i32 main() {
 
   Element *menu_item_2 = add_new_element(tree, side_panel);
   *menu_item_2 = (Element){
+    .element_group = 1,
     .height = 30,
     .background_type = background_type.none,
+    .background_color = border_color,
     .padding = (Padding){5, 10, 5, 10},
+    .border_radius = 15,
     .text = to_s8("Menu item 2"),
     .text_color = text_color,
     .on_click = &click_item_2,
@@ -178,9 +209,12 @@ i32 main() {
 
   Element *menu_item_3 = add_new_element(tree, side_panel);
   *menu_item_3 = (Element){
+    .element_group = 1,
     .height = 30,
     .background_type = background_type.none,
+    .background_color = border_color,
     .padding = (Padding){5, 10, 5, 10},
+    .border_radius = 15,
     .text = to_s8("Menu item 3"),
     .text_color = text_color,
     .on_click = &click_item_3,
@@ -210,7 +244,6 @@ i32 main() {
 
   // Begin main loop
   bool done = false;
-  bool redraw = true;
   while (!done) {
     // Wait for events before rendering
     if (SDL_WaitEvent(&event)) {
@@ -227,7 +260,7 @@ i32 main() {
           // Cap to min width and height
           SDL_SetWindowSize(window, width, height);
           set_dimensions(tree, width, height);
-          redraw = true;
+          tree->rerender = rerender_type.all;
         }
       } else if (event.type == SDL_KEYDOWN) {
         printf("Key press\n");
@@ -250,14 +283,20 @@ i32 main() {
         i32 mouse_down_x = event.button.x;
         i32 mouse_down_y = event.button.y;
         tree->active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
-        click_handler(tree->active_element);
+        // If menu item is clicked, pass the side panel ref as data
+        if (tree->active_element->element_group == 1) {
+          click_handler(tree, side_panel);
+        } else {
+          click_handler(tree, 0);
+        }
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;
       }
     }
 
-    if (redraw) {
+    if (tree->rerender == rerender_type.all || tree->rerender == rerender_type.selected) {
+      printf("Rerender all\n");
       // Clear back buffer
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
       if (SDL_RenderClear(renderer)) {
@@ -268,8 +307,19 @@ i32 main() {
       render_element_tree(renderer, Inter, tree);
       // Draw back buffer to screen
       SDL_RenderPresent(renderer);
-      redraw = false;
+      tree->rerender = rerender_type.none;
+    } 
+    #if 0
+    // Back rederer is not stable, so partial rendering can not be done like this:
+    if (tree->rerender != rerender_type.selected && tree->rerender_element != 0) {
+      printf("Rerender selected\n");
+      draw_elements(renderer, Inter, tree->rerender_element);
+      // Draw back buffer to screen
+      SDL_RenderPresent(renderer);
+      tree->rerender = rerender_type.none;
+      tree->rerender_element = 0;
     }
+    #endif
 
     // Throttle frame rate to 60fps
     SDL_Delay(1000 / 60);

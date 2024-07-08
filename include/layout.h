@@ -10,19 +10,17 @@ const RGBA C9_default_background_color = 0xFFFFFFFF;
 const RGBA C9_default_text_color = 0x000000FF;
 const RGBA C9_default_border_color = 0x000000FF;
 
-// Element type
+// Type of rerender
 typedef struct {
-  u8 container; // Layout container
-  u8 label; // Leaf element for label
-  u8 button; // Element is clickable
-  u8 input; // Element contains text and is editable
-} ElementType;
+  u8 none;
+  u8 all;
+  u8 selected;
+} RerenderType;
 
-static const ElementType element_type = {
-  .container = 0,
-  .label = 1,
-  .button = 2,
-  .input = 3,
+const RerenderType rerender_type = {
+  .none = 0,
+  .all = 1,
+  .selected = 2,
 };
 
 // Layout alignment
@@ -64,10 +62,13 @@ const BackgroundType background_type = {
   .vertical_gradient = 3,
 };
 
+// Forward declaration of ElementTree
+struct ElementTree;
+typedef struct ElementTree ElementTree;
+
 // Function pointer typedef for onclick.
-// The function takes a pointer to the clicked element and a pointer to any other data as arguments.
-// Todo: Fix the type of the first pointer
-typedef void (*OnClick)(void *);
+// The function takes a pointer to the ElementTree and a pointer to any other data, such as an element.
+typedef void (*OnClick)(ElementTree *, void *);
 
 typedef struct {
   i32 x;
@@ -103,7 +104,7 @@ typedef struct {
 
 // element tree nodes
 typedef struct Element {
-  u8 element_type;
+  u8 element_group; // Optional group for elements
   u8 background_type;
   RGBA background_color;
   C9_Gradient background_gradient;
@@ -125,7 +126,7 @@ typedef struct Element {
 } Element;
 
 Element empty_element = {
-  .element_type = 0,
+  .element_group = 0,
   .background_type = 0, // No background color
   .background_color = C9_default_background_color,
   .background_gradient = {
@@ -158,12 +159,14 @@ Element empty_element = {
   },
 };
 
-// root element
-typedef struct {
+// Element Tree already typedefed
+struct ElementTree {
   Arena *arena;
   Element *root;
   Element *active_element;
-} ElementTree;
+  Element *rerender_element;
+  u8 rerender;
+};
 
 // Create a new element tree and return a pointer to it
 ElementTree *new_element_tree(Arena *arena) {
@@ -183,6 +186,8 @@ ElementTree *new_element_tree(Arena *arena) {
   // Assign the root element to the tree
   tree->root = root;
   tree->active_element = 0;
+  tree->rerender_element = 0;
+  tree->rerender = rerender_type.all;
   return tree;
 }
 
@@ -507,9 +512,10 @@ i32 get_min_height(Element *element) {
   return height;
 }
 
-void click_handler(Element *element) {
+void click_handler(ElementTree *tree, void *data) {
+  Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
-    element->on_click(element);
+    element->on_click(tree, data);
   }
 }
 

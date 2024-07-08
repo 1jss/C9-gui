@@ -44,7 +44,4 @@ Render image directly to texture:
 
 
 ## Todo
-- Text rendering
 - Text input
-- Button clicking
-- Active element
