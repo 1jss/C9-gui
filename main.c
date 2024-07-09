@@ -25,6 +25,24 @@ i32 resizeWatcher(void *data, SDL_Event *event) {
 }
 #endif
 
+const RGBA white = 0xFFFFFFFF;
+const RGBA white_2 = 0xF8F8F8FF;
+const RGBA gray_1 = 0xF8F9FAFF;
+const RGBA gray_2 = 0xF2F3F4FF;
+const RGBA border_color = 0xDEE2E6FF;
+const RGBA border_color_active = 0xADAFB2FF;
+const RGBA text_color = 0x555555FF;
+const RGBA text_color_active = 0x222222FF;
+
+// Sets selective rerendering if no rendering is set
+void set_rerender(ElementTree *tree) {
+  if (tree->rerender == rerender_type.none) {
+    tree->rerender = rerender_type.selected;
+  } else {
+    tree->rerender = rerender_type.all;
+  }
+}
+
 void reset_menu_elements(Element *side_panel) {
   // Loop through all children and set background color to none
   Array *children = side_panel->children;
@@ -34,19 +52,31 @@ void reset_menu_elements(Element *side_panel) {
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     child->background_type = background_type.none;
+    child->text_color = text_color;
   }
 }
 
 void set_active_menu_element(Element *element) {
   element->background_type = background_type.color;
+  element->text_color = text_color_active;
 }
 
 void set_menu(ElementTree *tree, Element *side_panel) {
   Element *active_element = tree->active_element;
   reset_menu_elements(side_panel);
   set_active_menu_element(active_element);
-  tree->rerender = rerender_type.selected;
+  set_rerender(tree);
   tree->rerender_element = side_panel;
+}
+
+void set_active_input(Element *element) {
+  element->border_color = border_color_active;
+  element->text_color = text_color_active;
+}
+
+void set_passive_input(Element *element) {
+  element->border_color = border_color;
+  element->text_color = text_color;
 }
 
 void click_item_1(ElementTree *tree, void *data) {
@@ -64,8 +94,20 @@ void click_item_3(ElementTree *tree, void *data) {
   printf("Clicked menu item 3\n");
 }
 
-void click_serach_bar(ElementTree *tree, void *data) {
+void click_search_bar(ElementTree *tree, void *data) {
+  set_active_input(tree->active_element);
+  set_rerender(tree);
+  Element *panel = data;
+  tree->rerender_element = panel;
   printf("Clicked search bar\n");
+}
+
+void blur_search_bar(ElementTree *tree, void *data) {
+  set_passive_input(tree->active_element);
+  set_rerender(tree);
+  Element *panel = data;
+  tree->rerender_element = panel;
+  printf("Blurred search bar\n");
 }
 
 i32 main() {
@@ -74,13 +116,6 @@ i32 main() {
   i32 scroll_y = 0;
   i32 window_width = 640;
   i32 window_height = 640;
-
-  RGBA white = 0xFFFFFFFF;
-  RGBA white_2 = 0xF8F8F8FF;
-  RGBA gray_1 = 0xF8F9FAFF;
-  RGBA gray_2 = 0xF2F3F4FF;
-  RGBA border_color = 0xDEE2E6FF;
-  RGBA text_color = 0x555555FF;
 
   C9_Gradient white_shade = {
     .start_color = white,
@@ -184,9 +219,11 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
   };
 
+  u8 menu_group = 1;
+
   Element *menu_item = add_new_element(tree, side_panel);
   *menu_item = (Element){
-    .element_group = 1,
+    .element_group = menu_group,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -199,7 +236,7 @@ i32 main() {
 
   Element *menu_item_2 = add_new_element(tree, side_panel);
   *menu_item_2 = (Element){
-    .element_group = 1,
+    .element_group = menu_group,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -212,7 +249,7 @@ i32 main() {
 
   Element *menu_item_3 = add_new_element(tree, side_panel);
   *menu_item_3 = (Element){
-    .element_group = 1,
+    .element_group = menu_group,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -223,8 +260,10 @@ i32 main() {
     .on_click = &click_item_3,
   };
 
+  u8 search_group = 2;
   Element *search_bar = add_new_element(tree, top_right_panel);
   *search_bar = (Element){
+    .element_group = search_group,
     .min_width = 100,
     .background_type = background_type.color,
     .background_color = white,
@@ -234,7 +273,8 @@ i32 main() {
     .border = (Border){1, 1, 1, 1},
     .text = to_s8("Search"),
     .text_color = text_color,
-    .on_click = &click_serach_bar,
+    .on_click = &click_search_bar,
+    .on_blur = &blur_search_bar,
   };
 
   i32 min_width = get_min_width(tree->root);
@@ -293,12 +333,20 @@ i32 main() {
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         i32 mouse_down_x = event.button.x;
         i32 mouse_down_y = event.button.y;
-        tree->active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
-        // If menu item is clicked, pass the side panel ref as data
-        if (tree->active_element->element_group == 1) {
-          click_handler(tree, side_panel);
-        } else {
-          click_handler(tree, 0);
+        Element *blurred_element = tree->active_element;
+        if (blurred_element != 0) {
+          if (blurred_element->element_group == search_group) {
+            blur_handler(tree, top_right_panel);
+          }
+        }
+        Element *active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
+        if (active_element != 0) {
+          tree->active_element = active_element;
+          if (active_element->element_group == menu_group) {
+            click_handler(tree, side_panel);
+          } else if (active_element->element_group == search_group) {
+            click_handler(tree, top_right_panel);
+          }
         }
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
@@ -307,6 +355,7 @@ i32 main() {
     }
 
     if (tree->rerender == rerender_type.all) {
+      printf("Rerender all\n");
       SDL_SetRenderTarget(renderer, target_texture);
       // Clear buffer
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -320,7 +369,9 @@ i32 main() {
       SDL_RenderCopy(renderer, target_texture, NULL, NULL);
       SDL_RenderPresent(renderer);
       tree->rerender = rerender_type.none;
+      tree->rerender_element = 0;
     } else if (tree->rerender == rerender_type.selected && tree->rerender_element != 0) {
+      printf("Rerender selected\n");
       SDL_SetRenderTarget(renderer, target_texture);
       draw_elements(renderer, Inter, tree->rerender_element);
       // Draw target_texture to back buffer and present

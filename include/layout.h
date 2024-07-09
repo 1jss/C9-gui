@@ -66,9 +66,9 @@ const BackgroundType background_type = {
 struct ElementTree;
 typedef struct ElementTree ElementTree;
 
-// Function pointer typedef for onclick.
+// Function pointer typedef for on_click and on_blur
 // The function takes a pointer to the ElementTree and a pointer to any other data, such as an element.
-typedef void (*OnClick)(ElementTree *, void *);
+typedef void (*OnEvent)(ElementTree *, void *);
 
 typedef struct {
   i32 x;
@@ -115,7 +115,8 @@ typedef struct Element {
   i32 gutter;
   s8 text;
   RGBA text_color;
-  OnClick on_click; // Function pointer
+  OnEvent on_click; // Function pointer
+  OnEvent on_blur; // Function pointer
   Padding padding;
   Border border;
   i32 border_radius;
@@ -143,6 +144,7 @@ Element empty_element = {
   .text = {.data = 0, .length = 0},
   .text_color = C9_default_text_color,
   .on_click = 0,
+  .on_blur = 0,
   .padding = {0, 0, 0, 0},
   .border = {0, 0, 0, 0},
   .border_radius = 0,
@@ -524,6 +526,13 @@ void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
     element->on_click(tree, data);
+  }
+}
+
+void blur_handler(ElementTree *tree, void *data) {
+  Element *element = tree->active_element;
+  if (element != 0 && element->on_blur != 0) {
+    element->on_blur(tree, data);
   }
 }
 
