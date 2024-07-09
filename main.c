@@ -41,8 +41,8 @@ void set_active_menu_element(Element *element) {
   element->background_type = background_type.color;
 }
 
-void set_menu(ElementTree *tree, Element *side_panel){
-Element *active_element = tree->active_element;
+void set_menu(ElementTree *tree, Element *side_panel) {
+  Element *active_element = tree->active_element;
   reset_menu_elements(side_panel);
   set_active_menu_element(active_element);
   tree->rerender = rerender_type.selected;
@@ -131,6 +131,9 @@ i32 main() {
   }
   TTF_Font *Inter = TTF_OpenFont("Inter-Regular.ttf", 16);
   SDL_Event event;
+
+  // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
+  SDL_Texture *target_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, window_width, window_height);
 
   Arena *element_arena = arena_open(4096);
   // Root element
@@ -260,6 +263,14 @@ i32 main() {
           // Cap to min width and height
           SDL_SetWindowSize(window, width, height);
           set_dimensions(tree, width, height);
+          // Recreate the target-texture with the new dimensions
+          if (target_texture) {
+            SDL_DestroyTexture(target_texture);
+            target_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
+            if (!target_texture) {
+              printf("SDL_CreateTexture failed: %s\n", SDL_GetError());
+            }
+          }
           tree->rerender = rerender_type.all;
         }
       } else if (event.type == SDL_KEYDOWN) {
@@ -295,36 +306,38 @@ i32 main() {
       }
     }
 
-    if (tree->rerender == rerender_type.all || tree->rerender == rerender_type.selected) {
-      printf("Rerender all\n");
-      // Clear back buffer
+    if (tree->rerender == rerender_type.all) {
+      SDL_SetRenderTarget(renderer, target_texture);
+      // Clear buffer
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
       if (SDL_RenderClear(renderer)) {
         printf("SDL_RenderClear: %s\n", SDL_GetError());
         return -1;
       }
-
       render_element_tree(renderer, Inter, tree);
-      // Draw back buffer to screen
+      // Draw target_texture to back buffer and present
+      SDL_SetRenderTarget(renderer, NULL);
+      SDL_RenderCopy(renderer, target_texture, NULL, NULL);
       SDL_RenderPresent(renderer);
       tree->rerender = rerender_type.none;
-    } 
-    #if 0
-    // Back rederer is not stable, so partial rendering can not be done like this:
-    if (tree->rerender != rerender_type.selected && tree->rerender_element != 0) {
-      printf("Rerender selected\n");
+    } else if (tree->rerender == rerender_type.selected && tree->rerender_element != 0) {
+      SDL_SetRenderTarget(renderer, target_texture);
       draw_elements(renderer, Inter, tree->rerender_element);
-      // Draw back buffer to screen
+      // Draw target_texture to back buffer and present
+      SDL_SetRenderTarget(renderer, NULL);
+      SDL_RenderCopy(renderer, target_texture, NULL, NULL);
       SDL_RenderPresent(renderer);
       tree->rerender = rerender_type.none;
       tree->rerender_element = 0;
     }
-    #endif
 
     // Throttle frame rate to 60fps
     SDL_Delay(1000 / 60);
   }; // End of rendering loop
 
+  if (target_texture) {
+    SDL_DestroyTexture(target_texture);
+  }
   if (renderer) {
     SDL_DestroyRenderer(renderer);
   }

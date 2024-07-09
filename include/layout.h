@@ -483,7 +483,11 @@ i32 get_min_width(Element *element) {
       width = child_width + element_padding;
     }
   }
-  return width;
+  if (element->width > width) {
+    return element->width;
+  } else {
+    return width;
+  }
 }
 
 i32 get_min_height(Element *element) {
@@ -509,7 +513,11 @@ i32 get_min_height(Element *element) {
       height = child_height + element_padding;
     }
   }
-  return height;
+  if (element->height > height) {
+    return element->height;
+  } else {
+    return height;
+  }
 }
 
 void click_handler(ElementTree *tree, void *data) {
