@@ -229,25 +229,23 @@ i32 fill_scroll_width(Element *element) {
   i32 element_padding = element->padding.left + element->padding.right;
   i32 child_width = element_padding;
   Array *children = element->children;
-  if (children == 0) {
-    element->layout.scroll_width = self_width;
-    return self_width;
-  }
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    // Horizontal layout adds widths
-    if (element->layout_direction == layout_direction.horizontal) {
-      // Add gutter before all elements except the first
-      if (i != 0) {
-        child_width += element->gutter;
+  if (children != 0) {
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      // Horizontal layout adds widths
+      if (element->layout_direction == layout_direction.horizontal) {
+        // Add gutter before all elements except the first
+        if (i != 0) {
+          child_width += element->gutter;
+        }
+        child_width += fill_scroll_width(child);
       }
-      child_width += fill_scroll_width(child);
-    }
-    // Vertical layout uses largest width
-    else {
-      i32 current_child_width = fill_scroll_width(child);
-      if (child_width < current_child_width) {
-        child_width = current_child_width + element_padding;
+      // Vertical layout uses largest width
+      else {
+        i32 current_child_width = fill_scroll_width(child);
+        if (child_width < current_child_width) {
+          child_width = current_child_width + element_padding;
+        }
       }
     }
   }
@@ -269,25 +267,23 @@ i32 fill_scroll_height(Element *element) {
   i32 element_padding = element->padding.top + element->padding.bottom;
   i32 child_height = element_padding;
   Array *children = element->children;
-  if (children == 0) {
-    element->layout.scroll_height = self_height;
-    return self_height;
-  }
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    // Vertical layout adds heights
-    if (element->layout_direction == layout_direction.vertical) {
-      // Add gutter before all elements except the first
-      if (i != 0) {
-        child_height += element->gutter;
+  if (children != 0) {
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      // Vertical layout adds heights
+      if (element->layout_direction == layout_direction.vertical) {
+        // Add gutter before all elements except the first
+        if (i != 0) {
+          child_height += element->gutter;
+        }
+        child_height += fill_scroll_height(child);
       }
-      child_height += fill_scroll_height(child);
-    }
-    // Horizontal layout uses largest height
-    else {
-      i32 current_child_height = fill_scroll_height(child);
-      if (child_height < current_child_height) {
-        child_height = current_child_height + element_padding;
+      // Horizontal layout uses largest height
+      else {
+        i32 current_child_height = fill_scroll_height(child);
+        if (child_height < current_child_height) {
+          child_height = current_child_height + element_padding;
+        }
       }
     }
   }
@@ -310,43 +306,44 @@ void fill_max_width(Element *element, i32 max_width) {
   }
 
   Array *children = element->children;
-  if (children == 0) return; // No children
+  if (children != 0) {
+    i32 element_padding = element->padding.left + element->padding.right;
+    i32 child_width = 0;
 
-  i32 element_padding = element->padding.left + element->padding.right;
-  i32 child_width = 0;
+    if (element->layout.scroll_width > max_width) {
+      child_width = element->layout.scroll_width - element_padding;
+    } else {
+      child_width = max_width - element_padding;
+    }
 
-  if (element->layout.scroll_width > max_width) {
-    child_width = element->layout.scroll_width - element_padding;
-  } else {
-    child_width = max_width - element_padding;
-  }
-
-  if (element->layout_direction == layout_direction.horizontal) {
-    // How many children have flexible width
-    i32 split_count = 0;
+    if (element->layout_direction == layout_direction.horizontal) {
+      // How many children have flexible width
+      i32 split_count = 0;
+      for (size_t i = 0; i < array_length(children); i++) {
+        Element *child = array_get(children, i);
+        if (child->width == 0) {
+          split_count++;
+        } else {
+          child_width -= child->width;
+        }
+        if (i != 0) {
+          child_width -= element->gutter;
+        }
+      }
+      // Split width between children
+      if (split_count > 0) {
+        child_width = child_width / split_count;
+      }
+    }
+    // Set new width for children
     for (size_t i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      if (child->width == 0) {
-        split_count++;
+      if (child->layout.scroll_width > child_width) {
+        // scroll_width is either width of children or min_width
+        fill_max_width(child, child->layout.scroll_width);
       } else {
-        child_width -= child->width;
+        fill_max_width(child, child_width);
       }
-      if (i != 0) {
-        child_width -= element->gutter;
-      }
-    }
-    // Split width between children
-    if (split_count > 0) {
-      child_width = child_width / split_count;
-    }
-  }
-  // Set new width for children
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    if(child->layout.scroll_width > child_width) {
-      fill_max_width(child, child->layout.scroll_width);
-    } else {
-      fill_max_width(child, child_width);
     }
   }
 }
@@ -361,44 +358,45 @@ void fill_max_height(Element *element, i32 max_height) {
   }
 
   Array *children = element->children;
-  if (children == 0) return; // No children
+  if (children != 0) {
+    i32 element_padding = element->padding.top + element->padding.bottom;
+    i32 child_height = 0;
 
-  i32 element_padding = element->padding.top + element->padding.bottom;
-  i32 child_height = 0;
+    if (element->layout.scroll_height > max_height) {
+      child_height = element->layout.scroll_height - element_padding;
+    } else {
+      child_height = max_height - element_padding;
+    }
 
-  if (element->layout.scroll_height > max_height) {
-    child_height = element->layout.scroll_height - element_padding;
-  } else {
-    child_height = max_height - element_padding;
-  }
+    if (element->layout_direction == layout_direction.vertical) {
+      // How many children have flexible height
+      i32 split_count = 0;
+      for (size_t i = 0; i < array_length(children); i++) {
+        Element *child = array_get(children, i);
+        if (child->height == 0) {
+          split_count++;
+        } else {
+          child_height -= child->height;
+        }
+        if (i != 0) {
+          child_height -= element->gutter;
+        }
+      }
+      // Split height between children
+      if (split_count > 0) {
+        child_height = child_height / split_count;
+      }
+    }
 
-  if (element->layout_direction == layout_direction.vertical) {
-    // How many children have flexible height
-    i32 split_count = 0;
+    // Set new height for children
     for (size_t i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      if (child->height == 0) {
-        split_count++;
+      if (child->layout.scroll_height > child_height) {
+        // scroll_height is either height of children or min_height
+        fill_max_height(child, child->layout.scroll_height);
       } else {
-        child_height -= child->height;
+        fill_max_height(child, child_height);
       }
-      if (i != 0) {
-        child_height -= element->gutter;
-      }
-    }
-    // Split height between children
-    if (split_count > 0) {
-      child_height = child_height / split_count;
-    }
-  }
-
-  // Set new height for children
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    if(child->layout.scroll_height > child_height) {
-      fill_max_height(child, child->layout.scroll_height);
-    } else {
-      fill_max_height(child, child_height);
     }
   }
 }
@@ -406,28 +404,23 @@ void fill_max_height(Element *element, i32 max_height) {
 // Recursively sets element x position
 i32 set_x(Element *element, i32 x) {
   element->layout.x = x;
-  i32 child_x = x + element->layout.scroll_x + element->padding.left;
   Array *children = element->children;
-  // No child array is initalized
-  if (children == 0) {
-    if (element->width > 0) {
-      return x + element->width;
-    } else {
-      return x + element->layout.max_width;
+  // If child array is initalized
+  if (children != 0) {
+    i32 child_x = x + element->layout.scroll_x + element->padding.left;
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      // Horizontal layout sets children after each another
+      if (element->layout_direction == layout_direction.horizontal) {
+        child_x = set_x(child, child_x);
+        child_x += element->gutter;
+      }
+      // Vertical layout sets same x for all children
+      else {
+        set_x(child, child_x);
+      }
     }
   };
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    // Horizontal layout sets children after each another
-    if (element->layout_direction == layout_direction.horizontal) {
-      child_x = set_x(child, child_x);
-      child_x += element->gutter;
-    }
-    // Vertical layout sets same x for all children
-    else {
-      set_x(child, child_x);
-    }
-  }
   if (element->width > 0) {
     return x + element->width;
   } else {
@@ -438,28 +431,23 @@ i32 set_x(Element *element, i32 x) {
 // Recursively sets element y position
 i32 set_y(Element *element, i32 y) {
   element->layout.y = y;
-  i32 child_y = y + element->layout.scroll_y + element->padding.top;
   Array *children = element->children;
-  // No child array is initalized
-  if (children == 0) {
-    if (element->height > 0) {
-      return y + element->height;
-    } else {
-      return y + element->layout.max_height;
+  // If child array is initalized
+  if (children != 0) {
+    i32 child_y = y + element->layout.scroll_y + element->padding.top;
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      // Vertical layout sets children after each another
+      if (element->layout_direction == layout_direction.vertical) {
+        child_y = set_y(child, child_y);
+        child_y += element->gutter;
+      }
+      // Horizontal layout sets same y for all children
+      else {
+        set_y(child, child_y);
+      }
     }
   };
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    // Vertical layout sets children after each another
-    if (element->layout_direction == layout_direction.vertical) {
-      child_y = set_y(child, child_y);
-      child_y += element->gutter;
-    }
-    // Horizontal layout sets same y for all children
-    else {
-      set_y(child, child_y);
-    }
-  }
   if (element->height > 0) {
     return y + element->height;
   } else {
