@@ -47,6 +47,17 @@ const LayoutDirection layout_direction = {
   .vertical = 1,
 };
 
+// Overflow type
+typedef struct {
+  u8 contain;
+  u8 scroll;
+} OverflowType;
+
+const OverflowType overflow_type = {
+  .contain = 0,
+  .scroll = 1,
+};
+
 // Background type
 typedef struct {
   u8 none; // No background color
@@ -127,6 +138,7 @@ typedef struct Element {
   RGBA border_color;
   Array *children; // Flexible array of child elements of type Element
   u8 layout_direction;
+  u8 overflow;
   LayoutProps layout; // Props set by the layout engine
 } Element;
 
@@ -155,6 +167,7 @@ Element empty_element = {
   .border_color = C9_default_border_color,
   .children = 0,
   .layout_direction = 0,
+  .overflow = 0,
   .layout = {
     .x = 0,
     .y = 0,
@@ -356,17 +369,14 @@ void fill_max_height(Element *element, i32 max_height) {
     element->layout.max_height = element->height;
     max_height = element->height;
   }
+  if (element->overflow == overflow_type.contain) {
+    element->layout.scroll_height = element->layout.max_height;
+  }
 
   Array *children = element->children;
   if (children != 0) {
     i32 element_padding = element->padding.top + element->padding.bottom;
-    i32 child_height = 0;
-
-    if (element->layout.scroll_height > max_height) {
-      child_height = element->layout.scroll_height - element_padding;
-    } else {
-      child_height = max_height - element_padding;
-    }
+    i32 child_height = max_height - element_padding;
 
     if (element->layout_direction == layout_direction.vertical) {
       // How many children have flexible height
@@ -382,6 +392,9 @@ void fill_max_height(Element *element, i32 max_height) {
           child_height -= element->gutter;
         }
       }
+      if (child_height < 0) {
+        child_height = 0;
+      }
       // Split height between children
       if (split_count > 0) {
         child_height = child_height / split_count;
@@ -391,7 +404,9 @@ void fill_max_height(Element *element, i32 max_height) {
     // Set new height for children
     for (size_t i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      if (child->layout.scroll_height > child_height) {
+      // Child's children are taller than the shared height
+      if (child->layout.scroll_height > child_height &&
+          element->overflow == overflow_type.scroll) {
         // scroll_height is either height of children or min_height
         fill_max_height(child, child->layout.scroll_height);
       } else {
@@ -485,62 +500,58 @@ Element *get_element_at(Element *element, i32 x, i32 y) {
 };
 
 i32 get_min_width(Element *element) {
-  Array *children = element->children;
-  if (children == 0) {
-    if (element->width > element->min_width) {
-      return element->width;
-    } else {
-      return element->min_width;
-    }
-  }
   i32 element_padding = element->padding.left + element->padding.right;
-  i32 width = element_padding;
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    i32 child_width = get_min_width(child);
-    if (element->layout_direction == layout_direction.horizontal) {
-      width += child_width;
-      if (i != 0) {
-        width += element->gutter;
-      }
-    } else if (child_width + element_padding > width) {
-      width = child_width + element_padding;
-    }
-  }
-  if (element->width > width) {
+  if (element->width > 0) {
     return element->width;
-  } else {
+  } else if (element->min_width > 0) {
+    return element->min_width;
+  } else if (element->overflow == overflow_type.contain) {
+    Array *children = element->children;
+    if (children == 0) return 0;
+    i32 width = element_padding;
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      i32 child_width = get_min_width(child);
+      if (element->layout_direction == layout_direction.horizontal) {
+        width += child_width;
+        if (i != 0) {
+          width += element->gutter;
+        }
+      } else if (child_width + element_padding > width) {
+        width = child_width + element_padding;
+      }
+    }
     return width;
+  } else {
+    return element_padding;
   }
 }
 
 i32 get_min_height(Element *element) {
-  Array *children = element->children;
-  if (children == 0) {
-    if (element->height > element->min_height) {
-      return element->height;
-    } else {
-      return element->min_height;
-    }
-  }
   i32 element_padding = element->padding.top + element->padding.bottom;
-  i32 height = element_padding;
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    i32 child_height = get_min_height(child);
-    if (element->layout_direction == layout_direction.vertical) {
-      height += child_height;
-      if (i != 0) {
-        height += element->gutter;
-      }
-    } else if (child_height + element_padding > height) {
-      height = child_height + element_padding;
-    }
-  }
-  if (element->height > height) {
+  if (element->height > 0) {
     return element->height;
-  } else {
+  } else if (element->min_height > 0) {
+    return element->min_height;
+  } else if (element->overflow == overflow_type.contain) {
+    Array *children = element->children;
+    if (children == 0) return 0;
+    i32 height = element_padding;
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      i32 child_height = get_min_height(child);
+      if (element->layout_direction == layout_direction.vertical) {
+        height += child_height;
+        if (i != 0) {
+          height += element->gutter;
+        }
+      } else if (child_height + element_padding > height) {
+        height = child_height + element_padding;
+      }
+    }
     return height;
+  } else {
+    return element_padding;
   }
 }
 

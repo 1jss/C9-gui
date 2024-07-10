@@ -219,6 +219,7 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
     .gutter = 10,
+    .overflow = overflow_type.scroll,
   };
 
   Element *content_panel_top = add_new_element(tree, content_panel);
@@ -234,7 +235,7 @@ i32 main() {
   Element *content_panel_top_content = add_new_element(tree, content_panel_top);
   *content_panel_top_content = (Element){
     .width = 100,
-    .height = 100,
+    .height = 600,
     .background_type = background_type.color,
     .background_color = gray_2,
     .border_radius = 15,
@@ -306,12 +307,9 @@ i32 main() {
     .on_blur = &blur_search_bar,
   };
 
-  i32 min_width = 0;//get_min_width(tree->root);
-  i32 min_height = 0;//get_min_height(tree->root);
+  i32 min_width = get_min_width(tree->root);
+  i32 min_height = get_min_height(tree->root);
   set_dimensions(tree, window_width, window_height);
-
-  printf("side panel scroll_height: %d\n", side_panel->layout.scroll_height);
-  printf("side panel max_height: %d\n", side_panel->layout.max_height);
 
   if (tree->root->children == 0) {
     printf("No children\n");
