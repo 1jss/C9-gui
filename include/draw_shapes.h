@@ -169,44 +169,37 @@ void draw_filled_superellipse(SDL_Renderer *renderer, i32 center_x, i32 center_y
   }
 }
 
-typedef struct {
-  i32 x;
-  i32 y;
-  i32 width;
-  i32 height;
-} Rectangle;
-
 // Draws a rectangle with superellipse corners
-void draw_rounded_rectangle(SDL_Renderer *renderer, Rectangle rectangle, i32 corner_radius, RGBA border_color) {
+void draw_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, RGBA border_color) {
   // Cap corner radius to half of the rectangle width or height
-  if (2 * corner_radius < rectangle.width || 2 * corner_radius < rectangle.height) {
-    corner_radius = rectangle.width < rectangle.height ? rectangle.width / 2 : rectangle.height / 2;
+  if (2 * corner_radius < rectangle.w || 2 * corner_radius < rectangle.h) {
+    corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
   }
   SDL_SetRenderDrawColor(renderer, red(border_color), green(border_color), blue(border_color), SDL_ALPHA_OPAQUE);
   // Draw top and bottom lines
-  for (i32 i = rectangle.x + corner_radius; i <= rectangle.x + rectangle.width - corner_radius; i++) {
+  for (i32 i = rectangle.x + corner_radius; i <= rectangle.x + rectangle.w - corner_radius; i++) {
     SDL_RenderDrawPoint(renderer, i, rectangle.y);
-    SDL_RenderDrawPoint(renderer, i, rectangle.y + rectangle.height);
+    SDL_RenderDrawPoint(renderer, i, rectangle.y + rectangle.h);
   }
   // Draw left and right lines
-  for (i32 i = rectangle.y + corner_radius; i <= rectangle.y + rectangle.height - corner_radius; i++) {
+  for (i32 i = rectangle.y + corner_radius; i <= rectangle.y + rectangle.h - corner_radius; i++) {
     SDL_RenderDrawPoint(renderer, rectangle.x, i);
-    SDL_RenderDrawPoint(renderer, rectangle.x + rectangle.width, i);
+    SDL_RenderDrawPoint(renderer, rectangle.x + rectangle.w, i);
   }
   // Draw corners
   f32 step = 0.85 / corner_radius;
   for (f32 t = 0; t <= M_PI / 2; t += step) {
     // Bottom right corner (t)
     Circle bottom_right_corner = {
-      .center_x = rectangle.x + rectangle.width - corner_radius,
-      .center_y = rectangle.y + rectangle.height - corner_radius,
+      .center_x = rectangle.x + rectangle.w - corner_radius,
+      .center_y = rectangle.y + rectangle.h - corner_radius,
       .radius = corner_radius
     };
     draw_superellipse_border_point(renderer, bottom_right_corner, t, border_color);
     // Bottom left corner (t + M_PI / 2)
     Circle bottom_left_corner = {
       .center_x = rectangle.x + corner_radius,
-      .center_y = rectangle.y + rectangle.height - corner_radius,
+      .center_y = rectangle.y + rectangle.h - corner_radius,
       .radius = corner_radius
     };
     draw_superellipse_border_point(renderer, bottom_left_corner, t + M_PI / 2, border_color);
@@ -219,7 +212,7 @@ void draw_rounded_rectangle(SDL_Renderer *renderer, Rectangle rectangle, i32 cor
     draw_superellipse_border_point(renderer, top_left_corner, t + M_PI, border_color);
     // Top right corner (t + 3 * M_PI / 2)
     Circle top_right_corner = {
-      .center_x = rectangle.x + rectangle.width - corner_radius,
+      .center_x = rectangle.x + rectangle.w - corner_radius,
       .center_y = rectangle.y + corner_radius,
       .radius = corner_radius
     };
@@ -228,64 +221,64 @@ void draw_rounded_rectangle(SDL_Renderer *renderer, Rectangle rectangle, i32 cor
 }
 
 // Draws a filled rectangle with superellipse corners
-void draw_filled_rounded_rectangle(SDL_Renderer *renderer, Rectangle rectangle, i32 corner_radius, RGBA background_color) {
+void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, RGBA background_color) {
   // Smallest acceptable corner radius is 10px
   if (corner_radius < 10) {
     corner_radius = 10;
   }
   // Cap corner radius to half of the rectangle width or height
-  if (2 * corner_radius >= rectangle.width || 2 * corner_radius >= rectangle.height) {
-    corner_radius = rectangle.width < rectangle.height ? rectangle.width / 2 : rectangle.height / 2;
+  if (2 * corner_radius >= rectangle.w || 2 * corner_radius >= rectangle.h) {
+    corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
   }
   SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), SDL_ALPHA_OPAQUE);
   // A rect that filles the top and bottom lines and the area between them
-  SDL_Rect top_bottom_rect = {rectangle.x + corner_radius, rectangle.y, rectangle.width - 2 * corner_radius + 1, rectangle.height + 1};
+  SDL_Rect top_bottom_rect = {rectangle.x + corner_radius, rectangle.y, rectangle.w - 2 * corner_radius + 1, rectangle.h + 1};
   SDL_RenderFillRect(renderer, &top_bottom_rect);
   // A rect that filles the left and right lines and the area between them
-  SDL_Rect left_right_rect = {rectangle.x, rectangle.y + corner_radius, rectangle.width + 1, rectangle.height - 2 * corner_radius + 1};
+  SDL_Rect left_right_rect = {rectangle.x, rectangle.y + corner_radius, rectangle.w + 1, rectangle.h - 2 * corner_radius + 1};
   SDL_RenderFillRect(renderer, &left_right_rect);
 
   // Draw corners
   f32 step = 0.85 / corner_radius;
   for (f32 t = 0; t <= M_PI / 2; t += step) {
     // Bottom right corner (t)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + rectangle.width - corner_radius, rectangle.y + rectangle.height - corner_radius, corner_radius, t, background_color);
+    draw_filled_superellipse_border_point(renderer, rectangle.x + rectangle.w - corner_radius, rectangle.y + rectangle.h - corner_radius, corner_radius, t, background_color);
     // Bottom left corner (t + M_PI / 2)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + corner_radius, rectangle.y + rectangle.height - corner_radius, corner_radius, t + M_PI / 2, background_color);
+    draw_filled_superellipse_border_point(renderer, rectangle.x + corner_radius, rectangle.y + rectangle.h - corner_radius, corner_radius, t + M_PI / 2, background_color);
     // Top left corner (t + M_PI)
     draw_filled_superellipse_border_point(renderer, rectangle.x + corner_radius, rectangle.y + corner_radius, corner_radius, t + M_PI, background_color);
     // Top right corner (t + 3 * M_PI / 2)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + rectangle.width - corner_radius, rectangle.y + corner_radius, corner_radius, t + 3 * M_PI / 2, background_color);
+    draw_filled_superellipse_border_point(renderer, rectangle.x + rectangle.w - corner_radius, rectangle.y + corner_radius, corner_radius, t + 3 * M_PI / 2, background_color);
   }
 }
 
-void draw_rounded_rectangle_with_border(SDL_Renderer *renderer, Rectangle rectangle, i32 corner_radius, i32 border_width, RGBA border_color, RGBA background_color) {
+void draw_rounded_rectangle_with_border(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, i32 border_width, RGBA border_color, RGBA background_color) {
   draw_filled_rounded_rectangle(renderer, rectangle, corner_radius, border_color);
-  Rectangle inner_rectangle = {rectangle.x + border_width, rectangle.y + border_width, rectangle.width - 2 * border_width, rectangle.height - 2 * border_width};
+  SDL_Rect inner_rectangle = {rectangle.x + border_width, rectangle.y + border_width, rectangle.w - 2 * border_width, rectangle.h - 2 * border_width};
   draw_filled_rounded_rectangle(renderer, inner_rectangle, corner_radius - border_width, background_color);
 }
 
-void draw_filled_rectangle(SDL_Renderer *renderer, Rectangle rectangle, RGBA color) {
+void draw_filled_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, RGBA color) {
   SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
-  SDL_Rect rect = {rectangle.x, rectangle.y, rectangle.width, rectangle.height};
+  SDL_Rect rect = {rectangle.x, rectangle.y, rectangle.w, rectangle.h};
   SDL_RenderFillRect(renderer, &rect);
 }
 
-void draw_horizontal_gradient(SDL_Renderer *renderer, Rectangle rectangle, C9_Gradient gradient) {
-  for (i32 i = 0; i < rectangle.width; i++) {
-    f32 t = 1.0 * i / rectangle.width;
+void draw_horizontal_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradient gradient) {
+  for (i32 i = 0; i < rectangle.w; i++) {
+    f32 t = 1.0 * i / rectangle.w;
     RGBA color = getGradientColor(gradient, t);
     SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.height);
+    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h);
   }
 }
 
-void draw_vertical_gradient(SDL_Renderer *renderer, Rectangle rectangle, C9_Gradient gradient) {
-  for (i32 i = 0; i < rectangle.height; i++) {
-    f32 t = 1.0 * i / rectangle.height;
+void draw_vertical_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradient gradient) {
+  for (i32 i = 0; i < rectangle.h; i++) {
+    f32 t = 1.0 * i / rectangle.h;
     RGBA color = getGradientColor(gradient, t);
     SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.width, rectangle.y + i);
+    SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w, rectangle.y + i);
   }
 }
 
@@ -296,25 +289,25 @@ typedef struct {
   i32 left;
 } BorderSize;
 
-void draw_border(SDL_Renderer *renderer, Rectangle rectangle, BorderSize border, RGBA border_color) {
+void draw_border(SDL_Renderer *renderer, SDL_Rect rectangle, BorderSize border, RGBA border_color) {
   // Draw top border
   if (border.top > 0) {
-    Rectangle top_border = {rectangle.x, rectangle.y, rectangle.width, border.top};
+    SDL_Rect top_border = {rectangle.x, rectangle.y, rectangle.w, border.top};
     draw_filled_rectangle(renderer, top_border, border_color);
   }
   // Draw right border
   if (border.right > 0) {
-    Rectangle right_border = {rectangle.x + rectangle.width - border.right, rectangle.y, border.right, rectangle.height};
+    SDL_Rect right_border = {rectangle.x + rectangle.w - border.right, rectangle.y, border.right, rectangle.h};
     draw_filled_rectangle(renderer, right_border, border_color);
   }
   // Draw bottom border
   if (border.bottom > 0) {
-    Rectangle bottom_border = {rectangle.x, rectangle.y + rectangle.height - border.bottom, rectangle.width, border.bottom};
+    SDL_Rect bottom_border = {rectangle.x, rectangle.y + rectangle.h - border.bottom, rectangle.w, border.bottom};
     draw_filled_rectangle(renderer, bottom_border, border_color);
   }
   // Draw left border
   if (border.left > 0) {
-    Rectangle left_border = {rectangle.x, rectangle.y, border.left, rectangle.height};
+    SDL_Rect left_border = {rectangle.x, rectangle.y, border.left, rectangle.h};
     draw_filled_rectangle(renderer, left_border, border_color);
   }
 }
