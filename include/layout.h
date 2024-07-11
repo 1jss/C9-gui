@@ -51,11 +51,15 @@ const LayoutDirection layout_direction = {
 typedef struct {
   u8 contain;
   u8 scroll;
+  u8 scroll_x;
+  u8 scroll_y;
 } OverflowType;
 
 const OverflowType overflow_type = {
   .contain = 0,
   .scroll = 1,
+  .scroll_x = 2,
+  .scroll_y = 3,
 };
 
 // Background type
@@ -318,16 +322,19 @@ void fill_max_width(Element *element, i32 max_width) {
     max_width = element->width;
   }
 
+  // Cap scroll if it's out of bounds
+  if (element->layout.scroll_x < 0 &&
+      element->layout.scroll_width + element->layout.scroll_x < max_width) {
+    element->layout.scroll_x = element->layout.max_width - element->layout.scroll_width;
+  }
+  if (element->layout.scroll_x > 0) {
+    element->layout.scroll_x = 0;
+  }
+
   Array *children = element->children;
   if (children != 0) {
     i32 element_padding = element->padding.left + element->padding.right;
-    i32 child_width = 0;
-
-    if (element->layout.scroll_width > max_width) {
-      child_width = element->layout.scroll_width - element_padding;
-    } else {
-      child_width = max_width - element_padding;
-    }
+    i32 child_width = child_width = max_width - element_padding;
 
     if (element->layout_direction == layout_direction.horizontal) {
       // How many children have flexible width
@@ -343,15 +350,20 @@ void fill_max_width(Element *element, i32 max_width) {
           child_width -= element->gutter;
         }
       }
+      if (child_width < 0) {
+        child_width = 0;
+      }
       // Split width between children
       if (split_count > 0) {
         child_width = child_width / split_count;
       }
     }
+
     // Set new width for children
     for (size_t i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      if (child->layout.scroll_width > child_width) {
+      if (element->overflow == overflow_type.scroll ||
+          element->overflow == overflow_type.scroll_x) {
         // scroll_width is either width of children or min_width
         fill_max_width(child, child->layout.scroll_width);
       } else {
@@ -369,8 +381,14 @@ void fill_max_height(Element *element, i32 max_height) {
     element->layout.max_height = element->height;
     max_height = element->height;
   }
-  if (element->overflow == overflow_type.contain) {
-    element->layout.scroll_height = element->layout.max_height;
+
+  // Cap scroll if it's out of bounds
+  if (element->layout.scroll_y < 0 &&
+      element->layout.scroll_height + element->layout.scroll_y < max_height) {
+    element->layout.scroll_y = element->layout.max_height - element->layout.scroll_height;
+  }
+  if (element->layout.scroll_y > 0) {
+    element->layout.scroll_y = 0;
   }
 
   Array *children = element->children;
@@ -404,9 +422,8 @@ void fill_max_height(Element *element, i32 max_height) {
     // Set new height for children
     for (size_t i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      // Child's children are taller than the shared height
-      if (child->layout.scroll_height > child_height &&
-          element->overflow == overflow_type.scroll) {
+      if (element->overflow == overflow_type.scroll ||
+          element->overflow == overflow_type.scroll_y) {
         // scroll_height is either height of children or min_height
         fill_max_height(child, child->layout.scroll_height);
       } else {
@@ -505,7 +522,8 @@ i32 get_min_width(Element *element) {
     return element->width;
   } else if (element->min_width > 0) {
     return element->min_width;
-  } else if (element->overflow == overflow_type.contain) {
+  } else if (element->overflow == overflow_type.contain ||
+             element->overflow == overflow_type.scroll_y) {
     Array *children = element->children;
     if (children == 0) return 0;
     i32 width = element_padding;
@@ -533,7 +551,8 @@ i32 get_min_height(Element *element) {
     return element->height;
   } else if (element->min_height > 0) {
     return element->min_height;
-  } else if (element->overflow == overflow_type.contain) {
+  } else if (element->overflow == overflow_type.contain ||
+             element->overflow == overflow_type.scroll_x) {
     Array *children = element->children;
     if (children == 0) return 0;
     i32 height = element_padding;
@@ -553,6 +572,80 @@ i32 get_min_height(Element *element) {
   } else {
     return element_padding;
   }
+}
+
+// Recursively scrolls the elements under the pointer children first
+i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
+  // Check if the pointer is within the element
+  if (x >= element->layout.x &&
+      x <= element->layout.x + element->layout.max_width &&
+      y >= element->layout.y &&
+      y <= element->layout.y + element->layout.max_height) {
+    Array *children = element->children;
+    if (children != 0) {
+      for (size_t i = 0; i < array_length(children); i++) {
+        Element *child = array_get(children, i);
+        scroll_delta = scroll_x(child, x, y, scroll_delta);
+      }
+    }
+    // Check if the element is scrollable
+    if ((element->overflow == overflow_type.scroll ||
+         element->overflow == overflow_type.scroll_x) &&
+        element->layout.scroll_width > element->layout.max_width) {
+      i32 max_scroll_x = element->layout.max_width - element->layout.scroll_width;
+      i32 new_scroll_x = element->layout.scroll_x + scroll_delta;
+
+      // Scroll the element left or right to the min or max
+      if (new_scroll_x < max_scroll_x) {
+        scroll_delta = new_scroll_x + max_scroll_x;
+        element->layout.scroll_x = max_scroll_x;
+      } else if (new_scroll_x > 0) {
+        scroll_delta = new_scroll_x;
+        element->layout.scroll_x = 0;
+      } else {
+        scroll_delta = 0;
+        element->layout.scroll_x = new_scroll_x;
+      }
+    }
+  }
+  return scroll_delta;
+}
+
+// Recursively scrolls the elements under the pointer children first
+i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
+  // Check if the pointer is within the element
+  if (x >= element->layout.x &&
+      x <= element->layout.x + element->layout.max_width &&
+      y >= element->layout.y &&
+      y <= element->layout.y + element->layout.max_height) {
+    Array *children = element->children;
+    if (children != 0) {
+      for (size_t i = 0; i < array_length(children); i++) {
+        Element *child = array_get(children, i);
+        scroll_delta = scroll_y(child, x, y, scroll_delta);
+      }
+    }
+    // Check if the element is scrollable
+    if ((element->overflow == overflow_type.scroll ||
+         element->overflow == overflow_type.scroll_y) &&
+        element->layout.scroll_height > element->layout.max_height) {
+      i32 max_scroll_y = element->layout.max_height - element->layout.scroll_height;
+      i32 new_scroll_y = element->layout.scroll_y + scroll_delta;
+
+      // Scroll the element up or down to the min or max
+      if (new_scroll_y < max_scroll_y) {
+        scroll_delta = new_scroll_y + max_scroll_y;
+        element->layout.scroll_y = max_scroll_y;
+      } else if (new_scroll_y > 0) {
+        scroll_delta = new_scroll_y;
+        element->layout.scroll_y = 0;
+      } else {
+        scroll_delta = 0;
+        element->layout.scroll_y = new_scroll_y;
+      }
+    }
+  }
+  return scroll_delta;
 }
 
 void click_handler(ElementTree *tree, void *data) {

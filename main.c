@@ -111,11 +111,11 @@ void blur_search_bar(ElementTree *tree, void *data) {
 }
 
 i32 main() {
-  // i32 mouse_x = 0;
-  // i32 mouse_y = 0;
-  i32 scroll_y = 0;
+  i32 mouse_x = 0;
+  i32 mouse_y = 0;
   i32 window_width = 640;
   i32 window_height = 640;
+  i32 scroll_speed = 10;
 
   C9_Gradient white_shade = {
     .start_color = white,
@@ -219,13 +219,13 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
     .gutter = 10,
-    .overflow = overflow_type.scroll,
+    .overflow = overflow_type.scroll_y,
   };
 
   Element *content_panel_top = add_new_element(tree, content_panel);
   *content_panel_top = (Element){
     .background_type = background_type.color,
-    .background_color = gray_1,
+    .background_color = gray_2,
     .border_radius = 15,
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
@@ -237,14 +237,14 @@ i32 main() {
     .width = 100,
     .height = 600,
     .background_type = background_type.color,
-    .background_color = gray_2,
+    .background_color = white,
     .border_radius = 15,
   };
 
   Element *content_panel_bottom = add_new_element(tree, content_panel);
   *content_panel_bottom = (Element){
     .background_type = background_type.color,
-    .background_color = gray_1,
+    .background_color = gray_2,
     .border_radius = 15,
     .padding = (Padding){10, 10, 10, 10},
   };
@@ -341,24 +341,29 @@ i32 main() {
               printf("SDL_CreateTexture failed: %s\n", SDL_GetError());
             }
           }
+          set_dimensions(tree, width, height);
           tree->rerender = rerender_type.all;
         }
       } else if (event.type == SDL_KEYDOWN) {
         printf("Key press\n");
       } else if (event.type == SDL_MOUSEMOTION) {
-        //mouse_x = event.motion.x;
-        //mouse_y = event.motion.y;
-        //redraw = true;
-        // printf("Mouse motion %d, %d\n", mouse_x, mouse_y);
+        mouse_x = event.motion.x;
+        mouse_y = event.motion.y;
         // Flush event queue to only use one event
         // Otherwise renderer laggs behind while emptying event queue
         SDL_FlushEvent(SDL_MOUSEMOTION);
       } else if (event.type == SDL_MOUSEWHEEL) {
-        printf("Mouse wheel\n");
         // scroll up or down
         if (event.wheel.y != 0) {
-          scroll_y += event.wheel.y;
+          scroll_y(tree->root, mouse_x, mouse_y, event.wheel.y * scroll_speed);
+          set_y(tree->root, 0);
         }
+        // scroll left or right
+        if (event.wheel.x != 0) {
+          scroll_x(tree->root, mouse_x, mouse_y, event.wheel.x * scroll_speed);
+          set_x(tree->root, 0);
+        }
+        tree->rerender = rerender_type.all;
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         i32 mouse_down_x = event.button.x;
@@ -385,7 +390,6 @@ i32 main() {
     }
 
     if (tree->rerender == rerender_type.all) {
-      printf("Rerender all\n");
       SDL_SetRenderTarget(renderer, target_texture);
       // Clear buffer
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -401,7 +405,6 @@ i32 main() {
       tree->rerender = rerender_type.none;
       tree->rerender_element = 0;
     } else if (tree->rerender == rerender_type.selected && tree->rerender_element != 0) {
-      printf("Rerender selected\n");
       SDL_SetRenderTarget(renderer, target_texture);
       draw_elements(renderer, Inter, tree->rerender_element);
       // Draw target_texture to back buffer and present
