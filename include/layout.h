@@ -226,15 +226,22 @@ ElementTree *new_element_tree(Arena *arena) {
 }
 
 // Add a new child element to a parent and return a pointer to it
-Element *add_new_element(ElementTree *tree, Element *parent) {
+Element *add_new_element(Arena *arena, Element *parent) {
   // If the parent element has no children, create a new array
   if (parent->children == 0) {
-    parent->children = array_create(tree->arena, sizeof(Element));
+    parent->children = array_create(arena, sizeof(Element));
   }
   // Add a new child element to the parent element
   array_push(parent->children, &empty_element);
   // Return a pointer to the child element
   return array_get(parent->children, array_last(parent->children));
+}
+
+// Create a new element and return a pointer to it
+Element *new_element(Arena *arena) {
+  Element *element = (Element *)arena_fill(arena, sizeof(Element));
+  *element = empty_element;
+  return element;
 }
 
 // Recursively sets width of an element

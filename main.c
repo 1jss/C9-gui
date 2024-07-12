@@ -7,6 +7,8 @@
 #include "include/layout.h" // Element, ElementTree, new_element_tree, add_new_element, get_min_width, get_min_height, set_dimensions, layout_direction, background_type, background_gradient, Border, Padding
 #include "include/renderer.h" // render_element_tree
 #include "include/types.h" // i32
+#include "components/form.h"
+#include "components/color_theme.h"
 
 #if 0
 i32 resizeWatcher(void *data, SDL_Event *event) {
@@ -24,16 +26,6 @@ i32 resizeWatcher(void *data, SDL_Event *event) {
   return 0;
 }
 #endif
-
-// Colors
-const RGBA white = 0xFFFFFFFF;
-const RGBA white_2 = 0xF8F8F8FF;
-const RGBA gray_1 = 0xF8F9FAFF;
-const RGBA gray_2 = 0xF2F3F4FF;
-const RGBA border_color = 0xDEE2E6FF;
-const RGBA border_color_active = 0xADAFB2FF;
-const RGBA text_color = 0x555555FF;
-const RGBA text_color_active = 0x222222FF;
 
 // Element tags
 const u8 content_panel_tag = 3;
@@ -88,8 +80,32 @@ void set_passive_input_style(Element *element) {
   element->text_color = text_color;
 }
 
+void set_content_panel(ElementTree *tree, Element *element) {
+  Element *content_panel = select_element_by_tag(tree->root, content_panel_tag);
+  if (content_panel != 0) {
+    // Clear children and add new element
+    content_panel->children = array_create(tree->arena, sizeof(Element));
+    array_push(content_panel->children, element);
+
+    // Reset scroll position
+    content_panel->layout.scroll_x = 0;
+    content_panel->layout.scroll_y = 0;
+
+    // Recalculate content layout
+    set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
+
+    // Set rerendering
+    bump_rerender(tree);
+    tree->rerender_element = content_panel;
+  }
+}
+
 void click_item_1(ElementTree *tree) {
   set_menu(tree);
+  if(form_element == 0){
+    create_form_element(tree->arena);
+  }
+  set_content_panel(tree, form_element);
   printf("Clicked menu item 1\n");
 }
 
@@ -190,13 +206,13 @@ i32 main() {
   tree->root->layout_direction = layout_direction.vertical;
 
   // Top panel
-  Element *top_panel = add_new_element(tree, tree->root);
+  Element *top_panel = add_new_element(tree->arena, tree->root);
   top_panel->height = 50;
 
   // Bottom panel
-  Element *bottom_panel = add_new_element(tree, tree->root);
+  Element *bottom_panel = add_new_element(tree->arena, tree->root);
 
-  Element *top_left_panel = add_new_element(tree, top_panel);
+  Element *top_left_panel = add_new_element(tree->arena, top_panel);
   *top_left_panel = (Element){
     .width = 200,
     .background_type = background_type.horizontal_gradient,
@@ -205,7 +221,7 @@ i32 main() {
     .border = (Border){0, 1, 1, 0},
   };
 
-  Element *top_right_panel = add_new_element(tree, top_panel);
+  Element *top_right_panel = add_new_element(tree->arena, top_panel);
   *top_right_panel = (Element){
     .element_tag = search_panel_tag,
     .background_type = background_type.color,
@@ -215,7 +231,7 @@ i32 main() {
     .border = (Border){0, 0, 1, 0},
   };
 
-  Element *side_panel = add_new_element(tree, bottom_panel);
+  Element *side_panel = add_new_element(tree->arena, bottom_panel);
   *side_panel = (Element){
     .element_tag = side_panel_tag,
     .width = 200,
@@ -228,7 +244,7 @@ i32 main() {
     .border = (Border){0, 1, 0, 0},
   };
 
-  Element *content_panel = add_new_element(tree, bottom_panel);
+  Element *content_panel = add_new_element(tree->arena, bottom_panel);
   *content_panel = (Element){
     .element_tag = content_panel_tag,
     .background_type = background_type.color,
@@ -239,7 +255,7 @@ i32 main() {
     .overflow = overflow_type.scroll_y,
   };
 
-  Element *content_panel_top = add_new_element(tree, content_panel);
+  Element *content_panel_top = add_new_element(tree->arena, content_panel);
   *content_panel_top = (Element){
     .background_type = background_type.color,
     .background_color = gray_2,
@@ -249,7 +265,7 @@ i32 main() {
 
   };
 
-  Element *content_panel_top_content = add_new_element(tree, content_panel_top);
+  Element *content_panel_top_content = add_new_element(tree->arena, content_panel_top);
   *content_panel_top_content = (Element){
     .width = 100,
     .height = 600,
@@ -258,7 +274,7 @@ i32 main() {
     .border_radius = 15,
   };
 
-  Element *content_panel_bottom = add_new_element(tree, content_panel);
+  Element *content_panel_bottom = add_new_element(tree->arena, content_panel);
   *content_panel_bottom = (Element){
     .background_type = background_type.color,
     .background_color = gray_2,
@@ -266,7 +282,7 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
   };
 
-  Element *menu_item = add_new_element(tree, side_panel);
+  Element *menu_item = add_new_element(tree->arena, side_panel);
   *menu_item = (Element){
     .height = 30,
     .background_type = background_type.none,
@@ -278,7 +294,7 @@ i32 main() {
     .on_click = &click_item_1,
   };
 
-  Element *menu_item_2 = add_new_element(tree, side_panel);
+  Element *menu_item_2 = add_new_element(tree->arena, side_panel);
   *menu_item_2 = (Element){
     .height = 30,
     .background_type = background_type.none,
@@ -290,7 +306,7 @@ i32 main() {
     .on_click = &click_item_2,
   };
 
-  Element *menu_item_3 = add_new_element(tree, side_panel);
+  Element *menu_item_3 = add_new_element(tree->arena, side_panel);
   *menu_item_3 = (Element){
     .height = 30,
     .background_type = background_type.none,
@@ -302,7 +318,7 @@ i32 main() {
     .on_click = &click_item_3,
   };
 
-  Element *search_bar = add_new_element(tree, top_right_panel);
+  Element *search_bar = add_new_element(tree->arena, top_right_panel);
   *search_bar = (Element){
     .min_width = 100,
     .background_type = background_type.color,
