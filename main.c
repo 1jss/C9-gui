@@ -80,45 +80,45 @@ void set_menu(ElementTree *tree) {
   }
 }
 
-void set_active_input(Element *element) {
+void set_active_input_style(Element *element) {
   element->border_color = border_color_active;
   element->text_color = text_color_active;
 }
 
-void set_passive_input(Element *element) {
+void set_passive_input_style(Element *element) {
   element->border_color = border_color;
   element->text_color = text_color;
 }
 
-void click_item_1(ElementTree *tree, void *data) {
+void click_item_1(ElementTree *tree) {
   set_menu(tree);
   printf("Clicked menu item 1\n");
 }
 
-void click_item_2(ElementTree *tree, void *data) {
+void click_item_2(ElementTree *tree) {
   set_menu(tree);
   printf("Clicked menu item 2\n");
 }
 
-void click_item_3(ElementTree *tree, void *data) {
+void click_item_3(ElementTree *tree) {
   set_menu(tree);
   printf("Clicked menu item 3\n");
 }
 
-void click_search_bar(ElementTree *tree, void *data) {
-  set_active_input(tree->active_element);
+void click_search_bar(ElementTree *tree) {
+  set_active_input_style(tree->active_element);
   Element *panel = select_element_by_tag(tree->root, search_panel_tag);
-  if(panel != 0) {
+  if (panel != 0) {
     bump_rerender(tree);
     tree->rerender_element = panel;
   }
   printf("Clicked search bar\n");
 }
 
-void blur_search_bar(ElementTree *tree, void *data) {
-  set_passive_input(tree->active_element);
+void blur_search_bar(ElementTree *tree) {
+  set_passive_input_style(tree->active_element);
   Element *panel = select_element_by_tag(tree->root, search_panel_tag);
-  if(panel != 0) {
+  if (panel != 0) {
     bump_rerender(tree);
     tree->rerender_element = panel;
   }
@@ -386,18 +386,12 @@ i32 main() {
         i32 mouse_down_y = event.button.y;
         Element *blurred_element = tree->active_element;
         if (blurred_element != 0) {
-          if (blurred_element->element_tag == search_input_tag) {
-            blur_handler(tree, top_right_panel);
-          }
+          blur_handler(tree);
         }
         Element *active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
         if (active_element != 0) {
           tree->active_element = active_element;
-          if (active_element->element_tag == menu_item_tag) {
-            click_handler(tree, side_panel);
-          } else if (active_element->element_tag == search_input_tag) {
-            click_handler(tree, top_right_panel);
-          }
+          click_handler(tree);
         }
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {

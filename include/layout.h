@@ -82,8 +82,8 @@ struct ElementTree;
 typedef struct ElementTree ElementTree;
 
 // Function pointer typedef for on_click and on_blur
-// The function takes a pointer to the ElementTree and a pointer to any other data, such as an element.
-typedef void (*OnEvent)(ElementTree *, void *);
+// The function takes a pointer to the ElementTree.
+typedef void (*OnEvent)(ElementTree *);
 
 typedef struct {
   i32 x;
@@ -648,17 +648,17 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
   return scroll_delta;
 }
 
-void click_handler(ElementTree *tree, void *data) {
+void click_handler(ElementTree *tree) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
-    element->on_click(tree, data);
+    element->on_click(tree);
   }
 }
 
-void blur_handler(ElementTree *tree, void *data) {
+void blur_handler(ElementTree *tree) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_blur != 0) {
-    element->on_blur(tree, data);
+    element->on_blur(tree);
   }
 }
 
