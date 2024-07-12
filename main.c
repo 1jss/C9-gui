@@ -36,8 +36,6 @@ const RGBA text_color = 0x555555FF;
 const RGBA text_color_active = 0x222222FF;
 
 // Element tags
-const u8 menu_item_tag = 1;
-const u8 search_input_tag = 2;
 const u8 content_panel_tag = 3;
 const u8 side_panel_tag = 4;
 const u8 search_panel_tag = 5;
@@ -270,7 +268,6 @@ i32 main() {
 
   Element *menu_item = add_new_element(tree, side_panel);
   *menu_item = (Element){
-    .element_tag = menu_item_tag,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -283,7 +280,6 @@ i32 main() {
 
   Element *menu_item_2 = add_new_element(tree, side_panel);
   *menu_item_2 = (Element){
-    .element_tag = menu_item_tag,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -296,7 +292,6 @@ i32 main() {
 
   Element *menu_item_3 = add_new_element(tree, side_panel);
   *menu_item_3 = (Element){
-    .element_tag = menu_item_tag,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -309,7 +304,6 @@ i32 main() {
 
   Element *search_bar = add_new_element(tree, top_right_panel);
   *search_bar = (Element){
-    .element_tag = search_input_tag,
     .min_width = 100,
     .background_type = background_type.color,
     .background_color = white,
