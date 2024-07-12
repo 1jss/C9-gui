@@ -237,6 +237,16 @@ Element *add_new_element(Arena *arena, Element *parent) {
   return array_get(parent->children, array_last(parent->children));
 }
 
+// Add existing element to a parent
+void add_element(Arena *arena, Element *parent, Element *child) {
+  // If the parent element has no children, create a new array
+  if (parent->children == 0) {
+    parent->children = array_create(arena, sizeof(Element));
+  }
+  // Add a new child element to the parent element
+  array_push(parent->children, child);
+}
+
 // Create a new element and return a pointer to it
 Element *new_element(Arena *arena) {
   Element *element = (Element *)arena_fill(arena, sizeof(Element));
@@ -686,6 +696,15 @@ Element *select_element_by_tag(Element *element, u8 tag) {
     }
   }
   return 0;
+}
+
+// Sets selective rerendering if no rendering is set
+void bump_rerender(ElementTree *tree) {
+  if (tree->rerender == rerender_type.none) {
+    tree->rerender = rerender_type.selected;
+  } else {
+    tree->rerender = rerender_type.all;
+  }
 }
 
 #define C9_LAYOUT

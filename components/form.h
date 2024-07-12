@@ -2,7 +2,7 @@
 
 #include "../include/arena.h" // Arena
 #include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
-#include "color_theme.h" // gray_2, white
+#include "../constants/color_theme.h" // gray_2, white
 
 Element *form_element = 0;
 
