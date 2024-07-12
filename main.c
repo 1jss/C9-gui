@@ -25,6 +25,7 @@ i32 resizeWatcher(void *data, SDL_Event *event) {
 }
 #endif
 
+// Colors
 const RGBA white = 0xFFFFFFFF;
 const RGBA white_2 = 0xF8F8F8FF;
 const RGBA gray_1 = 0xF8F9FAFF;
@@ -34,8 +35,15 @@ const RGBA border_color_active = 0xADAFB2FF;
 const RGBA text_color = 0x555555FF;
 const RGBA text_color_active = 0x222222FF;
 
+// Element tags
+const u8 menu_item_tag = 1;
+const u8 search_input_tag = 2;
+const u8 content_panel_tag = 3;
+const u8 side_panel_tag = 4;
+const u8 search_panel_tag = 5;
+
 // Sets selective rerendering if no rendering is set
-void set_rerender(ElementTree *tree) {
+void bump_rerender(ElementTree *tree) {
   if (tree->rerender == rerender_type.none) {
     tree->rerender = rerender_type.selected;
   } else {
@@ -61,12 +69,15 @@ void set_active_menu_element(Element *element) {
   element->text_color = text_color_active;
 }
 
-void set_menu(ElementTree *tree, Element *side_panel) {
+void set_menu(ElementTree *tree) {
   Element *active_element = tree->active_element;
-  reset_menu_elements(side_panel);
-  set_active_menu_element(active_element);
-  set_rerender(tree);
-  tree->rerender_element = side_panel;
+  Element *side_panel = select_element_by_tag(tree->root, side_panel_tag);
+  if (active_element != 0 && side_panel != 0) {
+    reset_menu_elements(side_panel);
+    set_active_menu_element(active_element);
+    bump_rerender(tree);
+    tree->rerender_element = side_panel;
+  }
 }
 
 void set_active_input(Element *element) {
@@ -80,33 +91,37 @@ void set_passive_input(Element *element) {
 }
 
 void click_item_1(ElementTree *tree, void *data) {
-  set_menu(tree, (Element *)data);
+  set_menu(tree);
   printf("Clicked menu item 1\n");
 }
 
 void click_item_2(ElementTree *tree, void *data) {
-  set_menu(tree, (Element *)data);
+  set_menu(tree);
   printf("Clicked menu item 2\n");
 }
 
 void click_item_3(ElementTree *tree, void *data) {
-  set_menu(tree, (Element *)data);
+  set_menu(tree);
   printf("Clicked menu item 3\n");
 }
 
 void click_search_bar(ElementTree *tree, void *data) {
   set_active_input(tree->active_element);
-  set_rerender(tree);
-  Element *panel = data;
-  tree->rerender_element = panel;
+  Element *panel = select_element_by_tag(tree->root, search_panel_tag);
+  if(panel != 0) {
+    bump_rerender(tree);
+    tree->rerender_element = panel;
+  }
   printf("Clicked search bar\n");
 }
 
 void blur_search_bar(ElementTree *tree, void *data) {
   set_passive_input(tree->active_element);
-  set_rerender(tree);
-  Element *panel = data;
-  tree->rerender_element = panel;
+  Element *panel = select_element_by_tag(tree->root, search_panel_tag);
+  if(panel != 0) {
+    bump_rerender(tree);
+    tree->rerender_element = panel;
+  }
   printf("Blurred search bar\n");
 }
 
@@ -194,6 +209,7 @@ i32 main() {
 
   Element *top_right_panel = add_new_element(tree, top_panel);
   *top_right_panel = (Element){
+    .element_tag = search_panel_tag,
     .background_type = background_type.color,
     .background_color = white,
     .padding = (Padding){10, 10, 10, 10},
@@ -203,6 +219,7 @@ i32 main() {
 
   Element *side_panel = add_new_element(tree, bottom_panel);
   *side_panel = (Element){
+    .element_tag = side_panel_tag,
     .width = 200,
     .background_type = background_type.horizontal_gradient,
     .background_gradient = gray_1_shade,
@@ -215,6 +232,7 @@ i32 main() {
 
   Element *content_panel = add_new_element(tree, bottom_panel);
   *content_panel = (Element){
+    .element_tag = content_panel_tag,
     .background_type = background_type.color,
     .background_color = white,
     .padding = (Padding){10, 10, 10, 10},
@@ -250,11 +268,9 @@ i32 main() {
     .padding = (Padding){10, 10, 10, 10},
   };
 
-  u8 menu_group = 1;
-
   Element *menu_item = add_new_element(tree, side_panel);
   *menu_item = (Element){
-    .element_group = menu_group,
+    .element_tag = menu_item_tag,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -267,7 +283,7 @@ i32 main() {
 
   Element *menu_item_2 = add_new_element(tree, side_panel);
   *menu_item_2 = (Element){
-    .element_group = menu_group,
+    .element_tag = menu_item_tag,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -280,7 +296,7 @@ i32 main() {
 
   Element *menu_item_3 = add_new_element(tree, side_panel);
   *menu_item_3 = (Element){
-    .element_group = menu_group,
+    .element_tag = menu_item_tag,
     .height = 30,
     .background_type = background_type.none,
     .background_color = border_color,
@@ -291,10 +307,9 @@ i32 main() {
     .on_click = &click_item_3,
   };
 
-  u8 search_group = 2;
   Element *search_bar = add_new_element(tree, top_right_panel);
   *search_bar = (Element){
-    .element_group = search_group,
+    .element_tag = search_input_tag,
     .min_width = 100,
     .background_type = background_type.color,
     .background_color = white,
@@ -371,16 +386,16 @@ i32 main() {
         i32 mouse_down_y = event.button.y;
         Element *blurred_element = tree->active_element;
         if (blurred_element != 0) {
-          if (blurred_element->element_group == search_group) {
+          if (blurred_element->element_tag == search_input_tag) {
             blur_handler(tree, top_right_panel);
           }
         }
         Element *active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
         if (active_element != 0) {
           tree->active_element = active_element;
-          if (active_element->element_group == menu_group) {
+          if (active_element->element_tag == menu_item_tag) {
             click_handler(tree, side_panel);
-          } else if (active_element->element_group == search_group) {
+          } else if (active_element->element_tag == search_input_tag) {
             click_handler(tree, top_right_panel);
           }
         }
@@ -412,10 +427,10 @@ i32 main() {
         .w = tree->rerender_element->width,
         .h = tree->rerender_element->height,
       };
-      if(target_rectangle.w == 0) {
+      if (target_rectangle.w == 0) {
         target_rectangle.w = tree->rerender_element->layout.max_width;
       }
-      if(target_rectangle.h == 0) {
+      if (target_rectangle.h == 0) {
         target_rectangle.h = tree->rerender_element->layout.max_height;
       }
       SDL_SetRenderTarget(renderer, target_texture);

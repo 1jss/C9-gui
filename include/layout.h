@@ -123,7 +123,7 @@ typedef struct {
 
 // element tree nodes
 typedef struct Element {
-  u8 element_group; // Optional group for elements
+  u8 element_tag; // Optional id or group id
   u8 background_type;
   RGBA background_color;
   C9_Gradient background_gradient;
@@ -147,7 +147,7 @@ typedef struct Element {
 } Element;
 
 Element empty_element = {
-  .element_group = 0,
+  .element_tag = 0,
   .background_type = 0, // No background color
   .background_color = C9_default_background_color,
   .background_gradient = {
@@ -660,6 +660,25 @@ void blur_handler(ElementTree *tree, void *data) {
   if (element != 0 && element->on_blur != 0) {
     element->on_blur(tree, data);
   }
+}
+
+// Recurses through the element children and returns the first element with the given tag
+Element *select_element_by_tag(Element *element, u8 tag) {
+  if (element->element_tag == tag) {
+    return element;
+  }
+  Array *children = element->children;
+  if (children == 0) {
+    return 0;
+  }
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    Element *selected = select_element_by_tag(child, tag);
+    if (selected != 0) {
+      return selected;
+    }
+  }
+  return 0;
 }
 
 #define C9_LAYOUT
