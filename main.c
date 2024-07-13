@@ -385,15 +385,11 @@ i32 main() {
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         i32 mouse_down_x = event.button.x;
         i32 mouse_down_y = event.button.y;
-        Element *blurred_element = tree->active_element;
-        if (blurred_element != 0) {
-          blur_handler(tree);
-        }
-        Element *active_element = get_element_at(tree->root, mouse_down_x, mouse_down_y);
-        if (active_element != 0) {
-          tree->active_element = active_element;
-          click_handler(tree);
-        }
+        // Blur former active element
+        blur_handler(tree);
+        // Set new active element
+        tree->active_element = get_clickable_element_at(tree->root, mouse_down_x, mouse_down_y);
+        click_handler(tree);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;

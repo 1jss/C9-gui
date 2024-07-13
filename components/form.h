@@ -6,6 +6,15 @@
 
 Element *form_element = 0;
 
+void click_content(ElementTree *tree) {
+  Element *panel_top_content = tree->active_element;
+  if (panel_top_content != 0) {
+    panel_top_content->background_color = gray_1;
+    bump_rerender(tree);
+    tree->rerender_element = panel_top_content;
+  }
+}
+
 void create_form_element(Arena *arena) {
   form_element = new_element(arena);
   *form_element = (Element){
@@ -39,6 +48,7 @@ void create_form_element(Arena *arena) {
     .background_type = background_type.color,
     .background_color = white,
     .border_radius = 15,
+    .on_click = &click_content,
   };
 }
 

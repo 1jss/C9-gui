@@ -517,21 +517,6 @@ bool is_pointer_in_element(Element *element, i32 x, i32 y) {
          y <= element->layout.y + element_height;
 }
 
-// Get the leaf element at a given position
-Element *get_element_at(Element *element, i32 x, i32 y) {
-  Array *children = element->children;
-  if (children == 0) {
-    return element;
-  }
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    if (is_pointer_in_element(child, x, y)) {
-      return get_element_at(child, x, y);
-    }
-  }
-  return element;
-};
-
 // Get clickable element at a given position
 Element *get_clickable_element_at(Element *element, i32 x, i32 y) {
   if (element->on_click != 0) {
