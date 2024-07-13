@@ -25,15 +25,9 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
   SDL_Rect rectangle = {
     .x = element->layout.x,
     .y = element->layout.y,
-    .w = element->width,
-    .h = element->height
+    .w = element->layout.max_width,
+    .h = element->layout.max_height,
   };
-  if (rectangle.w == 0) {
-    rectangle.w = element->layout.max_width;
-  }
-  if (rectangle.h == 0) {
-    rectangle.h = element->layout.max_height;
-  }
   // Invalid shape
   if (rectangle.w == 0 || rectangle.h == 0) {
     return;

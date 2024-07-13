@@ -1,5 +1,6 @@
 #ifndef C9_LAYOUT
 
+#include <stdbool.h> // bool
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "color.h" // RGBA, C9_Gradient, gradient
@@ -351,7 +352,7 @@ void fill_max_width(Element *element, i32 max_width) {
   Array *children = element->children;
   if (children != 0) {
     i32 element_padding = element->padding.left + element->padding.right;
-    i32 child_width = child_width = max_width - element_padding;
+    i32 child_width = max_width - element_padding;
 
     if (element->layout_direction == layout_direction.horizontal) {
       // How many children have flexible width
@@ -470,11 +471,7 @@ i32 set_x(Element *element, i32 x) {
       }
     }
   };
-  if (element->width > 0) {
-    return x + element->width;
-  } else {
-    return x + element->layout.max_width;
-  }
+  return x + element->layout.max_width;
 }
 
 // Recursively sets element y position
@@ -497,11 +494,7 @@ i32 set_y(Element *element, i32 y) {
       }
     }
   };
-  if (element->height > 0) {
-    return y + element->height;
-  } else {
-    return y + element->layout.max_height;
-  }
+  return y + element->layout.max_height;
 }
 
 // Loop through element tree and set LayoutProp dimensions
@@ -514,6 +507,16 @@ void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
   set_y(tree->root, 0);
 }
 
+// Checks if a pointer position is within an element
+bool is_pointer_in_element(Element *element, i32 x, i32 y) {
+  i32 element_width = element->layout.max_width;
+  i32 element_height = element->layout.max_height;
+  return x >= element->layout.x &&
+         x <= element->layout.x + element_width &&
+         y >= element->layout.y &&
+         y <= element->layout.y + element_height;
+}
+
 // Get the leaf element at a given position
 Element *get_element_at(Element *element, i32 x, i32 y) {
   Array *children = element->children;
@@ -522,17 +525,31 @@ Element *get_element_at(Element *element, i32 x, i32 y) {
   }
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    i32 child_x = child->layout.x;
-    i32 child_y = child->layout.y;
-    i32 child_width = child->width > 0 ? child->width : child->layout.max_width;
-    i32 child_height = child->height > 0 ? child->height : child->layout.max_height;
-    if (x >= child_x && x <= child_x + child_width && y >= child_y && y <= child_y + child_height) {
+    if (is_pointer_in_element(child, x, y)) {
       return get_element_at(child, x, y);
     }
   }
   return element;
 };
 
+// Get clickable element at a given position
+Element *get_clickable_element_at(Element *element, i32 x, i32 y) {
+  if (element->on_click != 0) {
+    return element;
+  }
+  Array *children = element->children;
+  if (children != 0) {
+    for (size_t i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      if (is_pointer_in_element(child, x, y)) {
+        return get_clickable_element_at(child, x, y);
+      }
+    }
+  }
+  return 0;
+};
+
+// Recursively finds out the minimum width of an element before layout
 i32 get_min_width(Element *element) {
   i32 element_padding = element->padding.left + element->padding.right;
   if (element->width > 0) {
@@ -562,6 +579,7 @@ i32 get_min_width(Element *element) {
   }
 }
 
+// Recursively finds out the minimum height of an element before layout
 i32 get_min_height(Element *element) {
   i32 element_padding = element->padding.top + element->padding.bottom;
   if (element->height > 0) {
@@ -591,13 +609,10 @@ i32 get_min_height(Element *element) {
   }
 }
 
-// Recursively scrolls the elements under the pointer children first
+// Recursively scrolls the elements under the pointer starting with the children
 i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
   // Check if the pointer is within the element
-  if (x >= element->layout.x &&
-      x <= element->layout.x + element->layout.max_width &&
-      y >= element->layout.y &&
-      y <= element->layout.y + element->layout.max_height) {
+  if (is_pointer_in_element(element, x, y)) {
     Array *children = element->children;
     if (children != 0) {
       for (size_t i = 0; i < array_length(children); i++) {
@@ -628,13 +643,10 @@ i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
   return scroll_delta;
 }
 
-// Recursively scrolls the elements under the pointer children first
+// Recursively scrolls the elements under the pointer starting with the children
 i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
   // Check if the pointer is within the element
-  if (x >= element->layout.x &&
-      x <= element->layout.x + element->layout.max_width &&
-      y >= element->layout.y &&
-      y <= element->layout.y + element->layout.max_height) {
+  if (is_pointer_in_element(element, x, y)) {
     Array *children = element->children;
     if (children != 0) {
       for (size_t i = 0; i < array_length(children); i++) {
@@ -698,7 +710,7 @@ Element *select_element_by_tag(Element *element, u8 tag) {
   return 0;
 }
 
-// Sets selective rerendering if no rendering is set
+// Sets selective rerendering if no rendering is set and all if selective is set
 void bump_rerender(ElementTree *tree) {
   if (tree->rerender == rerender_type.none) {
     tree->rerender = rerender_type.selected;
