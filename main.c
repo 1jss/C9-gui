@@ -13,23 +13,6 @@
 #include "include/string.h" // to_s8
 #include "include/types.h" // i32
 
-#if 0
-i32 resizeWatcher(void *data, SDL_Event *event) {
-  if (event->type == SDL_WINDOWEVENT &&
-      event->window.event == SDL_WINDOWEVENT_RESIZED) {
-    SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
-    if (window == (SDL_Window *)data) {
-      i32 width;
-      i32 height;
-      SDL_GetWindowSize(window, &width, &height);
-
-      printf("width: %d, height: %d\n", width, height);
-    }
-  }
-  return 0;
-}
-#endif
-
 void reset_menu_elements(Element *side_panel) {
   // Loop through all children and set background color to none
   Array *children = side_panel->children;
@@ -59,16 +42,6 @@ void set_menu(ElementTree *tree) {
   }
 }
 
-// void set_active_input_style(Element *element) {
-//   element->border_color = border_color_active;
-//   element->text_color = text_color_active;
-// }
-
-// void set_passive_input_style(Element *element) {
-//   element->border_color = border_color;
-//   element->text_color = text_color;
-// }
-
 void set_content_panel(ElementTree *tree, Element *element) {
   Element *content_panel = select_element_by_tag(tree->root, content_panel_tag);
   if (content_panel != 0) {
@@ -95,38 +68,15 @@ void click_item_1(ElementTree *tree) {
     create_form_element(tree->arena);
   }
   set_content_panel(tree, form_element);
-  printf("Clicked menu item 1\n");
 }
 
 void click_item_2(ElementTree *tree) {
   set_menu(tree);
-  printf("Clicked menu item 2\n");
 }
 
 void click_item_3(ElementTree *tree) {
   set_menu(tree);
-  printf("Clicked menu item 3\n");
 }
-
-// void click_search_bar(ElementTree *tree) {
-//   set_active_input_style(tree->active_element);
-//   Element *panel = select_element_by_tag(tree->root, search_panel_tag);
-//   if (panel != 0) {
-//     bump_rerender(tree);
-//     tree->rerender_element = panel;
-//   }
-//   printf("Clicked search bar\n");
-// }
-
-// void blur_search_bar(ElementTree *tree) {
-//   set_passive_input_style(tree->active_element);
-//   Element *panel = select_element_by_tag(tree->root, search_panel_tag);
-//   if (panel != 0) {
-//     bump_rerender(tree);
-//     tree->rerender_element = panel;
-//   }
-//   printf("Blurred search bar\n");
-// }
 
 i32 main() {
   i32 mouse_x = 0;
@@ -164,8 +114,6 @@ i32 main() {
     printf("SDL_CreateWindow: %s\n", SDL_GetError());
     return -1;
   }
-
-  // SDL_AddEventWatch(resizeWatcher, window);
 
   // Create SDL renderer
   SDL_Renderer *renderer =
@@ -309,20 +257,6 @@ i32 main() {
 
   create_search_bar_element(tree->arena);
   add_element(tree->arena, top_right_panel, search_bar);
-  // Element *search_bar = add_new_element(tree->arena, top_right_panel);
-  // *search_bar = (Element){
-  //   .min_width = 100,
-  //   .background_type = background_type.color,
-  //   .background_color = white,
-  //   .padding = (Padding){5, 10, 5, 10},
-  //   .border_radius = 15,
-  //   .border_color = border_color,
-  //   .border = (Border){1, 1, 1, 1},
-  //   .text = to_s8("Search"),
-  //   .text_color = text_color,
-  //   .on_click = &click_search_bar,
-  //   .on_blur = &blur_search_bar,
-  // };
 
   i32 min_width = get_min_width(tree->root);
   i32 min_height = get_min_height(tree->root);
