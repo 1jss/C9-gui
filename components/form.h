@@ -3,15 +3,17 @@
 #include "../include/arena.h" // Arena
 #include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
 #include "../constants/color_theme.h" // gray_2, white
+#include "../constants/element_tags.h" // content_panel_tag
 
 Element *form_element = 0;
 
 void click_content(ElementTree *tree) {
+  Element *content_panel = select_element_by_tag(tree->root, content_panel_tag);
   Element *panel_top_content = tree->active_element;
-  if (panel_top_content != 0) {
+  if (panel_top_content != 0 && content_panel != 0) {
     panel_top_content->background_color = gray_1;
     bump_rerender(tree);
-    tree->rerender_element = panel_top_content;
+    tree->rerender_element = content_panel;
   }
 }
 
