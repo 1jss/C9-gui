@@ -349,15 +349,9 @@ i32 main() {
       SDL_Rect target_rectangle = {
         .x = tree->rerender_element->layout.x,
         .y = tree->rerender_element->layout.y,
-        .w = tree->rerender_element->width,
-        .h = tree->rerender_element->height,
+        .w = tree->rerender_element->layout.max_width,
+        .h = tree->rerender_element->layout.max_height,
       };
-      if (target_rectangle.w == 0) {
-        target_rectangle.w = tree->rerender_element->layout.max_width;
-      }
-      if (target_rectangle.h == 0) {
-        target_rectangle.h = tree->rerender_element->layout.max_height;
-      }
       SDL_SetRenderTarget(renderer, target_texture);
       draw_elements(renderer, Inter, tree->rerender_element, target_rectangle);
       // Draw target_texture to back buffer and present
