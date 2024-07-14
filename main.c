@@ -33,7 +33,7 @@ void set_active_menu_element(Element *element) {
 
 void set_menu(ElementTree *tree) {
   Element *active_element = tree->active_element;
-  Element *side_panel = select_element_by_tag(tree->root, side_panel_tag);
+  Element *side_panel = get_element_by_tag(tree->root, side_panel_tag);
   if (active_element != 0 && side_panel != 0) {
     reset_menu_elements(side_panel);
     set_active_menu_element(active_element);
@@ -43,7 +43,7 @@ void set_menu(ElementTree *tree) {
 }
 
 void set_content_panel(ElementTree *tree, Element *element) {
-  Element *content_panel = select_element_by_tag(tree->root, content_panel_tag);
+  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   if (content_panel != 0) {
     // Clear children and add new element
     content_panel->children = array_create(tree->arena, sizeof(Element));

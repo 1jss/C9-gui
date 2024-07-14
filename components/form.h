@@ -8,7 +8,7 @@
 Element *form_element = 0;
 
 void click_content(ElementTree *tree) {
-  Element *content_panel = select_element_by_tag(tree->root, content_panel_tag);
+  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   Element *panel_top_content = tree->active_element;
   if (panel_top_content != 0 && content_panel != 0) {
     panel_top_content->background_color = gray_1;

@@ -185,6 +185,13 @@ Element empty_element = {
   },
 };
 
+// Create a new element and return a pointer to it
+Element *new_element(Arena *arena) {
+  Element *element = (Element *)arena_fill(arena, sizeof(Element));
+  *element = empty_element;
+  return element;
+}
+
 // Element Tree already typedefed
 struct ElementTree {
   Arena *arena;
@@ -198,26 +205,9 @@ struct ElementTree {
 ElementTree *new_element_tree(Arena *arena) {
   ElementTree *tree = (ElementTree *)arena_fill(arena, sizeof(ElementTree));
   tree->arena = arena;
-  // Get memory for the root element
-  Element *root = (Element *)arena_fill(arena, sizeof(Element));
-  // Initialize the root element
-  *root = (Element){
-    .padding = {0, 0, 0, 0},
-    .border = {0, 0, 0, 0},
-    .children = 0,
-    .layout_direction = layout_direction.vertical,
-    .layout = {
-      .x = 0,
-      .y = 0,
-      .max_width = 0,
-      .max_height = 0,
-      .scroll_width = 0,
-      .scroll_height = 0,
-      .scroll_x = 0,
-      .scroll_y = 0,
-    },
-  };
-
+  Element *root = new_element(arena);
+  root->layout_direction = layout_direction.vertical;
+ 
   // Assign the root element to the tree
   tree->root = root;
   tree->active_element = 0;
@@ -246,13 +236,6 @@ void add_element(Arena *arena, Element *parent, Element *child) {
   }
   // Add a new child element to the parent element
   array_push(parent->children, child);
-}
-
-// Create a new element and return a pointer to it
-Element *new_element(Arena *arena) {
-  Element *element = (Element *)arena_fill(arena, sizeof(Element));
-  *element = empty_element;
-  return element;
 }
 
 // Recursively sets width of an element
@@ -677,7 +660,7 @@ void blur_handler(ElementTree *tree) {
 }
 
 // Recurses through the element children and returns the first element with the given tag
-Element *select_element_by_tag(Element *element, u8 tag) {
+Element *get_element_by_tag(Element *element, u8 tag) {
   if (element->element_tag == tag) {
     return element;
   }
@@ -687,7 +670,7 @@ Element *select_element_by_tag(Element *element, u8 tag) {
   }
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    Element *selected = select_element_by_tag(child, tag);
+    Element *selected = get_element_by_tag(child, tag);
     if (selected != 0) {
       return selected;
     }

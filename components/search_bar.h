@@ -20,7 +20,7 @@ void set_passive_input_style(Element *element) {
 
 void click_search_bar(ElementTree *tree) {
   set_active_input_style(tree->active_element);
-  Element *panel = select_element_by_tag(tree->root, search_panel_tag);
+  Element *panel = get_element_by_tag(tree->root, search_panel_tag);
   if (panel != 0) {
     bump_rerender(tree);
     tree->rerender_element = panel;
@@ -29,7 +29,7 @@ void click_search_bar(ElementTree *tree) {
 
 void blur_search_bar(ElementTree *tree) {
   set_passive_input_style(tree->active_element);
-  Element *panel = select_element_by_tag(tree->root, search_panel_tag);
+  Element *panel = get_element_by_tag(tree->root, search_panel_tag);
   if (panel != 0) {
     bump_rerender(tree);
     tree->rerender_element = panel;
