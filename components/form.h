@@ -1,13 +1,56 @@
 #ifndef FORM_COMPONENT
 
-#include "../include/arena.h" // Arena
-#include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
+#include <string.h> // strcmp
 #include "../constants/color_theme.h" // gray_2, white
 #include "../constants/element_tags.h" // content_panel_tag
+#include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
+#include "../include/arena.h" // Arena
+#include "../include/input.h"
+#include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
 
 Element *form_element = 0;
 
-void click_content(ElementTree *tree) {
+void click_text_input(ElementTree *tree, void *data) {
+  (void)data;
+  set_active_input_style(tree->active_element);
+  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
+  if (content_panel != 0) {
+    bump_rerender(tree);
+    tree->rerender_element = content_panel;
+  }
+}
+
+void blur_text_input(ElementTree *tree, void *data) {
+  (void)data;
+  set_passive_input_style(tree->active_element);
+  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
+  if (content_panel != 0) {
+    bump_rerender(tree);
+    tree->rerender_element = content_panel;
+  }
+}
+
+void on_text_input(ElementTree *tree, void *data) {
+  char *text = (char *)data;
+  if (strcmp(text, "BACKSPACE") == 0) {
+    delete_text(tree->active_element->input);
+  } else if (strcmp(text, "LEFT") == 0) {
+    move_cursor_left(tree->active_element->input);
+  } else if (strcmp(text, "RIGHT") == 0) {
+    move_cursor_right(tree->active_element->input);
+  } else {
+    insert_text(tree->active_element->input, text);
+  }
+
+  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
+  if (content_panel != 0) {
+    bump_rerender(tree);
+    tree->rerender_element = content_panel;
+  }
+}
+
+void click_content(ElementTree *tree, void *data) {
+  (void)data;
   Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   Element *panel_top_content = tree->active_element;
   if (panel_top_content != 0 && content_panel != 0) {
@@ -51,6 +94,22 @@ void create_form_element(Arena *arena) {
     .background_color = white,
     .border_radius = 15,
     .on_click = &click_content,
+  };
+
+  Element *text_input = add_new_element(arena, content_panel_top);
+  *text_input = (Element){
+    .height = 30,
+    .background_type = background_type.color,
+    .background_color = white,
+    .padding = (Padding){5, 10, 5, 10},
+    .border_radius = 15,
+    .border_color = border_color,
+    .border = (Border){1, 1, 1, 1},
+    .input = new_input(arena, 100),
+    .text_color = text_color,
+    .on_click = &click_text_input,
+    .on_blur = &blur_text_input,
+    .on_key_press = &on_text_input,
   };
 }
 

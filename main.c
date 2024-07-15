@@ -62,7 +62,8 @@ void set_content_panel(ElementTree *tree, Element *element) {
   }
 }
 
-void click_item_1(ElementTree *tree) {
+void click_item_1(ElementTree *tree, void *data) {
+  (void)data;
   set_menu(tree);
   if (form_element == 0) {
     create_form_element(tree->arena);
@@ -70,11 +71,13 @@ void click_item_1(ElementTree *tree) {
   set_content_panel(tree, form_element);
 }
 
-void click_item_2(ElementTree *tree) {
+void click_item_2(ElementTree *tree, void *data) {
+  (void)data;
   set_menu(tree);
 }
 
-void click_item_3(ElementTree *tree) {
+void click_item_3(ElementTree *tree, void *data) {
+  (void)data;
   set_menu(tree);
 }
 
@@ -104,6 +107,7 @@ i32 main() {
     printf("SDL_Init: %s\n", SDL_GetError());
     return -1;
   }
+  SDL_StartTextInput();
 
   // Create SDL window
   SDL_Window *window = SDL_CreateWindow(
@@ -255,6 +259,7 @@ i32 main() {
     .on_click = &click_item_3,
   };
 
+  // search_bar is defined in search_bar.h
   create_search_bar_element(tree->arena);
   add_element(tree->arena, top_right_panel, search_bar);
 
@@ -296,7 +301,24 @@ i32 main() {
           tree->rerender = rerender_type.all;
         }
       } else if (event.type == SDL_KEYDOWN) {
-        printf("Key press\n");
+        // Get key press content
+        SDL_Keysym keysym = event.key.keysym;
+        if (keysym.sym == SDLK_BACKSPACE) {
+          input_handler(tree, "BACKSPACE");
+        } else if( keysym.sym == SDLK_LEFT) {
+          input_handler(tree, "LEFT");
+        } else if (keysym.sym == SDLK_RIGHT) {
+          input_handler(tree, "RIGHT");
+        } else if (keysym.sym == SDLK_RETURN) {
+          printf("Return\n");
+        }
+      } else if (event.type == SDL_TEXTINPUT) {
+        // Get text input content
+        if (!(SDL_GetModState() & KMOD_CTRL)) {
+          char *text = (char *)event.text.text;
+          input_handler(tree, text);
+        }
+
       } else if (event.type == SDL_MOUSEMOTION) {
         mouse_x = event.motion.x;
         mouse_y = event.motion.y;
@@ -320,10 +342,10 @@ i32 main() {
         i32 mouse_down_x = event.button.x;
         i32 mouse_down_y = event.button.y;
         // Blur former active element
-        blur_handler(tree);
+        blur_handler(tree, 0);
         // Set new active element
         tree->active_element = get_clickable_element_at(tree->root, mouse_down_x, mouse_down_y);
-        click_handler(tree);
+        click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;
@@ -375,7 +397,7 @@ i32 main() {
   if (window) {
     SDL_DestroyWindow(window);
   }
-
+  SDL_StopTextInput();
   arena_close(element_arena);
   TTF_CloseFont(Inter);
   TTF_Quit();

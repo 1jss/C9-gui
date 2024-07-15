@@ -4,6 +4,7 @@
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "color.h" // RGBA, C9_Gradient, gradient
+#include "input.h" // InputData
 #include "string.h" // s8
 #include "types.h" // u8, i32
 
@@ -83,8 +84,8 @@ struct ElementTree;
 typedef struct ElementTree ElementTree;
 
 // Function pointer typedef for on_click and on_blur
-// The function takes a pointer to the ElementTree.
-typedef void (*OnEvent)(ElementTree *);
+// The function takes a pointer to the ElementTree and a void pointer to optional event data
+typedef void (*OnEvent)(ElementTree *, void *);
 
 typedef struct {
   i32 x;
@@ -134,9 +135,11 @@ typedef struct Element {
   i32 min_height;
   i32 gutter;
   s8 text;
+  InputData *input;
   RGBA text_color;
   OnEvent on_click; // Function pointer
   OnEvent on_blur; // Function pointer
+  OnEvent on_key_press; // Function pointer
   Padding padding;
   Border border;
   i32 border_radius;
@@ -163,6 +166,7 @@ Element empty_element = {
   .min_height = 0,
   .gutter = 0,
   .text = {.data = 0, .length = 0},
+  .input = 0,
   .text_color = C9_default_text_color,
   .on_click = 0,
   .on_blur = 0,
@@ -207,7 +211,7 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->arena = arena;
   Element *root = new_element(arena);
   root->layout_direction = layout_direction.vertical;
- 
+
   // Assign the root element to the tree
   tree->root = root;
   tree->active_element = 0;
@@ -645,17 +649,24 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
   return scroll_delta;
 }
 
-void click_handler(ElementTree *tree) {
+void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
-    element->on_click(tree);
+    element->on_click(tree, data);
   }
 }
 
-void blur_handler(ElementTree *tree) {
+void blur_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_blur != 0) {
-    element->on_blur(tree);
+    element->on_blur(tree, data);
+  }
+}
+
+void input_handler(ElementTree *tree, void *data) {
+  Element *element = tree->active_element;
+  if (element != 0 && element->on_key_press != 0) {
+    element->on_key_press(tree, data);
   }
 }
 

@@ -2,18 +2,21 @@
 
 #include <SDL2/SDL.h>
 #include <math.h> // cosf, sinf, powf
-#include "color.h" // RGBA, getGradientColor, C9_Gradient, red, green, blue, alpha
 #include "SDL_ttf.h" // TTF_RenderText_Blended
+#include "color.h" // RGBA, getGradientColor, C9_Gradient, red, green, blue, alpha
 #include "types.h" // u8, f32, i32
 
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y, RGBA color) {
-  const SDL_Color text_color = {red(color), green(color), blue(color), alpha(color)};
-  SDL_Surface *surface = TTF_RenderText_Blended(font, text, text_color);
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  SDL_Rect rect = {x, y, surface->w, surface->h};
-  SDL_RenderCopy(renderer, texture, NULL, &rect);
-  SDL_FreeSurface(surface);
-  SDL_DestroyTexture(texture);
+  // check if text has any content
+  if (text[0] != '\0') {
+    const SDL_Color text_color = {red(color), green(color), blue(color), alpha(color)};
+    SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, text_color);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Rect rect = {x, y, surface->w, surface->h};
+    SDL_RenderCopy(renderer, texture, NULL, &rect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+  }
 }
 
 f32 calculate_superellipse_radius(f32 radius, f32 t) {

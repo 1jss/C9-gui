@@ -2,23 +2,15 @@
 
 #include "../constants/color_theme.h" // gray_2, white
 #include "../constants/element_tags.h" // search_panel_tag
+#include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
 #include "../include/arena.h" // Arena
 #include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
 #include "../include/string.h" // to_s8
 
 Element *search_bar = 0;
 
-void set_active_input_style(Element *element) {
-  element->border_color = border_color_active;
-  element->text_color = text_color_active;
-}
-
-void set_passive_input_style(Element *element) {
-  element->border_color = border_color;
-  element->text_color = text_color;
-}
-
-void click_search_bar(ElementTree *tree) {
+void click_search_bar(ElementTree *tree, void *data) {
+  (void)data;
   set_active_input_style(tree->active_element);
   Element *panel = get_element_by_tag(tree->root, search_panel_tag);
   if (panel != 0) {
@@ -27,7 +19,8 @@ void click_search_bar(ElementTree *tree) {
   }
 }
 
-void blur_search_bar(ElementTree *tree) {
+void blur_search_bar(ElementTree *tree, void *data) {
+  (void)data;
   set_passive_input_style(tree->active_element);
   Element *panel = get_element_by_tag(tree->root, search_panel_tag);
   if (panel != 0) {

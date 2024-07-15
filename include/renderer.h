@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "array.h" // array_get
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle, draw_superellipse, draw_filled_superellipse
+#include "input.h" // InputData
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
 
@@ -67,6 +68,15 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
     i32 text_y = rectangle.y + element->padding.top;
     draw_text(
       renderer, font, to_char(element->text), text_x, text_y, element->text_color
+    );
+  } else if (element->input != 0) {
+    InputData input = *element->input;
+    i32 text_x = rectangle.x + element->padding.left;
+    i32 text_y = rectangle.y + element->padding.top;
+    char *text_data = (char *)input.text.data;
+
+    draw_text(
+      renderer, font, text_data, text_x, text_y, element->text_color
     );
   }
   // Reset the target texture as the render target
