@@ -29,6 +29,16 @@ void blur_search_bar(ElementTree *tree, void *data) {
   }
 }
 
+void on_search_bar_input(ElementTree *tree, void *data) {
+  char *text = (char *)data;
+  handle_text_input(tree->active_element->input, text);
+  Element *panel = get_element_by_tag(tree->root, search_panel_tag);
+  if (panel != 0) {
+    bump_rerender(tree);
+    tree->rerender_element = panel;
+  }
+}
+
 void create_search_bar_element(Arena *arena) {
   search_bar = new_element(arena);
   *search_bar = (Element){
@@ -39,10 +49,11 @@ void create_search_bar_element(Arena *arena) {
     .border_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
-    .text = to_s8("Search"),
+    .input = new_input(arena, 100),
     .text_color = text_color,
     .on_click = &click_search_bar,
     .on_blur = &blur_search_bar,
+    .on_key_press = &on_search_bar_input,
   };
 }
 
