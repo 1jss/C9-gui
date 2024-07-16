@@ -11,6 +11,7 @@ const RGBA border_color = 0xDEE2E6FF;
 const RGBA border_color_active = 0xADAFB2FF;
 const RGBA text_color = 0x555555FF;
 const RGBA text_color_active = 0x222222FF;
+const RGBA menu_active_color = 0xDEE2E6FF;
 
 #define COLOR_THEME
 #endif

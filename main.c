@@ -121,7 +121,7 @@ i32 main() {
 
   // Create SDL renderer
   SDL_Renderer *renderer =
-    SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    SDL_CreateRenderer(window, -1, 0);
   if (!renderer) {
     printf("SDL_CreateRenderer: %s\n", SDL_GetError());
     return -1;
@@ -227,7 +227,7 @@ i32 main() {
   *menu_item = (Element){
     .height = 30,
     .background_type = background_type.none,
-    .background_color = border_color,
+    .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
     .text = to_s8("Menu item 1"),
@@ -239,7 +239,7 @@ i32 main() {
   *menu_item_2 = (Element){
     .height = 30,
     .background_type = background_type.none,
-    .background_color = border_color,
+    .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
     .text = to_s8("Menu item 2"),
@@ -251,7 +251,7 @@ i32 main() {
   *menu_item_3 = (Element){
     .height = 30,
     .background_type = background_type.none,
-    .background_color = border_color,
+    .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
     .text = to_s8("Menu item 3"),
