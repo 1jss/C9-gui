@@ -375,7 +375,7 @@ i32 main() {
         .h = tree->rerender_element->layout.max_height,
       };
       SDL_SetRenderTarget(renderer, target_texture);
-      draw_elements(renderer, Inter, tree->rerender_element, target_rectangle);
+      draw_elements(renderer, Inter, tree->rerender_element, target_rectangle, tree->active_element);
       // Draw target_texture to back buffer and present
       SDL_SetRenderTarget(renderer, NULL);
       SDL_RenderCopy(renderer, target_texture, NULL, NULL);
