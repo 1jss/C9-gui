@@ -301,16 +301,28 @@ i32 main() {
           tree->rerender = rerender_type.all;
         }
       } else if (event.type == SDL_KEYDOWN) {
+        SDL_Keymod mod = SDL_GetModState();
         // Get key press content
         SDL_Keysym keysym = event.key.keysym;
         if (keysym.sym == SDLK_BACKSPACE) {
           input_handler(tree, "BACKSPACE");
-        } else if( keysym.sym == SDLK_LEFT) {
-          input_handler(tree, "LEFT");
+        } else if (keysym.sym == SDLK_LEFT &&
+                   mod & KMOD_SHIFT) {
+          input_handler(tree, "SELECT_LEFT");
+        } else if (keysym.sym == SDLK_RIGHT &&
+                   mod & KMOD_SHIFT) {
+          input_handler(tree, "SELECT_RIGHT");
+        } else if (keysym.sym == SDLK_LEFT) {
+          input_handler(tree, "MOVE_LEFT");
         } else if (keysym.sym == SDLK_RIGHT) {
-          input_handler(tree, "RIGHT");
+          input_handler(tree, "MOVE_RIGHT");
+        } else if (keysym.sym == SDLK_a &&
+                   mod & KMOD_CTRL) {
+          input_handler(tree, "SELECT_ALL");
         } else if (keysym.sym == SDLK_RETURN) {
           printf("Return\n");
+        } else if (keysym.sym == SDLK_ESCAPE) {
+          input_handler(tree, "DESELECT");
         }
       } else if (event.type == SDL_TEXTINPUT) {
         // Get text input content

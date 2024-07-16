@@ -214,6 +214,9 @@ void replace_text(InputData *input, char *text) {
 
   // Add the edit action to the history
   add_edit_action(input->history, action);
+  // Move the selection to the end of the inserted text
+  input->selection.start_index += new_text.length;
+  input->selection.end_index = input->selection.start_index;
 }
 
 void insert_text(InputData *input, char *text) {
@@ -274,9 +277,17 @@ void delete_text(InputData *input) {
 void handle_text_input(InputData *input, char *text) {
   if (strcmp(text, "BACKSPACE") == 0) {
     delete_text(input);
-  } else if (strcmp(text, "LEFT") == 0) {
+  } else if (strcmp(text, "SELECT_LEFT") == 0) {
+    select_left(input);
+  } else if (strcmp(text, "SELECT_RIGHT") == 0) {
+    select_right(input);
+  } else if (strcmp(text, "SELECT_ALL") == 0) {
+    select_all(input);
+  } else if (strcmp(text, "DESELECT") == 0) {
+    deselect(input);
+  } else if (strcmp(text, "MOVE_LEFT") == 0) {
     move_cursor_left(input);
-  } else if (strcmp(text, "RIGHT") == 0) {
+  } else if (strcmp(text, "MOVE_RIGHT") == 0) {
     move_cursor_right(input);
   } else if (strcmp(text, "UNDO") == 0) {
     undoAction(input);
