@@ -139,7 +139,7 @@ void redoAction(InputData *input) {
   }
 }
 
-bool is_utf8_continuation_byte(u8 byte) {
+bool has_continuation_byte(u8 byte) {
   return (byte & 0b11000000) == 0b10000000;
 }
 
@@ -150,7 +150,7 @@ void move_cursor_left(InputData *input) {
     input->selection.start_index--;
   }
   // Move the cursor to the start of the previous character
-  while (input->selection.start_index > 0 && is_utf8_continuation_byte(input->text.data[input->selection.start_index])) {
+  while (input->selection.start_index > 0 && has_continuation_byte(input->text.data[input->selection.start_index])) {
     input->selection.start_index--;
   }
   input->selection.end_index = input->selection.start_index;
@@ -161,7 +161,7 @@ void move_cursor_right(InputData *input) {
     input->selection.end_index++;
   }
   // Move the cursor to the start of the next character
-  while (input->selection.end_index < input->text.length && is_utf8_continuation_byte(input->text.data[input->selection.end_index])) {
+  while (input->selection.end_index < input->text.length && has_continuation_byte(input->text.data[input->selection.end_index])) {
     input->selection.end_index++;
   }
   input->selection.start_index = input->selection.end_index;
@@ -171,9 +171,17 @@ void select_right(InputData *input) {
   if (input->selection.end_index < input->text.length) {
     input->selection.end_index++;
   }
+  // Keep moving if next character has continuation byte, which means we're still in the same character
+  while (input->selection.end_index < input->text.length && has_continuation_byte(input->text.data[input->selection.end_index])) {
+    input->selection.end_index++;
+  }
 }
 void select_left(InputData *input) {
   if (input->selection.start_index > 0) {
+    input->selection.start_index--;
+  }
+  // Keep moving if previous character has continuation byte which means we haven't yet reached the start of the character
+  while (input->selection.start_index > 0 && has_continuation_byte(input->text.data[input->selection.start_index])) {
     input->selection.start_index--;
   }
 }
@@ -243,7 +251,7 @@ void delete_text(InputData *input) {
       input->selection.start_index--;
     }
     // Move the start index to the start of the character if it is a multi-byte character
-    while (input->selection.start_index > 0 && is_utf8_continuation_byte(input->text.data[input->selection.start_index])) {
+    while (input->selection.start_index > 0 && has_continuation_byte(input->text.data[input->selection.start_index])) {
       input->selection.start_index--;
     }
   }
@@ -261,6 +269,22 @@ void delete_text(InputData *input) {
   add_edit_action(input->history, action);
   // Move the selection to the start index
   input->selection.end_index = input->selection.start_index;
+}
+
+void handle_text_input(InputData *input, char *text) {
+  if (strcmp(text, "BACKSPACE") == 0) {
+    delete_text(input);
+  } else if (strcmp(text, "LEFT") == 0) {
+    move_cursor_left(input);
+  } else if (strcmp(text, "RIGHT") == 0) {
+    move_cursor_right(input);
+  } else if (strcmp(text, "UNDO") == 0) {
+    undoAction(input);
+  } else if (strcmp(text, "REDO") == 0) {
+    redoAction(input);
+  } else {
+    insert_text(input, text);
+  }
 }
 
 #define C9_INPUT

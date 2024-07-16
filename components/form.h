@@ -32,16 +32,7 @@ void blur_text_input(ElementTree *tree, void *data) {
 
 void on_text_input(ElementTree *tree, void *data) {
   char *text = (char *)data;
-  if (strcmp(text, "BACKSPACE") == 0) {
-    delete_text(tree->active_element->input);
-  } else if (strcmp(text, "LEFT") == 0) {
-    move_cursor_left(tree->active_element->input);
-  } else if (strcmp(text, "RIGHT") == 0) {
-    move_cursor_right(tree->active_element->input);
-  } else {
-    insert_text(tree->active_element->input, text);
-  }
-
+  handle_text_input(tree->active_element->input, text);
   Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   if (content_panel != 0) {
     bump_rerender(tree);
