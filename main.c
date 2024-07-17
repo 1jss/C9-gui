@@ -351,7 +351,8 @@ i32 main() {
         blur_handler(tree, 0);
         // Set new active element
         tree->active_element = get_clickable_element_at(tree->root, mouse.x, mouse.y);
-        if (tree->active_element->input != 0) {
+        if (tree->active_element != 0 &&
+            tree->active_element->input != 0) {
           // Input elements need the font to calculate cursor position
           InputProps props = {
             .mouse_position = mouse,
