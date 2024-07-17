@@ -2,48 +2,13 @@
 
 #include <SDL2/SDL.h>
 #include <stdio.h>
-#include <string.h> // memcpy
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle, draw_superellipse, draw_filled_superellipse
-#include "input.h" // InputData
+#include "input.h" // InputData, measure_selection
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
-
-SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
-  Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
-  u32 start_index = input->selection.start_index;
-  u32 end_index = input->selection.end_index;
-  fs8 text = input->text;
-
-  // Measure the text before the selection
-  char *before_selection = arena_fill(temp_arena, start_index + 1); // +1 for null terminator
-  memcpy(before_selection, text.data, start_index);
-  // Add null-terminator
-  before_selection[start_index] = '\0';
-  i32 selection_x;
-  TTF_SizeUTF8(font, before_selection, &selection_x, 0);
-
-  // Measure the selected text
-  i32 selection_length = end_index - start_index;
-  char *selected_text = arena_fill(temp_arena, selection_length + 1); // +1 for null terminator
-  memcpy(selected_text, text.data + start_index, selection_length);
-  // Add null-terminator
-  selected_text[selection_length] = '\0';
-  i32 selection_w;
-  i32 selection_h;
-  TTF_SizeUTF8(font, selected_text, &selection_w, &selection_h);
-
-  arena_close(temp_arena);
-  SDL_Rect result = {
-    .x = selection_x,
-    .y = 0,
-    .w = selection_w,
-    .h = selection_h
-  };
-  return result;
-}
 
 // Recursively draws all elements
 void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL_Rect target_rectangle, Element *active_element) {

@@ -1,6 +1,8 @@
 #ifndef C9_INPUT
 
 #include <stdbool.h> // bool
+#include <string.h> // memcpy
+#include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "fixed_string.h" // s8
@@ -295,6 +297,60 @@ void handle_text_input(InputData *input, char *text) {
     redoAction(input);
   } else {
     insert_text(input, text);
+  }
+}
+
+SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
+  Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
+  u32 start_index = input->selection.start_index;
+  u32 end_index = input->selection.end_index;
+  fs8 text = input->text;
+
+  // Measure the text before the selection
+  char *before_selection = arena_fill(temp_arena, start_index + 1); // +1 for null terminator
+  memcpy(before_selection, text.data, start_index);
+  // Add null-terminator
+  before_selection[start_index] = '\0';
+  i32 selection_x;
+  TTF_SizeUTF8(font, before_selection, &selection_x, 0);
+
+  // Measure the selected text
+  i32 selection_length = end_index - start_index;
+  char *selected_text = arena_fill(temp_arena, selection_length + 1); // +1 for null terminator
+  memcpy(selected_text, text.data + start_index, selection_length);
+  // Add null-terminator
+  selected_text[selection_length] = '\0';
+  i32 selection_w;
+  i32 selection_h;
+  TTF_SizeUTF8(font, selected_text, &selection_w, &selection_h);
+
+  arena_close(temp_arena);
+  SDL_Rect result = {
+    .x = selection_x,
+    .y = 0,
+    .w = selection_w,
+    .h = selection_h
+  };
+  return result;
+}
+
+typedef struct mouse_position {
+  i32 x;
+  i32 y;
+} MousePosition;
+
+// Set selection based on mouse position
+void set_selection(TTF_Font *font, InputData *input, MousePosition mouse_position) {
+  if (mouse_position.x <= 0) {
+    input->selection.start_index = 0;
+    input->selection.end_index = 0;
+  } else {
+    i32 character_count = 0;
+    TTF_MeasureUTF8(font, (char *)input->text.data, mouse_position.x, NULL, &character_count);
+    input->selection.end_index = 0;
+    for(i32 i = 0; i < character_count; i++) {
+      move_cursor_right(input);
+    }
   }
 }
 
