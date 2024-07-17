@@ -82,8 +82,6 @@ void click_item_3(ElementTree *tree, void *data) {
 }
 
 i32 main() {
-  i32 mouse_x = 0;
-  i32 mouse_y = 0;
   i32 window_width = 640;
   i32 window_height = 640;
   i32 scroll_speed = 10;
@@ -330,14 +328,10 @@ i32 main() {
           char *text = (char *)event.text.text;
           input_handler(tree, text);
         }
-
-      } else if (event.type == SDL_MOUSEMOTION) {
-        mouse_x = event.motion.x;
-        mouse_y = event.motion.y;
-        // Flush event queue to only use one event
-        // Otherwise renderer laggs behind while emptying event queue
-        SDL_FlushEvent(SDL_MOUSEMOTION);
       } else if (event.type == SDL_MOUSEWHEEL) {
+        i32 mouse_x = 0;
+        i32 mouse_y = 0;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
         // scroll up or down
         if (event.wheel.y != 0) {
           scroll_y(tree->root, mouse_x, mouse_y, event.wheel.y * scroll_speed);
@@ -351,12 +345,13 @@ i32 main() {
         tree->rerender = rerender_type.all;
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-        i32 mouse_down_x = event.button.x;
-        i32 mouse_down_y = event.button.y;
+        i32 mouse_x = 0;
+        i32 mouse_y = 0;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
         // Blur former active element
         blur_handler(tree, 0);
         // Set new active element
-        tree->active_element = get_clickable_element_at(tree->root, mouse_down_x, mouse_down_y);
+        tree->active_element = get_clickable_element_at(tree->root, mouse_x, mouse_y);
         click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
