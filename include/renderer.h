@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <string.h> // memcpy
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
+#include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle, draw_superellipse, draw_filled_superellipse
 #include "input.h" // InputData
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
-#include "arena.h" // Arena, arena_fill
 
 SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
   Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
@@ -116,7 +116,11 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
         .w = selection_rect.w + 2, // Add 2 pixels for the cursor
         .h = rectangle.h - element->padding.top - element->padding.bottom,
       };
-      draw_filled_rectangle(renderer, selection, border_color_active);
+      if (selection_rect.w == 0) {
+        draw_filled_rectangle(renderer, selection, text_cursor_color);
+      } else {
+        draw_filled_rectangle(renderer, selection, selection_color);
+      }
     }
     InputData input = *element->input;
     i32 text_x = rectangle.x + element->padding.left;
