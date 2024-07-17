@@ -10,19 +10,8 @@
 
 Element *form_element = 0;
 
-typedef struct {
-  MousePosition mouse_position;
-  TTF_Font *font;
-} InputProps;
-
 void click_text_input(ElementTree *tree, void *data) {
-  InputProps *props = (InputProps *)data;
-
-  MousePosition relative_position = {
-    .x = props->mouse_position.x - tree->active_element->layout.x - tree->active_element->padding.left,
-    .y = props->mouse_position.y - tree->active_element->layout.y - tree->active_element->padding.top,
-  };
-  set_selection(props->font, tree->active_element->input, relative_position);
+  (void)data;
   set_active_input_style(tree->active_element);
   Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   if (content_panel != 0) {

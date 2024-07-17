@@ -345,23 +345,20 @@ i32 main() {
         tree->rerender = rerender_type.all;
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-        MousePosition mouse = {0, 0};
-        SDL_GetMouseState(&mouse.x, &mouse.y);
+        i32 mouse_x = 0;
+        i32 mouse_y = 0;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
         // Blur former active element
         blur_handler(tree, 0);
         // Set new active element
-        tree->active_element = get_clickable_element_at(tree->root, mouse.x, mouse.y);
+        tree->active_element = get_clickable_element_at(tree->root, mouse_x, mouse_y);
+        // Set selection if active element has input
         if (tree->active_element != 0 &&
             tree->active_element->input != 0) {
-          // Input elements need the font to calculate cursor position
-          InputProps props = {
-            .mouse_position = mouse,
-            .font = Inter,
-          };
-          click_handler(tree, &props);
-        } else {
-          click_handler(tree, &mouse);
+          i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left;
+          set_selection(Inter, tree->active_element->input, relative_x_position);
         }
+        click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_QUIT) {
         done = true;

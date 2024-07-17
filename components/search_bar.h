@@ -12,10 +12,10 @@ Element *search_bar = 0;
 void click_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_active_input_style(tree->active_element);
-  Element *panel = get_element_by_tag(tree->root, search_panel_tag);
-  if (panel != 0) {
+  Element *search_panel = get_element_by_tag(tree->root, search_panel_tag);
+  if (search_panel != 0) {
     bump_rerender(tree);
-    tree->rerender_element = panel;
+    tree->rerender_element = search_panel;
   }
 }
 

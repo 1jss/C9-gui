@@ -334,19 +334,15 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
   return result;
 }
 
-typedef struct mouse_position {
-  i32 x;
-  i32 y;
-} MousePosition;
-
 // Set selection based on mouse position
-void set_selection(TTF_Font *font, InputData *input, MousePosition mouse_position) {
-  if (mouse_position.x <= 0) {
+void set_selection(TTF_Font *font, InputData *input, i32 realative_mouse_x_position) {
+  if (realative_mouse_x_position <= 0) {
     input->selection.start_index = 0;
     input->selection.end_index = 0;
   } else {
     i32 character_count = 0;
-    TTF_MeasureUTF8(font, (char *)input->text.data, mouse_position.x, NULL, &character_count);
+    TTF_MeasureUTF8(font, (char *)input->text.data, realative_mouse_x_position, NULL, &character_count);
+    input->selection.start_index = 0;
     input->selection.end_index = 0;
     for(i32 i = 0; i < character_count; i++) {
       move_cursor_right(input);
