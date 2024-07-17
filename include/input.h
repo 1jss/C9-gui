@@ -334,31 +334,30 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
   return result;
 }
 
-i32 get_next_character_width(TTF_Font *font, char *text, i32 start_index) {
-  Arena *temp_arena = arena_open(sizeof(char) * 5); // 4 bytes for character + 1 byte for null terminator
-  char *character = arena_fill(temp_arena, 5);
-  i32 source_position = 0;
-  // Step over previous characters
-  for (i32 i = 0; i < start_index; i++) {
-    source_position++;
-    while (has_continuation_byte(text[source_position])) {
-      source_position++;
+i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_position) {
+  i32 character_index = 0;
+  // Step over previous characters to find the start of the character
+  for (i32 i = 0; i < next_character_position; i++) {
+    character_index++;
+    while (has_continuation_byte(text[character_index])) {
+      character_index++;
     }
   }
-  // Set the first character
-  i32 target_position = 0;
-  character[target_position] = text[source_position];
-  source_position++;
-  target_position++;
-  while (has_continuation_byte(text[source_position])) {
-    character[1] = text[source_position];
-    source_position++;
-    target_position++;
+  // Step over the next character and store its length
+  i32 character_length = 1;
+  while (has_continuation_byte(text[character_index + character_length])) {
+    character_length++;
   }
-  character[target_position] = '\0';
+
+  // Temporarily null-terminate the next byte to measure the character
+  i32 next_byte_index = character_index + character_length;
+  char next_byte_backup = text[next_byte_index];
+  text[next_byte_index] = '\0';
   i32 character_width = 0;
-  TTF_SizeUTF8(font, character, &character_width, 0);
-  arena_close(temp_arena);
+  TTF_SizeUTF8(font, &text[character_index], &character_width, NULL);
+  // Restore the next byte
+  text[next_byte_index] = next_byte_backup;
+
   return character_width;
 }
 
@@ -372,9 +371,6 @@ void set_selection(TTF_Font *font, InputData *input, i32 realative_mouse_x_posit
     i32 character_width = 0;
     TTF_MeasureUTF8(font, (char *)input->text.data, realative_mouse_x_position, &character_width, &character_count);
     i32 next_character_width = get_next_character_width(font, (char *)input->text.data, character_count);
-    printf("Character count: %d\n", character_count);
-    printf("Character width: %d\n", character_width);
-    printf("Next character width: %d\n", next_character_width);
     if (realative_mouse_x_position - character_width > next_character_width / 2) {
       character_count++;
     }
