@@ -5,7 +5,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle, draw_superellipse, draw_filled_superellipse
+#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle
 #include "input.h" // InputData, measure_selection
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
@@ -43,11 +43,7 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
     .left = element->border.left
   };
   i32 border_width = element->border.top;
-  if (element->background_type == background_type.none) {
-    if (element->border_radius > 0 && element->border.top == 1) {
-      draw_rounded_rectangle(renderer, rectangle, element->border_radius, element->border_color);
-    }
-  } else if (element->background_type == background_type.color) {
+  if (element->background_type == background_type.color) {
     if (element->border_radius > 0) {
       if (border_width > 0) {
         draw_rounded_rectangle_with_border(renderer, rectangle, element->border_radius, border_width, element->border_color, element->background_color);
