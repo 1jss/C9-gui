@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <math.h> // cosf, sinf, powf
+#include <stdbool.h> // bool
 #include "SDL_ttf.h" // TTF_RenderText_Blended
 #include "color.h" // RGBA, getGradientColor, C9_Gradient, red, green, blue, alpha
 #include "types.h" // u8, f32, i32
@@ -223,35 +224,66 @@ void draw_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corn
   }
 }
 
+f32 clamp(f32 value, f32 min, f32 max) {
+  if (value < min) {
+    return min;
+  } else if (value > max) {
+    return max;
+  } else {
+    return value;
+  }
+}
 // Draws a filled rectangle with superellipse corners
 void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, RGBA background_color) {
-  // Smallest acceptable corner radius is 10px
-  if (corner_radius < 10) {
-    corner_radius = 10;
-  }
   // Cap corner radius to half of the rectangle width or height
   if (2 * corner_radius >= rectangle.w || 2 * corner_radius >= rectangle.h) {
     corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
   }
   SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), SDL_ALPHA_OPAQUE);
-  // A rect that filles the top and bottom lines and the area between them
-  SDL_Rect top_bottom_rect = {rectangle.x + corner_radius, rectangle.y, rectangle.w - 2 * corner_radius + 1, rectangle.h + 1};
+  // A rect that fills the top and bottom lines and the area between them
+  SDL_Rect top_bottom_rect = {rectangle.x + corner_radius, rectangle.y, rectangle.w - 2 * corner_radius, rectangle.h};
   SDL_RenderFillRect(renderer, &top_bottom_rect);
-  // A rect that filles the left and right lines and the area between them
-  SDL_Rect left_right_rect = {rectangle.x, rectangle.y + corner_radius, rectangle.w + 1, rectangle.h - 2 * corner_radius + 1};
+  // A rect that fills the left and right lines and the area between them
+  SDL_Rect left_right_rect = {rectangle.x, rectangle.y + corner_radius, rectangle.w, rectangle.h - 2 * corner_radius};
   SDL_RenderFillRect(renderer, &left_right_rect);
 
-  // Draw corners
-  f32 step = 0.85 / corner_radius;
-  for (f32 t = 0; t <= M_PI / 2; t += step) {
-    // Bottom right corner (t)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + rectangle.w - corner_radius, rectangle.y + rectangle.h - corner_radius, corner_radius, t, background_color);
-    // Bottom left corner (t + M_PI / 2)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + corner_radius, rectangle.y + rectangle.h - corner_radius, corner_radius, t + M_PI / 2, background_color);
-    // Top left corner (t + M_PI)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + corner_radius, rectangle.y + corner_radius, corner_radius, t + M_PI, background_color);
-    // Top right corner (t + 3 * M_PI / 2)
-    draw_filled_superellipse_border_point(renderer, rectangle.x + rectangle.w - corner_radius, rectangle.y + corner_radius, corner_radius, t + 3 * M_PI / 2, background_color);
+  i32 left_center_x = rectangle.x + corner_radius - 1;
+  i32 right_center_x = rectangle.x + rectangle.w - corner_radius;
+  i32 top_center_y = rectangle.y + corner_radius - 1;
+  i32 bottom_center_y = rectangle.y + rectangle.h - corner_radius;
+
+  // Calculate points for one quadrant and mirror it the other quadrants
+  f32 antialiasing_threshold = pow(corner_radius - 1, 4);
+  f32 boundary_squared = pow(corner_radius, 4);
+  bool inside_shape = false;
+  // Loop through all points in the first quadrant
+  for (i32 x = 0; x <= corner_radius; x++) {
+    for (i32 y = 0; y <= corner_radius; y++) {
+      f32 distance_squared = pow(x, 4) + pow(y, 4);
+      inside_shape = false;
+      if (distance_squared <= antialiasing_threshold) {
+        SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), 255);
+        inside_shape = true;
+      } else if (distance_squared <= boundary_squared) {
+        f32 opacity = 1.0;
+        if (distance_squared > antialiasing_threshold) {
+          opacity = (boundary_squared - distance_squared) / (boundary_squared - antialiasing_threshold);
+          opacity = clamp(opacity, 0.0, 1.0); // Clamp opacity between 0 and 1
+        }
+        SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), opacity * 255);
+        inside_shape = true;
+      }
+      if (inside_shape == true) {
+        // Top left quadrant
+        SDL_RenderDrawPoint(renderer, left_center_x - x, top_center_y - y);
+        // Top right quadrant
+        SDL_RenderDrawPoint(renderer, right_center_x + x, top_center_y - y);
+        // Bottom right quadrant
+        SDL_RenderDrawPoint(renderer, right_center_x + x, bottom_center_y + y);
+        // Bottom left quadrant
+        SDL_RenderDrawPoint(renderer, left_center_x - x, bottom_center_y + y);
+      }
+    }
   }
 }
 

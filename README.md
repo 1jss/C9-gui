@@ -107,4 +107,4 @@ Render image directly to texture:
 - Break out event handling
 - Image rendering
 - Scrollbars
-- Rounded rectangles off by 1 pixel
+- Blurred rendering before scroll

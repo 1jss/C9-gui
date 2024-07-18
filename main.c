@@ -200,8 +200,8 @@ i32 main() {
     .background_color = gray_2,
     .border_radius = 15,
     .padding = (Padding){10, 10, 10, 10},
-    .layout_direction = layout_direction.vertical,
-
+    .layout_direction = layout_direction.horizontal,
+    .gutter = 10,
   };
 
   Element *content_panel_top_content = add_new_element(tree->arena, content_panel_top);
@@ -210,7 +210,18 @@ i32 main() {
     .height = 600,
     .background_type = background_type.color,
     .background_color = white,
+    .border = (Border){1, 1, 1, 1},
     .border_radius = 15,
+  };
+
+  Element *content_panel_top_content_2 = add_new_element(tree->arena, content_panel_top);
+  *content_panel_top_content_2 = (Element){
+    .width = 100,
+    .height = 600,
+    .background_type = background_type.color,
+    .background_color = white,
+    .border = (Border){2, 2, 2, 2},
+    .border_radius = 30,
   };
 
   Element *content_panel_bottom = add_new_element(tree->arena, content_panel);
@@ -397,8 +408,8 @@ i32 main() {
       tree->rerender_element = 0;
     }
 
-    // Throttle frame rate to 60fps
-    SDL_Delay(1000 / 60);
+    // Throttle frame rate to 125fps
+    SDL_Delay(8);
   }; // End of rendering loop
 
   if (target_texture) {
