@@ -29,6 +29,7 @@ f32 clamp(f32 value, f32 min, f32 max) {
     return value;
   }
 }
+
 // Draws a filled rectangle with superellipse corners
 void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, RGBA background_color) {
   // Cap corner radius to half of the rectangle width or height
@@ -66,7 +67,7 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i
           opacity = (boundary_squared - distance_squared) / (boundary_squared - antialiasing_threshold);
           opacity = clamp(opacity, 0.0, 1.0); // Clamp opacity between 0 and 1
         }
-        SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), opacity * 255);
+        SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), (u8)(opacity * 255));
         inside_shape = true;
       }
       if (inside_shape == true) {
