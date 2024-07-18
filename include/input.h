@@ -5,8 +5,8 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
-#include "fixed_string.h" // s8
-#include "types.h" // u8, i32
+#include "fixed_string.h" // FixedString, new_fixed_string, to_fixed_string, insert_fixed_string, delete_fixed_string
+#include "types.h" // u8, u32
 
 typedef struct {
   u8 insert;
@@ -23,8 +23,8 @@ EditActionType edit_action_type = {
 typedef struct {
   u8 type;
   u32 index;
-  fs8 text;
-  fs8 replaced_text;
+  FixedString text;
+  FixedString replaced_text;
 } EditAction;
 
 typedef struct {
@@ -36,12 +36,12 @@ typedef struct {
 } EditHistory;
 
 typedef struct {
-  u32 start_index; // Start index
-  u32 end_index; // End index
+  u32 start_index;
+  u32 end_index;
 } Selection;
 
 typedef struct {
-  fs8 text;
+  FixedString text;
   u32 max_length;
   Selection selection;
   EditHistory *history;
@@ -62,7 +62,7 @@ EditHistory *new_edit_history(Arena *arena, u32 capacity) {
 InputData *new_input(Arena *arena, size_t max_length) {
   InputData *input = arena_fill(arena, sizeof(InputData));
   *input = (InputData){
-    .text = new_fs8(arena, max_length),
+    .text = new_fixed_string(arena, max_length),
     .max_length = max_length,
     .selection = (Selection){0, 0},
     .history = new_edit_history(arena, 100)
@@ -101,14 +101,14 @@ void undoAction(InputData *input) {
     EditAction action = history->actions[history->current_index];
     if (action.type == edit_action_type.insert) {
       // Delete the inserted text
-      delete_fs8(&input->text, action.index, action.text.length);
+      delete_fixed_string(&input->text, action.index, action.text.length);
     } else if (action.type == edit_action_type.delete) {
       // Insert the deleted text
-      insert_fs8(&input->text, action.text, action.index);
+      insert_fixed_string(&input->text, action.text, action.index);
     } else if (action.type == edit_action_type.replace) {
       // Replace the replaced text with the text by first removing the replaced text and then inserting the text
-      delete_fs8(&input->text, action.index, action.replaced_text.length);
-      insert_fs8(&input->text, action.text, action.index);
+      delete_fixed_string(&input->text, action.index, action.replaced_text.length);
+      insert_fixed_string(&input->text, action.text, action.index);
     }
     // Move current_index backwards
     if (history->current_index > 0) {
@@ -128,14 +128,14 @@ void redoAction(InputData *input) {
     EditAction action = history->actions[next_index];
     if (action.type == edit_action_type.insert) {
       // Insert the inserted text
-      insert_fs8(&input->text, action.text, action.index);
+      insert_fixed_string(&input->text, action.text, action.index);
     } else if (action.type == edit_action_type.delete) {
       // Delete the deleted text
-      delete_fs8(&input->text, action.index, action.text.length);
+      delete_fixed_string(&input->text, action.index, action.text.length);
     } else if (action.type == edit_action_type.replace) {
       // Replace the text with the replaced text by first removing the text and then inserting the replaced text
-      delete_fs8(&input->text, action.index, action.text.length);
-      insert_fs8(&input->text, action.replaced_text, action.index);
+      delete_fixed_string(&input->text, action.index, action.text.length);
+      insert_fixed_string(&input->text, action.replaced_text, action.index);
     }
     history->current_index = next_index;
   }
@@ -197,14 +197,14 @@ void deselect(InputData *input) {
 
 // Text editing
 void replace_text(InputData *input, char *text) {
-  fs8 new_text = to_fs8(text);
-  fs8 replaced_text = {
+  FixedString new_text = to_fixed_string(text);
+  FixedString replaced_text = {
     .data = input->text.data + input->selection.start_index,
     .length = input->selection.end_index - input->selection.start_index
   };
   // Replace the text by removing the replaced text and then inserting the new text
-  delete_fs8(&input->text, input->selection.start_index, replaced_text.length);
-  insert_fs8(&input->text, new_text, input->selection.start_index);
+  delete_fixed_string(&input->text, input->selection.start_index, replaced_text.length);
+  insert_fixed_string(&input->text, new_text, input->selection.start_index);
 
   // Create an edit action
   EditAction action = {
@@ -226,9 +226,9 @@ void insert_text(InputData *input, char *text) {
   if (input->selection.start_index != input->selection.end_index) {
     replace_text(input, text);
   } else {
-    fs8 new_text = to_fs8(text);
+    FixedString new_text = to_fixed_string(text);
     // Insert the text
-    insert_fs8(&input->text, new_text, input->selection.start_index);
+    insert_fixed_string(&input->text, new_text, input->selection.start_index);
 
     // Create an edit action
     EditAction action = {
@@ -261,13 +261,13 @@ void delete_text(InputData *input) {
     }
   }
   // Delete the text
-  delete_fs8(&input->text, input->selection.start_index, input->selection.end_index - input->selection.start_index);
+  delete_fixed_string(&input->text, input->selection.start_index, input->selection.end_index - input->selection.start_index);
 
   // Create an edit action
   EditAction action = {
     .type = edit_action_type.delete,
     .index = input->selection.start_index,
-    .text = to_fs8("")
+    .text = to_fixed_string("")
   };
 
   // Add the edit action to the history
@@ -304,7 +304,7 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
   Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
   u32 start_index = input->selection.start_index;
   u32 end_index = input->selection.end_index;
-  fs8 text = input->text;
+  FixedString text = input->text;
 
   // Measure the text before the selection
   char *before_selection = arena_fill(temp_arena, start_index + 1); // +1 for null terminator

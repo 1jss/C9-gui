@@ -7,15 +7,15 @@ typedef struct {
   u8 *data;
   u32 length;
   u32 capacity;
-} fs8;
+} FixedString;
 
 // Returns a fixed string from a char pointer
-fs8 to_fs8(char *string) {
+FixedString to_fixed_string(char *string) {
   size_t length = 0;
   while (string[length] != '\0') {
     length++;
   }
-  fs8 result = {
+  FixedString result = {
     .data = (u8 *)string,
     .length = length,
     .capacity = length
@@ -24,10 +24,10 @@ fs8 to_fs8(char *string) {
 }
 
 // Get a fixed string with place for a number of characters
-fs8 new_fs8(Arena *arena, u32 max_length) {
+FixedString new_fixed_string(Arena *arena, u32 max_length) {
   u8 *data = arena_fill(arena, sizeof(u8) * max_length);
   data[0] = '\0';
-  fs8 string = {
+  FixedString string = {
     .data = data,
     .length = 0,
     .capacity = max_length
@@ -36,7 +36,7 @@ fs8 new_fs8(Arena *arena, u32 max_length) {
 }
 
 // Inserts a string into another string at a given index
-void insert_fs8(fs8 *source, fs8 target, u32 index) {
+void insert_fixed_string(FixedString *source, FixedString target, u32 index) {
   if (index > source->length ||
       source->length + target.length + 1 > source->capacity) {
     return;
@@ -57,7 +57,7 @@ void insert_fs8(fs8 *source, fs8 target, u32 index) {
 }
 
 // Deletes a string from another string at a given index
-void delete_fs8(fs8 *source, u32 index, u32 length) {
+void delete_fixed_string(FixedString *source, u32 index, u32 length) {
   // Shift the characters to the right of the deleted text to the left
   for (u32 i = index + length; i < source->length; ++i) {
     source->data[i - length] = source->data[i];
