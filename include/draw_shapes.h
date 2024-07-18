@@ -36,40 +36,52 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i
   if (2 * corner_radius >= rectangle.w || 2 * corner_radius >= rectangle.h) {
     corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
   }
-  SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), SDL_ALPHA_OPAQUE);
-  // A rect that fills the top and bottom lines and the area between them
+  // Set the drawing color to the background color
+  u8 r = red(background_color);
+  u8 g = green(background_color);
+  u8 b = blue(background_color);
+  SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+  // Draw a rect that fills the top and bottom borders and the area between them
   SDL_Rect top_bottom_rect = {rectangle.x + corner_radius, rectangle.y, rectangle.w - 2 * corner_radius, rectangle.h};
   SDL_RenderFillRect(renderer, &top_bottom_rect);
-  // A rect that fills the left and right lines and the area between them
+  // Draw a rect that fills the left and right borders and the area between them
   SDL_Rect left_right_rect = {rectangle.x, rectangle.y + corner_radius, rectangle.w, rectangle.h - 2 * corner_radius};
   SDL_RenderFillRect(renderer, &left_right_rect);
 
+  // Center points for the corners
   i32 left_center_x = rectangle.x + corner_radius - 1;
   i32 right_center_x = rectangle.x + rectangle.w - corner_radius;
   i32 top_center_y = rectangle.y + corner_radius - 1;
   i32 bottom_center_y = rectangle.y + rectangle.h - corner_radius;
 
-  // Calculate points for one quadrant and mirror it the other quadrants
+  // Set thresholds for antialiasing and boundary detection
   f32 antialiasing_threshold = pow(corner_radius - 1, 4);
   f32 boundary_squared = pow(corner_radius, 4);
   bool inside_shape = false;
-  // Loop through all points in the first quadrant
+
+  // Calculate points for one quadrant and mirror it the other quadrants
   for (i32 x = 0; x <= corner_radius; x++) {
     for (i32 y = 0; y <= corner_radius; y++) {
       f32 distance_squared = pow(x, 4) + pow(y, 4);
       inside_shape = false;
+      // Check if the point is within the solid part of the corner
       if (distance_squared <= antialiasing_threshold) {
-        SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), 255);
-        inside_shape = true;
-      } else if (distance_squared <= boundary_squared) {
-        f32 opacity = 1.0;
-        if (distance_squared > antialiasing_threshold) {
-          opacity = (boundary_squared - distance_squared) / (boundary_squared - antialiasing_threshold);
-          opacity = clamp(opacity, 0.0, 1.0); // Clamp opacity between 0 and 1
-        }
-        SDL_SetRenderDrawColor(renderer, red(background_color), green(background_color), blue(background_color), (u8)(opacity * 255));
+        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
         inside_shape = true;
       }
+      // Apply antialiasing for points near the edge of the corner
+      else if (distance_squared <= boundary_squared) {
+        f32 opacity = 1.0;
+        if (distance_squared > antialiasing_threshold) {
+          // Calculate opacity for antialiasing effect
+          opacity = (boundary_squared - distance_squared) / (boundary_squared - antialiasing_threshold);
+          // Clamp opacity between 0 and 1
+          opacity = clamp(opacity, 0.0, 1.0);
+        }
+        SDL_SetRenderDrawColor(renderer, r, g, b, (u8)(opacity * 255));
+        inside_shape = true;
+      }
+      // Draw the corner points in all four quadrants if inside the shape
       if (inside_shape == true) {
         // Top left quadrant
         SDL_RenderDrawPoint(renderer, left_center_x - x, top_center_y - y);
