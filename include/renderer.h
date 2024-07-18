@@ -5,7 +5,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_rectangle_with_border, draw_filled_rounded_rectangle
+#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_vertical_gradient, draw_rounded_rectangle_with_border, draw_filled_rounded_rectangle,
 #include "input.h" // InputData, measure_selection
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
