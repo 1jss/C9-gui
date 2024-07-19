@@ -102,9 +102,6 @@ Render image directly to texture:
 `SDL_Texture *icon_application_texture =  IMG_LoadTexture(renderer,"icons/application-x-executable.bmp");`
 
 ## Todo
-- Undo
 - Mouse text selection
 - Break out event handling
 - Image rendering
-- Scrollbars
-- Blurred rendering before scroll

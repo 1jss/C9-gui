@@ -322,6 +322,12 @@ i32 main() {
         } else if (keysym.sym == SDLK_RIGHT &&
                    mod & KMOD_SHIFT) {
           input_handler(tree, "SELECT_RIGHT");
+        } else if (keysym.sym == SDLK_z &&
+                   mod & KMOD_CTRL) {
+          input_handler(tree, "UNDO");
+        } else if (keysym.sym == SDLK_y &&
+                   mod & KMOD_CTRL) {
+          input_handler(tree, "REDO");
         } else if (keysym.sym == SDLK_LEFT) {
           input_handler(tree, "MOVE_LEFT");
         } else if (keysym.sym == SDLK_RIGHT) {
@@ -417,6 +423,7 @@ i32 main() {
     SDL_DestroyWindow(window);
   }
   SDL_StopTextInput();
+  printf("Size of element_arena %zu\n", arena_size(element_arena));
   arena_close(element_arena);
   TTF_CloseFont(Inter);
   TTF_Quit();

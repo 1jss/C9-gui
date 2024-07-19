@@ -41,9 +41,8 @@ void insert_fixed_string(FixedString *source, FixedString target, u32 index) {
       source->length + target.length + 1 > source->capacity) {
     return;
   }
-  // Ensure the loop is safe for when source->length is 0
-  // Convert loop counter to signed and loop condition to check against signed version of index
-  for (int i = (int)source->length - 1; i >= (int)index; --i) {
+  // Signed loop counter so that index can be negative
+  for (i32 i = (i32)source->length - 1; i >= (i32)index; --i) {
     source->data[i + target.length] = source->data[i];
   }
   // Copy the target onto the now free space
