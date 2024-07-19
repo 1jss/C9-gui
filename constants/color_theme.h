@@ -14,6 +14,7 @@ const RGBA text_color_active = 0x222222FF;
 const RGBA menu_active_color = 0xDEE2E6FF;
 const RGBA text_cursor_color = 0x888888FF;
 const RGBA selection_color = 0xC7E1FCFF;
+const RGBA scrollbar_color = 0xE9ECEFFF;
 
 #define COLOR_THEME
 #endif
