@@ -423,7 +423,7 @@ i32 main() {
     SDL_DestroyWindow(window);
   }
   SDL_StopTextInput();
-  printf("Size of element_arena %zu\n", arena_size(element_arena));
+  // printf("Size of element_arena %zu\n", arena_size(element_arena));
   arena_close(element_arena);
   TTF_CloseFont(Inter);
   TTF_Quit();

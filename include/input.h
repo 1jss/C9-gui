@@ -82,7 +82,6 @@ void add_edit_action(EditHistory *history, EditAction action) {
 
   // Add the new action at the current end position
   history->actions[history->end] = action;
-  printf("Adding action at index %zu\n", history->end);
 
   // Increment the end index
   history->end = (history->end + 1) % history->capacity;
