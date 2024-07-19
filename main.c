@@ -138,6 +138,7 @@ i32 main() {
   // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
   SDL_Texture *target_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, window_width, window_height);
   SDL_SetTextureBlendMode(target_texture, SDL_BLENDMODE_BLEND);
+  SDL_SetRenderTarget(renderer, target_texture);
 
   Arena *element_arena = arena_open(4096);
   // Root element
@@ -378,12 +379,6 @@ i32 main() {
 
     if (tree->rerender == rerender_type.all) {
       SDL_SetRenderTarget(renderer, target_texture);
-      // Clear buffer
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-      if (SDL_RenderClear(renderer)) {
-        printf("SDL_RenderClear: %s\n", SDL_GetError());
-        return -1;
-      }
       render_element_tree(renderer, Inter, tree);
       // Draw target_texture to back buffer and present
       SDL_SetRenderTarget(renderer, NULL);

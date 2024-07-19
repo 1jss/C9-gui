@@ -11,31 +11,34 @@
 #include "types.h" // i32
 
 // Recursively draws all elements
-void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL_Rect target_rectangle, Element *active_element) {
+void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL_Rect target_rect, Element *active_element) {
   // Save the current render target for later
   SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
-  // Get the width and height of the target texture
-  i32 target_width = 0;
-  i32 target_height = 0;
-  SDL_QueryTexture(target_texture, NULL, NULL, &target_width, &target_height);
+  // Set the width and height of the target texture
+  i32 target_right_edge = target_rect.x + target_rect.w;
+  i32 target_bottom_edge = target_rect.y + target_rect.h;
   // Create a new texture to draw the element on
-  SDL_Texture *element_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, target_width, target_height);
+  SDL_Texture *element_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, target_right_edge, target_bottom_edge);
   SDL_SetTextureBlendMode(element_texture, SDL_BLENDMODE_BLEND);
   // Set the new texture as the render target
   SDL_SetRenderTarget(renderer, element_texture);
-  SDL_RenderCopy(renderer, target_texture, &target_rectangle, &target_rectangle);
+  // Clear the texture
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, target_texture, &target_rect, &target_rect);
 
-  SDL_Rect rectangle = {
+  SDL_Rect element_rect = {
     .x = element->layout.x,
     .y = element->layout.y,
     .w = element->layout.max_width,
     .h = element->layout.max_height,
   };
   // Invalid shape
-  if (rectangle.w == 0 || rectangle.h == 0) {
+  if (element_rect.w == 0 || element_rect.h == 0) {
     return;
   };
 
+  // Convert from Border to BorderSize
   BorderSize border_size = {
     .top = element->border.top,
     .right = element->border.right,
@@ -46,24 +49,24 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
   if (element->background_type == background_type.color) {
     if (element->border_radius > 0) {
       if (border_width > 0) {
-        draw_rounded_rectangle_with_border(renderer, rectangle, element->border_radius, border_width, element->border_color, element->background_color);
+        draw_rounded_rectangle_with_border(renderer, element_rect, element->border_radius, border_width, element->border_color, element->background_color);
       } else {
-        draw_filled_rounded_rectangle(renderer, rectangle, element->border_radius, element->background_color);
+        draw_filled_rounded_rectangle(renderer, element_rect, element->border_radius, element->background_color);
       }
     } else {
-      draw_filled_rectangle(renderer, rectangle, element->background_color);
-      draw_border(renderer, rectangle, border_size, element->border_color);
+      draw_filled_rectangle(renderer, element_rect, element->background_color);
+      draw_border(renderer, element_rect, border_size, element->border_color);
     }
   } else if (element->background_type == background_type.horizontal_gradient) {
-    draw_horizontal_gradient(renderer, rectangle, element->background_gradient);
-    draw_border(renderer, rectangle, border_size, element->border_color);
+    draw_horizontal_gradient(renderer, element_rect, element->background_gradient);
+    draw_border(renderer, element_rect, border_size, element->border_color);
   } else if (element->background_type == background_type.vertical_gradient) {
-    draw_vertical_gradient(renderer, rectangle, element->background_gradient);
-    draw_border(renderer, rectangle, border_size, element->border_color);
+    draw_vertical_gradient(renderer, element_rect, element->background_gradient);
+    draw_border(renderer, element_rect, border_size, element->border_color);
   }
   if (element->text.length > 0) {
-    i32 text_x = rectangle.x + element->padding.left;
-    i32 text_y = rectangle.y + element->padding.top;
+    i32 text_x = element_rect.x + element->padding.left;
+    i32 text_y = element_rect.y + element->padding.top;
     draw_text(
       renderer, font, to_char(element->text), text_x, text_y, element->text_color
     );
@@ -72,10 +75,10 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
     if (element == active_element) {
       SDL_Rect selection_rect = measure_selection(font, element->input);
       SDL_Rect selection = {
-        .x = rectangle.x + element->padding.left + selection_rect.x - 1, // Subtract 1 pixel for the cursor
-        .y = rectangle.y + element->padding.top + selection_rect.y,
+        .x = element_rect.x + element->padding.left + selection_rect.x - 1, // Subtract 1 pixel for the cursor
+        .y = element_rect.y + element->padding.top + selection_rect.y,
         .w = selection_rect.w + 2, // Add 2 pixels for the cursor
-        .h = rectangle.h - element->padding.top - element->padding.bottom,
+        .h = element_rect.h - element->padding.top - element->padding.bottom,
       };
       if (selection_rect.w == 0) {
         draw_filled_rectangle(renderer, selection, text_cursor_color);
@@ -84,8 +87,8 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
       }
     }
     InputData input = *element->input;
-    i32 text_x = rectangle.x + element->padding.left;
-    i32 text_y = rectangle.y + element->padding.top;
+    i32 text_x = element_rect.x + element->padding.left;
+    i32 text_y = element_rect.y + element->padding.top;
     char *text_data = (char *)input.text.data;
 
     draw_text(
@@ -95,33 +98,67 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
   // Reset the target texture as the render target
   SDL_SetRenderTarget(renderer, target_texture);
   // Copy a portion of the element texture to the same location on the target texture
-  SDL_RenderCopy(renderer, element_texture, &target_rectangle, &target_rectangle);
+  SDL_RenderCopy(renderer, element_texture, &target_rect, &target_rect);
   if (element_texture) {
     SDL_DestroyTexture(element_texture);
   }
 
   Array *children = element->children;
   if (children == 0) return;
-  // Cap the child rectangle to the target rectangle
-  SDL_Rect child_rectangle = {
-    .x = rectangle.x > target_rectangle.x ? rectangle.x : target_rectangle.x,
-    .y = rectangle.y > target_rectangle.y ? rectangle.y : target_rectangle.y,
-    .w = rectangle.w < target_rectangle.w ? rectangle.w : target_rectangle.w,
-    .h = rectangle.h < target_rectangle.h ? rectangle.h : target_rectangle.h
+
+  // Set outer bounds for the children
+  i32 child_left_edge = 0;
+  i32 child_right_edge = 0;
+  i32 child_top_edge = 0;
+  i32 child_bottom_edge = 0;
+  i32 element_right_edge = element_rect.x + element_rect.w;
+  i32 element_bottom_edge = element_rect.y + element_rect.h;
+
+  // Set left and right bounds
+  if (element_rect.x < target_rect.x) {
+    child_left_edge = target_rect.x;
+  } else {
+    child_left_edge = element_rect.x;
+  }
+  if (element_right_edge > target_right_edge) {
+    child_right_edge = target_right_edge;
+  } else {
+    child_right_edge = element_right_edge;
+  }
+
+  // Set top and bottom bounds
+  if (element_rect.y < target_rect.y) {
+    child_top_edge = target_rect.y;
+  } else {
+    child_top_edge = element_rect.y;
+  }
+  if (element_bottom_edge > target_bottom_edge) {
+    child_bottom_edge = target_bottom_edge;
+  } else {
+    child_bottom_edge = element_bottom_edge;
+  }
+
+  SDL_Rect child_bounds_rect = {
+    .x = child_left_edge,
+    .y = child_top_edge,
+    .w = child_right_edge - child_left_edge,
+    .h = child_bottom_edge - child_top_edge,
   };
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, font, child, child_rectangle, active_element);
+    draw_elements(renderer, font, child, child_bounds_rect, active_element);
   }
 }
 
 void render_element_tree(SDL_Renderer *renderer, TTF_Font *font, ElementTree *element_tree) {
+  // Clear buffer
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderClear(renderer);
   // Create a rectangle that covers the entire target texture
   SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
   SDL_Rect target_rectangle = {0, 0, 0, 0};
   // Get the width and height of the target texture
   SDL_QueryTexture(target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
-
   draw_elements(renderer, font, element_tree->root, target_rectangle, element_tree->active_element);
 }
 
