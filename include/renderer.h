@@ -95,46 +95,6 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
       renderer, font, text_data, text_x, text_y, element->text_color
     );
   }
-  // Draw a scrollbar if the element has Y overflow
-  if ((element->overflow == overflow_type.scroll ||
-       element->overflow == overflow_type.scroll_y) &&
-      element->children != 0 &&
-      element_rect.h < element->layout.scroll_height) {
-    f32 scroll_percentage = -element->layout.scroll_y / (f32)(element->layout.scroll_height - element_rect.h);
-    
-    i32 scrollbar_width = 4;
-    i32 scrollbar_x = element_rect.x + element_rect.w - scrollbar_width;
-    i32 scrollbar_height = element_rect.h * element_rect.h / element->layout.scroll_height;
-    i32 scrollbar_y = element_rect.y + scroll_percentage * (element_rect.h - scrollbar_height);
-
-    SDL_Rect scrollbar_rect = {
-      .x = scrollbar_x,
-      .y = scrollbar_y,
-      .w = scrollbar_width,
-      .h = scrollbar_height,
-    };
-    draw_filled_rectangle(renderer, scrollbar_rect, scrollbar_color);
-  }
-  // Draw a scrollbar if the element has X overflow
-  if((element->overflow == overflow_type.scroll ||
-      element->overflow == overflow_type.scroll_x) &&
-     element->children != 0 &&
-     element_rect.w < element->layout.scroll_width) {
-    f32 scroll_percentage = -element->layout.scroll_x / (f32)(element->layout.scroll_width - element_rect.w);
-    
-    i32 scrollbar_height = 4;
-    i32 scrollbar_y = element_rect.y + element_rect.h - scrollbar_height;
-    i32 scrollbar_width = element_rect.w * element_rect.w / element->layout.scroll_width;
-    i32 scrollbar_x = element_rect.x + scroll_percentage * (element_rect.w - scrollbar_width);
-
-    SDL_Rect scrollbar_rect = {
-      .x = scrollbar_x,
-      .y = scrollbar_y,
-      .w = scrollbar_width,
-      .h = scrollbar_height,
-    };
-    draw_filled_rectangle(renderer, scrollbar_rect, scrollbar_color);
-  }
 
   // Reset the target texture as the render target
   SDL_SetRenderTarget(renderer, target_texture);
@@ -188,6 +148,47 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     draw_elements(renderer, font, child, child_bounds_rect, active_element);
+  }
+
+  // Draw a scrollbar if the element has Y overflow
+  if ((element->overflow == overflow_type.scroll ||
+       element->overflow == overflow_type.scroll_y) &&
+      element->children != 0 &&
+      element_rect.h < element->layout.scroll_height) {
+    f32 scroll_percentage = -element->layout.scroll_y / (f32)(element->layout.scroll_height - element_rect.h);
+    
+    i32 scrollbar_width = 4;
+    i32 scrollbar_x = element_rect.x + element_rect.w - scrollbar_width;
+    i32 scrollbar_height = element_rect.h * element_rect.h / element->layout.scroll_height;
+    i32 scrollbar_y = element_rect.y + scroll_percentage * (element_rect.h - scrollbar_height);
+
+    SDL_Rect scrollbar_rect = {
+      .x = scrollbar_x,
+      .y = scrollbar_y,
+      .w = scrollbar_width,
+      .h = scrollbar_height,
+    };
+    draw_filled_rectangle(renderer, scrollbar_rect, scrollbar_color);
+  }
+  // Draw a scrollbar if the element has X overflow
+  if((element->overflow == overflow_type.scroll ||
+      element->overflow == overflow_type.scroll_x) &&
+     element->children != 0 &&
+     element_rect.w < element->layout.scroll_width) {
+    f32 scroll_percentage = -element->layout.scroll_x / (f32)(element->layout.scroll_width - element_rect.w);
+    
+    i32 scrollbar_height = 4;
+    i32 scrollbar_y = element_rect.y + element_rect.h - scrollbar_height;
+    i32 scrollbar_width = element_rect.w * element_rect.w / element->layout.scroll_width;
+    i32 scrollbar_x = element_rect.x + scroll_percentage * (element_rect.w - scrollbar_width);
+
+    SDL_Rect scrollbar_rect = {
+      .x = scrollbar_x,
+      .y = scrollbar_y,
+      .w = scrollbar_width,
+      .h = scrollbar_height,
+    };
+    draw_filled_rectangle(renderer, scrollbar_rect, scrollbar_color);
   }
 }
 

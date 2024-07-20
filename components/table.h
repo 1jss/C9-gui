@@ -41,12 +41,12 @@ void create_table_element(Arena *arena) {
   };
   Element *name_column = add_new_element(arena, table_element);
   *name_column = (Element){
-    .min_width = 200,
+    .min_width = 180,
     .layout_direction = layout_direction.vertical,
   };
   Element *description_column = add_new_element(arena, table_element);
   *description_column = (Element){
-    .min_width = 400,
+    .min_width = 360,
     .layout_direction = layout_direction.vertical,
   };
 
