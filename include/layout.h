@@ -125,29 +125,29 @@ typedef struct {
 
 // element tree nodes
 typedef struct Element {
-  u8 element_tag; // Optional id or group id
-  u8 background_type;
-  RGBA background_color;
+  LayoutProps layout; // Props set by the layout engine
   C9_Gradient background_gradient;
+  s8 text;
+  Padding padding;
+  Border border;
+  InputData *input;
+  Array *children; // Flexible array of child elements of type Element
+  OnEvent on_click; // Function pointer
+  OnEvent on_blur; // Function pointer
+  OnEvent on_key_press; // Function pointer
   i32 width;
   i32 height;
   i32 min_width;
   i32 min_height;
   i32 gutter;
-  s8 text;
-  InputData *input;
-  RGBA text_color;
-  OnEvent on_click; // Function pointer
-  OnEvent on_blur; // Function pointer
-  OnEvent on_key_press; // Function pointer
-  Padding padding;
-  Border border;
   i32 border_radius;
+  RGBA background_color;
   RGBA border_color;
-  Array *children; // Flexible array of child elements of type Element
+  RGBA text_color;
   u8 layout_direction;
   u8 overflow;
-  LayoutProps layout; // Props set by the layout engine
+  u8 element_tag; // Optional id or group id
+  u8 background_type;
 } Element;
 
 Element empty_element = {
