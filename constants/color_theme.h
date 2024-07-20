@@ -1,4 +1,4 @@
-#ifndef COLOR_THEME
+#ifndef C9_COLOR_THEME
 
 #include "../include/color.h" // RGBA
 
@@ -16,5 +16,5 @@ const RGBA text_cursor_color = 0x888888FF;
 const RGBA selection_color = 0xC7E1FCFF;
 const RGBA scrollbar_color = 0xDEE2E6FF;
 
-#define COLOR_THEME
+#define C9_COLOR_THEME
 #endif
