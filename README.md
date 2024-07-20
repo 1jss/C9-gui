@@ -59,7 +59,6 @@ Components are reusable standalone elements that can dynamically be added and re
 ## Limitations
 - Rounded corners can not be combined with borders of different widths. The renderer will use the border top value for all borders instead.
 - Rounded corners can not be combined with background gradients. The renderer will prefer the background granient before the corner radius, drawing a rectangle.
-- Rounded corners only look good with a border radius of 10 or higher, so lower values are increased to 10.
 
 ## Prerequisites
 SDL2, SDL2_ttf and SDL2_image libraries are required to compile and run this project.
@@ -105,3 +104,4 @@ Render image directly to texture:
 - Mouse text selection
 - Break out event handling
 - Image rendering
+- Rounded rectangele with gradient
