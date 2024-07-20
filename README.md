@@ -13,31 +13,31 @@ Every node in the tree is an element that can have their own children. The list 
 
 An element is a struct that contains all the properties of a child. The structure is initalized with default values, so only the changed or used properties need to be set. In other words, all items are optional. The structure is as follows:
 
-| Type          | Name                  | Comment                                           |
-|---------------|-----------------------|---------------------------------------------------|
-| `u8`          | `element_tag`         | id or group id                                    |
-| `u8`          | `background_type`     | none, color, gradient                             |
-| `RGBA`        | `background_color`    | used if background_type is color                  |
-| `C9_Gradient` | `background_gradient` | used if background_type is gradient               |
-| `i32`         | `width`               | fixed width of the element                        |
-| `i32`         | `height`              | fixed height of the element                       |
-| `i32`         | `min_width`           | minimum width of the element                      |
-| `i32`         | `min_height`          | minimum height of the element                     |
-| `i32`         | `gutter`              | space between children                            |
-| `s8`          | `text`                | text label                                        |
-| `InputData*`  | `input`               | text input object (new_input)                     |
-| `RGBA`        | `text_color`          | color of rendered text                            |
-| `OnEvent`     | `on_click`            | function pointer called on click                  |
-| `OnEvent`     | `on_blur`             | function pointer called on blur                   |
-| `OnEvent`     | `on_key_press`        | function pointer called on input                  |
-| `Padding`     | `padding`             | padding inside element (4 values)                 |
-| `Border`      | `border`              | border around element (4 values)                  |
-| `i32`         | `border_radius`       | radius of superellipse corners                    |
-| `RGBA`        | `border_color`        | color of border                                   |
-| `Array*`      | `children`            | flexible array of child elements                  |
-| `u8`          | `layout_direction`    | direction of flex layout                          |
-| `u8`          | `overflow`            | contain or scroll children                        |
-| `LayoutProps` | `layout`              | props set by the layout engine                    |
+| Type          | Name                  | Comment                             |
+|---------------|-----------------------|-------------------------------------|
+| `u8`          | `element_tag`         | id or group id                      |
+| `u8`          | `background_type`     | none, color, gradient               |
+| `RGBA`        | `background_color`    | used if background_type is color    |
+| `C9_Gradient` | `background_gradient` | used if background_type is gradient |
+| `i32`         | `width`               | fixed width of the element          |
+| `i32`         | `height`              | fixed height of the element         |
+| `i32`         | `min_width`           | minimum width of the element        |
+| `i32`         | `min_height`          | minimum height of the element       |
+| `i32`         | `gutter`              | space between children              |
+| `s8`          | `text`                | text label                          |
+| `InputData*`  | `input`               | text input object (new_input)       |
+| `RGBA`        | `text_color`          | color of rendered text              |
+| `OnEvent`     | `on_click`            | function pointer called on click    |
+| `OnEvent`     | `on_blur`             | function pointer called on blur     |
+| `OnEvent`     | `on_key_press`        | function pointer called on input    |
+| `Padding`     | `padding`             | padding inside element (4 values)   |
+| `Border`      | `border`              | border around element (4 values)    |
+| `i32`         | `border_radius`       | radius of superellipse corners      |
+| `RGBA`        | `border_color`        | color of border                     |
+| `Array*`      | `children`            | flexible array of child elements    |
+| `u8`          | `layout_direction`    | direction of flex layout            |
+| `u8`          | `overflow`            | contain or scroll children          |
+| `LayoutProps` | `layout`              | props set by the layout engine      |
 
 New elements can be created in two ways. Either as children of an existing element(`add_new_element`) or as a standalone element(`new_element`). The standalone element can then be added to the tree by calling `add_element`.
 

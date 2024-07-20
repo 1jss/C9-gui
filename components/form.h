@@ -58,6 +58,7 @@ void create_form_element(Arena *arena) {
     .background_color = 0xFFFFFFFF,
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
+    .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
   };
 

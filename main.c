@@ -1,7 +1,9 @@
 #include <SDL2/SDL.h> // SDL_CreateWindow, SDL_DestroyWindow, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_SetRenderDrawColor, SDL_RenderClear, SDL_RenderPresent, SDL_Delay, SDL_Event, SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEMOTION, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
-#include "components/form.h"
+#include "components/form.h" // form_element, create_form_element
+#include "components/table.h" // table_element, create_table_element
+#include "components/home.h" // home_element, create_home_element
 #include "components/search_bar.h"
 #include "constants/color_theme.h"
 #include "constants/element_tags.h"
@@ -65,20 +67,28 @@ void set_content_panel(ElementTree *tree, Element *element) {
 void click_item_1(ElementTree *tree, void *data) {
   (void)data;
   set_menu(tree);
+  if (home_element == 0) {
+    create_home_element(tree->arena);
+  }
+  set_content_panel(tree, home_element);
+}
+
+void click_item_2(ElementTree *tree, void *data) {
+  (void)data;
+  set_menu(tree);
   if (form_element == 0) {
     create_form_element(tree->arena);
   }
   set_content_panel(tree, form_element);
 }
 
-void click_item_2(ElementTree *tree, void *data) {
-  (void)data;
-  set_menu(tree);
-}
-
 void click_item_3(ElementTree *tree, void *data) {
   (void)data;
   set_menu(tree);
+  if (table_element == 0) {
+    create_table_element(tree->arena);
+  }
+  set_content_panel(tree, table_element);
 }
 
 i32 main() {
@@ -189,49 +199,11 @@ i32 main() {
     .element_tag = content_panel_tag,
     .background_type = background_type.color,
     .background_color = white,
-    .padding = (Padding){10, 10, 10, 10},
-    .layout_direction = layout_direction.vertical,
-    .gutter = 10,
-    .overflow = overflow_type.scroll_y,
   };
 
-  Element *content_panel_top = add_new_element(tree->arena, content_panel);
-  *content_panel_top = (Element){
-    .background_type = background_type.color,
-    .background_color = gray_2,
-    .border_radius = 15,
-    .padding = (Padding){10, 10, 10, 10},
-    .layout_direction = layout_direction.horizontal,
-    .gutter = 10,
-  };
-
-  Element *content_panel_top_content = add_new_element(tree->arena, content_panel_top);
-  *content_panel_top_content = (Element){
-    .width = 100,
-    .height = 600,
-    .background_type = background_type.color,
-    .background_color = white,
-    .border = (Border){1, 1, 1, 1},
-    .border_radius = 15,
-  };
-
-  Element *content_panel_top_content_2 = add_new_element(tree->arena, content_panel_top);
-  *content_panel_top_content_2 = (Element){
-    .width = 100,
-    .height = 600,
-    .background_type = background_type.color,
-    .background_color = white,
-    .border = (Border){2, 2, 2, 2},
-    .border_radius = 30,
-  };
-
-  Element *content_panel_bottom = add_new_element(tree->arena, content_panel);
-  *content_panel_bottom = (Element){
-    .background_type = background_type.color,
-    .background_color = gray_2,
-    .border_radius = 15,
-    .padding = (Padding){10, 10, 10, 10},
-  };
+  // Fill content panel with home element
+  create_home_element(tree->arena);
+  add_element(tree->arena, content_panel, home_element);
 
   Element *menu_item = add_new_element(tree->arena, side_panel);
   *menu_item = (Element){
@@ -240,7 +212,7 @@ i32 main() {
     .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
-    .text = to_s8("Menu item 1"),
+    .text = to_s8("Home"),
     .text_color = text_color,
     .on_click = &click_item_1,
   };
@@ -252,7 +224,7 @@ i32 main() {
     .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
-    .text = to_s8("Menu item 2"),
+    .text = to_s8("Page 1"),
     .text_color = text_color,
     .on_click = &click_item_2,
   };
@@ -264,7 +236,7 @@ i32 main() {
     .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .border_radius = 15,
-    .text = to_s8("Menu item 3"),
+    .text = to_s8("Element ref"),
     .text_color = text_color,
     .on_click = &click_item_3,
   };
@@ -357,7 +329,7 @@ i32 main() {
         }
         // scroll left or right
         if (event.wheel.x != 0) {
-          scroll_x(tree->root, mouse_x, mouse_y, event.wheel.x * scroll_speed);
+          scroll_x(tree->root, mouse_x, mouse_y, event.wheel.x * -scroll_speed);
           set_x(tree->root, 0);
         }
         tree->rerender = rerender_type.all;
