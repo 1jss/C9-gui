@@ -1,9 +1,11 @@
 #ifndef C9_LAYOUT
 
 #include <stdbool.h> // bool
+#include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "color.h" // RGBA, C9_Gradient, gradient
+#include "font.h" // get_font
 #include "input.h" // InputData
 #include "string.h" // s8
 #include "types.h" // u8, i32
@@ -270,6 +272,11 @@ i32 fill_scroll_width(Element *element) {
         }
       }
     }
+  } else if (element->text.length != 0) {
+    TTF_Font *font = get_font();
+    i32 text_w;
+    TTF_SizeUTF8(font, (char *)element->text.data, &text_w, NULL);
+    child_width += text_w;
   }
   if (child_width > self_width) {
     element->layout.scroll_width = child_width;
@@ -308,6 +315,11 @@ i32 fill_scroll_height(Element *element) {
         }
       }
     }
+  } else if (element->text.length != 0) {
+    TTF_Font *font = get_font();
+    i32 text_h;
+    TTF_SizeUTF8(font, (char *)element->text.data, NULL, &text_h);
+    child_height += text_h;
   }
   if (child_height > self_height) {
     element->layout.scroll_height = child_height;
