@@ -67,8 +67,8 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     draw_border(renderer, element_rect, border_size, element->border_color);
   }
   if (element->text.length > 0) {
-    i32 text_x = element_rect.x + element->padding.left;
-    i32 text_y = element_rect.y + element->padding.top;
+    i32 text_x = element_rect.x + element->padding.left + element->layout.scroll_x;
+    i32 text_y = element_rect.y + element->padding.top + element->layout.scroll_y;
     draw_text(
       renderer, font, to_char(element->text), text_x, text_y, element->text_color
     );
