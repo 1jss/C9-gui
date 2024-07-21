@@ -7,6 +7,7 @@
 #include "array.h" // Array
 #include "fixed_string.h" // FixedString, new_fixed_string, to_fixed_string, insert_fixed_string, delete_fixed_string
 #include "types.h" // u8, u32
+#include "font.h" // get_font
 
 typedef struct {
   u8 insert;
@@ -437,7 +438,8 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 }
 
 // Set selection based on mouse position
-void set_selection(TTF_Font *font, InputData *input, i32 realative_mouse_x_position) {
+void set_selection(InputData *input, i32 realative_mouse_x_position) {
+  TTF_Font *font = get_font();
   if (realative_mouse_x_position <= 0) {
     input->selection.start_index = 0;
     input->selection.end_index = 0;

@@ -9,9 +9,11 @@
 #include "input.h" // InputData, measure_selection
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
+#include "font.h" // get_font
 
 // Recursively draws all elements
-void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL_Rect target_rect, Element *active_element) {
+void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element) {
+  TTF_Font *font = get_font();
   // Save the current render target for later
   SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
   // Set the width and height of the target texture
@@ -147,7 +149,7 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
   };
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, font, child, child_bounds_rect, active_element);
+    draw_elements(renderer, child, child_bounds_rect, active_element);
   }
 
   // Draw a scrollbar if the element has Y overflow
@@ -192,7 +194,7 @@ void draw_elements(SDL_Renderer *renderer, TTF_Font *font, Element *element, SDL
   }
 }
 
-void render_element_tree(SDL_Renderer *renderer, TTF_Font *font, ElementTree *element_tree) {
+void render_element_tree(SDL_Renderer *renderer, ElementTree *element_tree) {
   // Clear buffer
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderClear(renderer);
@@ -201,7 +203,7 @@ void render_element_tree(SDL_Renderer *renderer, TTF_Font *font, ElementTree *el
   SDL_Rect target_rectangle = {0, 0, 0, 0};
   // Get the width and height of the target texture
   SDL_QueryTexture(target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
-  draw_elements(renderer, font, element_tree->root, target_rectangle, element_tree->active_element);
+  draw_elements(renderer, element_tree->root, target_rectangle, element_tree->active_element);
 }
 
 #define C9_RENDERER

@@ -8,9 +8,8 @@
 
 Element *table_element = 0;
 
-Element *add_column(Arena *arena, Element *table, i32 min_width) {
+Element *add_column(Arena *arena, Element *table) {
   Element *column = add_new_element(arena, table);
-  column->min_width = min_width;
   column->layout_direction = layout_direction.vertical;
   return column;
 }
@@ -30,9 +29,9 @@ void create_table_element(Arena *arena) {
   };
 
   // Columns
-  Element *type_column = add_column(arena, table_element, 110);
-  Element *name_column = add_column(arena, table_element, 180);
-  Element *description_column = add_column(arena, table_element, 360);
+  Element *type_column = add_column(arena, table_element);
+  Element *name_column = add_column(arena, table_element);
+  Element *description_column = add_column(arena, table_element);
 
   // Title row
   add_cell(arena, type_column, "Type");

@@ -14,6 +14,7 @@
 #include "include/renderer.h" // render_element_tree
 #include "include/string.h" // to_s8
 #include "include/types.h" // i32
+#include "include/font.h" // init_font, close_font
 
 void reset_menu_elements(Element *side_panel) {
   // Loop through all children and set background color to none
@@ -138,11 +139,9 @@ i32 main() {
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
   // Initialize font
-  if (TTF_Init()) {
-    printf("TTF_Init\n");
+  if(init_font() < 0) {
     return -1;
   }
-  TTF_Font *Inter = TTF_OpenFont("Inter-Regular.ttf", 16);
   SDL_Event event;
 
   // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
@@ -192,6 +191,7 @@ i32 main() {
     .border_color = border_color,
     .layout_direction = layout_direction.vertical,
     .border = (Border){0, 1, 0, 0},
+    .overflow = overflow_type.scroll_y,
   };
 
   Element *content_panel = add_new_element(tree->arena, bottom_panel);
@@ -207,7 +207,6 @@ i32 main() {
 
   Element *menu_item = add_new_element(tree->arena, side_panel);
   *menu_item = (Element){
-    .height = 30,
     .background_type = background_type.none,
     .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
@@ -219,7 +218,6 @@ i32 main() {
 
   Element *menu_item_2 = add_new_element(tree->arena, side_panel);
   *menu_item_2 = (Element){
-    .height = 30,
     .background_type = background_type.none,
     .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
@@ -231,7 +229,6 @@ i32 main() {
 
   Element *menu_item_3 = add_new_element(tree->arena, side_panel);
   *menu_item_3 = (Element){
-    .height = 30,
     .background_type = background_type.none,
     .background_color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
@@ -346,7 +343,7 @@ i32 main() {
         if (tree->active_element != 0 &&
             tree->active_element->input != 0) {
           i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left;
-          set_selection(Inter, tree->active_element->input, relative_x_position);
+          set_selection(tree->active_element->input, relative_x_position);
         }
         click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
@@ -357,7 +354,7 @@ i32 main() {
 
     if (tree->rerender == rerender_type.all) {
       SDL_SetRenderTarget(renderer, target_texture);
-      render_element_tree(renderer, Inter, tree);
+      render_element_tree(renderer, tree);
       // Draw target_texture to back buffer and present
       SDL_SetRenderTarget(renderer, NULL);
       SDL_RenderCopy(renderer, target_texture, NULL, NULL);
@@ -372,7 +369,7 @@ i32 main() {
         .h = tree->rerender_element->layout.max_height,
       };
       SDL_SetRenderTarget(renderer, target_texture);
-      draw_elements(renderer, Inter, tree->rerender_element, target_rectangle, tree->active_element);
+      draw_elements(renderer, tree->rerender_element, target_rectangle, tree->active_element);
       // Draw target_texture to back buffer and present
       SDL_SetRenderTarget(renderer, NULL);
       SDL_RenderCopy(renderer, target_texture, NULL, NULL);
@@ -397,8 +394,7 @@ i32 main() {
   SDL_StopTextInput();
   // printf("Size of element_arena %zu\n", arena_size(element_arena));
   arena_close(element_arena);
-  TTF_CloseFont(Inter);
-  TTF_Quit();
+  close_font();
   SDL_Quit();
 
   return 0;
