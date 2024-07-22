@@ -1,12 +1,12 @@
-#include <SDL2/SDL.h> // SDL_CreateWindow, SDL_DestroyWindow, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_SetRenderDrawColor, SDL_RenderClear, SDL_RenderPresent, SDL_Delay, SDL_Event, SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEMOTION, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT
+#include <SDL2/SDL.h> // SDL_CreateWindow, SDL_DestroyWindow, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_RenderPresent, SDL_Delay, SDL_Event, SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
 #include "components/form.h" // form_element, create_form_element
 #include "components/table.h" // table_element, create_table_element
 #include "components/home.h" // home_element, create_home_element
-#include "components/search_bar.h"
-#include "constants/color_theme.h"
-#include "constants/element_tags.h"
+#include "components/search_bar.h" // search_bar, create_search_bar_element
+#include "constants/color_theme.h" // white, white_2, gray_1, gray_2, border_color, text_color, text_color_active, menu_active_color
+#include "constants/element_tags.h" // content_panel_tag, search_panel_tag, side_panel_tag
 #include "include/SDL_ttf.h" // TTF_Init, TTF_OpenFont, TTF_RenderText_Blended, TTF_CloseFont
 #include "include/arena.h" // Arena, arena_open, arena_close
 #include "include/color.h" // RGBA, C9_Gradient
