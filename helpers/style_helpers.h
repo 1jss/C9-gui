@@ -16,7 +16,7 @@ void set_passive_input_style(Element *element) {
 void table_title_style(Element *element) {
   element->background_type = background_type.color;
   element->background_color = gray_1;
-  element->border_radius = 15;
+  element->corner_radius = 15;
   element->padding = (Padding){5, 10, 5, 10};
 }
 

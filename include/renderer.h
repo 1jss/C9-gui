@@ -48,11 +48,11 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     .left = element->border.left
   };
   if (element->background_type == background_type.color) {
-    if (element->border_radius > 0) {
+    if (element->corner_radius > 0) {
       if (border_size.top > 0) {
-        draw_rounded_rectangle_with_border(renderer, element_rect, element->border_radius, border_size, element->border_color, element->background_color);
+        draw_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_color);
       } else {
-        draw_filled_rounded_rectangle(renderer, element_rect, element->border_radius, element->background_color);
+        draw_filled_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_color);
       }
     } else {
       draw_filled_rectangle(renderer, element_rect, element->background_color);

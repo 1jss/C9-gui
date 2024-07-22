@@ -25,7 +25,7 @@ void create_home_element(Arena *arena) {
   *content_panel = (Element){
     .background_type = background_type.color,
     .background_color = gray_2,
-    .border_radius = 15,
+    .corner_radius = 15,
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.horizontal,
     .gutter = 10,
@@ -38,7 +38,7 @@ void create_home_element(Arena *arena) {
     .background_type = background_type.color,
     .background_color = white,
     .border = (Border){1, 1, 1, 1},
-    .border_radius = 15,
+    .corner_radius = 15,
   };
 
   Element *content_panel_content_2 = add_new_element(arena, content_panel);
@@ -48,7 +48,7 @@ void create_home_element(Arena *arena) {
     .background_type = background_type.color,
     .background_color = white,
     .border = (Border){2, 2, 2, 2},
-    .border_radius = 30,
+    .corner_radius = 30,
   };
 }
 

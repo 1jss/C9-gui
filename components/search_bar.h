@@ -46,7 +46,7 @@ void create_search_bar_element(Arena *arena) {
     .background_type = background_type.color,
     .background_color = white,
     .padding = (Padding){5, 10, 5, 10},
-    .border_radius = 15,
+    .corner_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
     .input = new_input(arena, 100),

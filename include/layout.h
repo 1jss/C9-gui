@@ -142,7 +142,7 @@ typedef struct Element {
   i32 min_width;
   i32 min_height;
   i32 gutter;
-  i32 border_radius;
+  i32 corner_radius;
   RGBA background_color;
   RGBA border_color;
   RGBA text_color;
@@ -174,7 +174,7 @@ Element empty_element = {
   .on_blur = 0,
   .padding = {0, 0, 0, 0},
   .border = {0, 0, 0, 0},
-  .border_radius = 0,
+  .corner_radius = 0,
   .border_color = C9_default_border_color,
   .children = 0,
   .layout_direction = 0,

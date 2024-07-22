@@ -32,7 +32,7 @@ An element is a struct that contains all the properties of a child. The structur
 | `OnEvent`     | `on_key_press`        | function pointer called on input    |
 | `Padding`     | `padding`             | padding inside element (4 values)   |
 | `Border`      | `border`              | border around element (4 values)    |
-| `i32`         | `border_radius`       | radius of superellipse corners      |
+| `i32`         | `corner_radius`       | radius of superellipse corners      |
 | `RGBA`        | `border_color`        | color of border                     |
 | `Array*`      | `children`            | flexible array of child elements    |
 | `u8`          | `layout_direction`    | direction of flex layout            |

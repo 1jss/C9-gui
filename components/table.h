@@ -123,9 +123,9 @@ void create_table_element(Arena *arena) {
   add_cell(arena, name_column, "border");
   add_cell(arena, description_column, "border around element (4 values)");
 
-  // border_radius row
+  // corner_radius row
   add_cell(arena, type_column, "i32");
-  add_cell(arena, name_column, "border_radius");
+  add_cell(arena, name_column, "corner_radius");
   add_cell(arena, description_column, "radius of superellipse corners");
 
   // border_color row
