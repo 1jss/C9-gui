@@ -56,9 +56,6 @@ The interface is only rendered when the `rerender` member of the element tree is
 ### Components
 Components are reusable standalone elements that can dynamically be added and removed from the tree. They are implemented as global Element references (pointers) that get initalized on their first use. This way no more memory is used than needed and the already initalized component can be removed and readded to the tree without loosing its state.
 
-## Limitations
-- Rounded corners can not be combined with background gradients. The renderer will prefer the background granient before the corner radius, drawing a rectangle.
-
 ## Prerequisites
 SDL2, SDL2_ttf and SDL2_image libraries are required to compile and run this project.
 

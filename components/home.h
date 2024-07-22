@@ -50,6 +50,19 @@ void create_home_element(Arena *arena) {
     .border = (Border){2, 2, 2, 2},
     .corner_radius = 30,
   };
+
+  Element *content_panel_content_3 = add_new_element(arena, content_panel);
+  *content_panel_content_3 = (Element){
+    .width = 100,
+    .height = 100,
+    .background_type = background_type.vertical_gradient,
+    .background_gradient = (C9_Gradient){
+      .start_color = white,
+      .end_color = white_2,
+    },
+    .border = (Border){1, 1, 1, 1},
+    .corner_radius = 30,
+  };
 }
 
 #define HOME_COMPONENT

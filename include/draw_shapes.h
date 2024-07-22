@@ -96,6 +96,184 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i
   }
 }
 
+void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, C9_Gradient gradient) {
+  // Cap corner radius to half of the rectangle width or height
+  if (2 * corner_radius >= rectangle.w || 2 * corner_radius >= rectangle.h) {
+    corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
+  }
+  // Fill the area between the left corners
+  for (i32 i = 0; i < corner_radius; i++) {
+    f32 t = 1.0 * i / rectangle.w;
+    RGBA color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y + corner_radius, rectangle.x + i, rectangle.y + rectangle.h - corner_radius);
+  }
+
+  // Fill the area between the left and right corners
+  for (i32 i = corner_radius; i < rectangle.w - corner_radius; i++) {
+    f32 t = 1.0 * i / rectangle.w;
+    RGBA color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h);
+  }
+
+  // Fill the area between the bottom corners
+  for (i32 i = rectangle.w - corner_radius; i < rectangle.w; i++) {
+    f32 t = 1.0 * i / rectangle.w;
+    RGBA color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y + corner_radius, rectangle.x + i, rectangle.y + rectangle.h - corner_radius);
+  }
+
+  // Center points for the corners
+  i32 left_center_x = rectangle.x + corner_radius - 1;
+  i32 right_center_x = rectangle.x + rectangle.w - corner_radius;
+  i32 top_center_y = rectangle.y + corner_radius - 1;
+  i32 bottom_center_y = rectangle.y + rectangle.h - corner_radius + 1;
+
+  // Set thresholds for antialiasing and boundary detection
+  f32 antialiasing_threshold = pow(corner_radius - 1, 4);
+  f32 boundary_squared = pow(corner_radius, 4);
+  bool inside_shape = false;
+  f32 opacity = 1.0;
+  f32 gradient_fraction = 0.0; // Gradient position
+  RGBA color = 0x000000FF; // Current drawing color
+
+  // Calculate points for one quadrant and mirror it the other quadrants
+  for (i32 x = 0; x <= corner_radius; x++) {
+    for (i32 y = 0; y <= corner_radius; y++) {
+      f32 distance_squared = pow(x, 4) + pow(y, 4);
+      inside_shape = false;
+      // Check if the point is within the solid part of the corner
+      if (distance_squared <= antialiasing_threshold) {
+        opacity = 1.0;
+        inside_shape = true;
+      }
+      // Apply antialiasing for points near the edge of the corner
+      else if (distance_squared <= boundary_squared) {
+        if (distance_squared > antialiasing_threshold) {
+          // Calculate opacity for antialiasing effect
+          opacity = (boundary_squared - distance_squared) / (boundary_squared - antialiasing_threshold);
+          // Clamp opacity between 0 and 1
+          opacity = clamp(opacity, 0.0, 1.0);
+        }
+        inside_shape = true;
+      }
+      // Draw the corner points in all four quadrants if inside the shape
+      if (inside_shape == true) {
+        // Calculate gradient position for left corners
+        gradient_fraction = 1.0 * (corner_radius - x - 1) / rectangle.w;
+        color = getGradientColor(gradient, gradient_fraction);
+        SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), (u8)(opacity * 255));
+
+        // Top left quadrant
+        SDL_RenderDrawPoint(renderer, left_center_x - x, top_center_y - y);
+        // Bottom left quadrant
+        SDL_RenderDrawPoint(renderer, left_center_x - x, bottom_center_y + y);
+
+        // Calculate gradient position for right corners
+        gradient_fraction = 1.0 * (rectangle.w - corner_radius + x) / rectangle.w;
+        color = getGradientColor(gradient, gradient_fraction);
+        SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), (u8)(opacity * 255));
+
+        // Top right quadrant
+        SDL_RenderDrawPoint(renderer, right_center_x + x, top_center_y - y);
+        // Bottom right quadrant
+        SDL_RenderDrawPoint(renderer, right_center_x + x, bottom_center_y + y);
+      }
+    }
+  }
+}
+
+void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, C9_Gradient gradient) {
+  // Cap corner radius to half of the rectangle width or height
+  if (2 * corner_radius >= rectangle.w || 2 * corner_radius >= rectangle.h) {
+    corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
+  }
+  // Fill the area between the top corners
+  for (i32 i = 0; i < corner_radius; i++) {
+    f32 t = 1.0 * i / rectangle.h;
+    RGBA color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, rectangle.x + corner_radius, rectangle.y + i, rectangle.x + rectangle.w - corner_radius - 1, rectangle.y + i);
+  }
+
+  // Fill the area between the top and bottom corners
+  for (i32 i = corner_radius; i < rectangle.h - corner_radius; i++) {
+    f32 t = 1.0 * i / rectangle.h;
+    RGBA color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w - 1, rectangle.y + i);
+  }
+
+  // Fill the area between the bottom corners
+  for (i32 i = rectangle.h - corner_radius; i < rectangle.h; i++) {
+    f32 t = 1.0 * i / rectangle.h;
+    RGBA color = getGradientColor(gradient, t);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, rectangle.x + corner_radius, rectangle.y + i, rectangle.x + rectangle.w - corner_radius - 1, rectangle.y + i);
+  }
+
+  // Center points for the corners
+  i32 left_center_x = rectangle.x + corner_radius - 1;
+  i32 right_center_x = rectangle.x + rectangle.w - corner_radius;
+  i32 top_center_y = rectangle.y + corner_radius - 1;
+  i32 bottom_center_y = rectangle.y + rectangle.h - corner_radius;
+
+  // Set thresholds for antialiasing and boundary detection
+  f32 antialiasing_threshold = pow(corner_radius - 1, 4);
+  f32 boundary_squared = pow(corner_radius, 4);
+  bool inside_shape = false;
+  f32 opacity = 1.0;
+  f32 gradient_fraction = 0.0; // Gradient position
+  RGBA color = 0x000000FF; // Current drawing color
+
+  // Calculate points for one quadrant and mirror it the other quadrants
+  for (i32 x = 0; x <= corner_radius; x++) {
+    for (i32 y = 0; y <= corner_radius; y++) {
+      f32 distance_squared = pow(x, 4) + pow(y, 4);
+      inside_shape = false;
+      // Check if the point is within the solid part of the corner
+      if (distance_squared <= antialiasing_threshold) {
+        opacity = 1.0;
+        inside_shape = true;
+      }
+      // Apply antialiasing for points near the edge of the corner
+      else if (distance_squared <= boundary_squared) {
+        if (distance_squared > antialiasing_threshold) {
+          // Calculate opacity for antialiasing effect
+          opacity = (boundary_squared - distance_squared) / (boundary_squared - antialiasing_threshold);
+          // Clamp opacity between 0 and 1
+          opacity = clamp(opacity, 0.0, 1.0);
+        }
+        inside_shape = true;
+      }
+      // Draw the corner points in all four quadrants if inside the shape
+      if (inside_shape == true) {
+        // Calculate gradient position for top corners
+        gradient_fraction = 1.0 * (corner_radius - y - 1) / rectangle.h;
+        color = getGradientColor(gradient, gradient_fraction);
+        SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), (u8)(opacity * 255));
+
+        // Top left quadrant
+        SDL_RenderDrawPoint(renderer, left_center_x - x, top_center_y - y);
+        // Top right quadrant
+        SDL_RenderDrawPoint(renderer, right_center_x + x, top_center_y - y);
+
+        // Calculate gradient position for bottom corners
+        gradient_fraction = 1.0 * (rectangle.h - corner_radius + y) / rectangle.h;
+        color = getGradientColor(gradient, gradient_fraction);
+        SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), (u8)(opacity * 255));
+
+        // Bottom right quadrant
+        SDL_RenderDrawPoint(renderer, right_center_x + x, bottom_center_y + y);
+        // Bottom left quadrant
+        SDL_RenderDrawPoint(renderer, left_center_x - x, bottom_center_y + y);
+      }
+    }
+  }
+}
+
 typedef struct {
   i32 top;
   i32 right;
@@ -120,7 +298,7 @@ void draw_horizontal_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gra
     f32 t = 1.0 * i / rectangle.w;
     RGBA color = getGradientColor(gradient, t);
     SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h);
+    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h - 1);
   }
 }
 
@@ -129,7 +307,7 @@ void draw_vertical_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradi
     f32 t = 1.0 * i / rectangle.h;
     RGBA color = getGradientColor(gradient, t);
     SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w, rectangle.y + i);
+    SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w - 1, rectangle.y + i);
   }
 }
 

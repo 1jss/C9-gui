@@ -6,10 +6,10 @@
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_vertical_gradient, draw_rounded_rectangle_with_border, draw_filled_rounded_rectangle,
+#include "font.h" // get_font
 #include "input.h" // InputData, measure_selection
 #include "layout.h" // Element, ElementTree
 #include "types.h" // i32
-#include "font.h" // get_font
 
 // Recursively draws all elements
 void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element) {
@@ -59,11 +59,19 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       draw_border(renderer, element_rect, border_size, element->border_color);
     }
   } else if (element->background_type == background_type.horizontal_gradient) {
-    draw_horizontal_gradient(renderer, element_rect, element->background_gradient);
-    draw_border(renderer, element_rect, border_size, element->border_color);
+    if(element->corner_radius > 0) {
+      draw_horizontal_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
+    } else {
+      draw_horizontal_gradient(renderer, element_rect, element->background_gradient);
+      draw_border(renderer, element_rect, border_size, element->border_color);
+    }
   } else if (element->background_type == background_type.vertical_gradient) {
-    draw_vertical_gradient(renderer, element_rect, element->background_gradient);
-    draw_border(renderer, element_rect, border_size, element->border_color);
+    if (element->corner_radius > 0) {
+      draw_vertical_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
+    } else {
+      draw_vertical_gradient(renderer, element_rect, element->background_gradient);
+      draw_border(renderer, element_rect, border_size, element->border_color);
+    }
   }
   if (element->text.length > 0) {
     i32 text_x = element_rect.x + element->padding.left + element->layout.scroll_x;
@@ -157,7 +165,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       element->children != 0 &&
       element_rect.h < element->layout.scroll_height) {
     f32 scroll_percentage = -element->layout.scroll_y / (f32)(element->layout.scroll_height - element_rect.h);
-    
+
     i32 scrollbar_width = 4;
     i32 scrollbar_x = element_rect.x + element_rect.w - scrollbar_width;
     i32 scrollbar_height = element_rect.h * element_rect.h / element->layout.scroll_height;
@@ -172,12 +180,12 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     draw_filled_rectangle(renderer, scrollbar_rect, scrollbar_color);
   }
   // Draw a scrollbar if the element has X overflow
-  if((element->overflow == overflow_type.scroll ||
-      element->overflow == overflow_type.scroll_x) &&
-     element->children != 0 &&
-     element_rect.w < element->layout.scroll_width) {
+  if ((element->overflow == overflow_type.scroll ||
+       element->overflow == overflow_type.scroll_x) &&
+      element->children != 0 &&
+      element_rect.w < element->layout.scroll_width) {
     f32 scroll_percentage = -element->layout.scroll_x / (f32)(element->layout.scroll_width - element_rect.w);
-    
+
     i32 scrollbar_height = 4;
     i32 scrollbar_y = element_rect.y + element_rect.h - scrollbar_height;
     i32 scrollbar_width = element_rect.w * element_rect.w / element->layout.scroll_width;
