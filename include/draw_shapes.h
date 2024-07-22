@@ -287,6 +287,18 @@ void draw_rounded_rectangle_with_border(SDL_Renderer *renderer, SDL_Rect rectang
   draw_filled_rounded_rectangle(renderer, inner_rectangle, corner_radius - border.top, background_color);
 }
 
+void draw_horizontal_gradient_rounded_rectangle_with_border(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, BorderSize border, RGBA border_color,  C9_Gradient background_gradient) {
+  draw_filled_rounded_rectangle(renderer, rectangle, corner_radius, border_color);
+  SDL_Rect inner_rectangle = {rectangle.x + border.left, rectangle.y + border.top, rectangle.w - border.left - border.right, rectangle.h - border.top - border.bottom};
+  draw_horizontal_gradient_rounded_rectangle(renderer, inner_rectangle, corner_radius - border.top, background_gradient);
+}
+
+void draw_vertical_gradient_rounded_rectangle_with_border(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, BorderSize border, RGBA border_color, C9_Gradient background_gradient) {
+  draw_filled_rounded_rectangle(renderer, rectangle, corner_radius, border_color);
+  SDL_Rect inner_rectangle = {rectangle.x + border.left, rectangle.y + border.top, rectangle.w - border.left - border.right, rectangle.h - border.top - border.bottom};
+  draw_vertical_gradient_rounded_rectangle(renderer, inner_rectangle, corner_radius - border.top, background_gradient);
+}
+
 void draw_filled_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, RGBA color) {
   SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
   SDL_Rect rect = {rectangle.x, rectangle.y, rectangle.w, rectangle.h};

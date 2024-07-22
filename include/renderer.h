@@ -59,15 +59,23 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       draw_border(renderer, element_rect, border_size, element->border_color);
     }
   } else if (element->background_type == background_type.horizontal_gradient) {
-    if(element->corner_radius > 0) {
-      draw_horizontal_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
+    if (element->corner_radius > 0) {
+      if (border_size.top > 0) {
+        draw_horizontal_gradient_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+      } else {
+        draw_horizontal_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
+      }
     } else {
       draw_horizontal_gradient(renderer, element_rect, element->background_gradient);
       draw_border(renderer, element_rect, border_size, element->border_color);
     }
   } else if (element->background_type == background_type.vertical_gradient) {
     if (element->corner_radius > 0) {
-      draw_vertical_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
+      if (border_size.top > 0) {
+        draw_vertical_gradient_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+      } else {
+        draw_vertical_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
+      }
     } else {
       draw_vertical_gradient(renderer, element_rect, element->background_gradient);
       draw_border(renderer, element_rect, border_size, element->border_color);
