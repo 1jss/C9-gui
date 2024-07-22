@@ -105,7 +105,7 @@ void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect
   for (i32 i = 0; i < corner_radius; i++) {
     f32 t = 1.0 * i / rectangle.w;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y + corner_radius, rectangle.x + i, rectangle.y + rectangle.h - corner_radius);
   }
 
@@ -113,7 +113,7 @@ void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect
   for (i32 i = corner_radius; i < rectangle.w - corner_radius; i++) {
     f32 t = 1.0 * i / rectangle.w;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h);
   }
 
@@ -121,7 +121,7 @@ void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect
   for (i32 i = rectangle.w - corner_radius; i < rectangle.w; i++) {
     f32 t = 1.0 * i / rectangle.w;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y + corner_radius, rectangle.x + i, rectangle.y + rectangle.h - corner_radius);
   }
 
@@ -194,7 +194,7 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
   for (i32 i = 0; i < corner_radius; i++) {
     f32 t = 1.0 * i / rectangle.h;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x + corner_radius, rectangle.y + i, rectangle.x + rectangle.w - corner_radius - 1, rectangle.y + i);
   }
 
@@ -202,7 +202,7 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
   for (i32 i = corner_radius; i < rectangle.h - corner_radius; i++) {
     f32 t = 1.0 * i / rectangle.h;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w - 1, rectangle.y + i);
   }
 
@@ -210,7 +210,7 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
   for (i32 i = rectangle.h - corner_radius; i < rectangle.h; i++) {
     f32 t = 1.0 * i / rectangle.h;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x + corner_radius, rectangle.y + i, rectangle.x + rectangle.w - corner_radius - 1, rectangle.y + i);
   }
 
@@ -300,7 +300,7 @@ void draw_vertical_gradient_rounded_rectangle_with_border(SDL_Renderer *renderer
 }
 
 void draw_filled_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, RGBA color) {
-  SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
   SDL_Rect rect = {rectangle.x, rectangle.y, rectangle.w, rectangle.h};
   SDL_RenderFillRect(renderer, &rect);
 }
@@ -309,7 +309,7 @@ void draw_horizontal_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gra
   for (i32 i = 0; i < rectangle.w; i++) {
     f32 t = 1.0 * i / rectangle.w;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h - 1);
   }
 }
@@ -318,7 +318,7 @@ void draw_vertical_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradi
   for (i32 i = 0; i < rectangle.h; i++) {
     f32 t = 1.0 * i / rectangle.h;
     RGBA color = getGradientColor(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
     SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w - 1, rectangle.y + i);
   }
 }
