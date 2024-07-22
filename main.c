@@ -289,6 +289,12 @@ i32 main() {
         } else if (keysym.sym == SDLK_RIGHT &&
                    mod & KMOD_SHIFT) {
           input_handler(tree, "SELECT_RIGHT");
+        } else if (keysym.sym == SDLK_DOWN &&
+                   mod & KMOD_SHIFT) {
+          input_handler(tree, "SELECT_END");
+        } else if (keysym.sym == SDLK_UP &&
+                   mod & KMOD_SHIFT) {
+          input_handler(tree, "SELECT_START");
         } else if (keysym.sym == SDLK_z &&
                    mod & KMOD_CTRL) {
           input_handler(tree, "UNDO");

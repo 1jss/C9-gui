@@ -142,6 +142,12 @@ void select_left(InputData *input) {
     input->selection.start_index--;
   }
 }
+void select_start(InputData *input) {
+  input->selection.start_index = 0;
+}
+void select_end(InputData *input){
+  input->selection.end_index = input->text.length;
+}
 void select_all(InputData *input) {
   input->selection.start_index = 0;
   input->selection.end_index = input->text.length;
@@ -359,6 +365,10 @@ void handle_text_input(InputData *input, char *text) {
     select_left(input);
   } else if (strcmp(text, "SELECT_RIGHT") == 0) {
     select_right(input);
+  } else if (strcmp(text, "SELECT_START") == 0) {
+    select_start(input);
+  } else if (strcmp(text, "SELECT_END") == 0) {
+    select_end(input);
   } else if (strcmp(text, "SELECT_ALL") == 0) {
     select_all(input);
   } else if (strcmp(text, "DESELECT") == 0) {
