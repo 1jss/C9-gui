@@ -96,10 +96,17 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i
   }
 }
 
-void draw_rounded_rectangle_with_border(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, i32 border_width, RGBA border_color, RGBA background_color) {
+typedef struct {
+  i32 top;
+  i32 right;
+  i32 bottom;
+  i32 left;
+} BorderSize;
+
+void draw_rounded_rectangle_with_border(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, BorderSize border, RGBA border_color, RGBA background_color) {
   draw_filled_rounded_rectangle(renderer, rectangle, corner_radius, border_color);
-  SDL_Rect inner_rectangle = {rectangle.x + border_width, rectangle.y + border_width, rectangle.w - 2 * border_width, rectangle.h - 2 * border_width};
-  draw_filled_rounded_rectangle(renderer, inner_rectangle, corner_radius - border_width, background_color);
+  SDL_Rect inner_rectangle = {rectangle.x + border.left, rectangle.y + border.top, rectangle.w - border.left - border.right, rectangle.h - border.top - border.bottom};
+  draw_filled_rounded_rectangle(renderer, inner_rectangle, corner_radius - border.top, background_color);
 }
 
 void draw_filled_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, RGBA color) {
@@ -125,13 +132,6 @@ void draw_vertical_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradi
     SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w, rectangle.y + i);
   }
 }
-
-typedef struct {
-  i32 top;
-  i32 right;
-  i32 bottom;
-  i32 left;
-} BorderSize;
 
 void draw_border(SDL_Renderer *renderer, SDL_Rect rectangle, BorderSize border, RGBA border_color) {
   // Draw top border
