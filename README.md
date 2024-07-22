@@ -100,4 +100,3 @@ Render image directly to texture:
 - Mouse text selection
 - Break out event handling
 - Image rendering
-- Rounded rectangele with gradient

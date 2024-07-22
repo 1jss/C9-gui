@@ -139,9 +139,7 @@ i32 main() {
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
   // Initialize font
-  if(init_font() < 0) {
-    return -1;
-  }
+  if(init_font() < 0) return -1;
   SDL_Event event;
 
   // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
