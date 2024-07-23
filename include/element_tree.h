@@ -1,0 +1,260 @@
+#ifndef C9_ELEMENT_TREE
+
+#include "arena.h" // Arena
+#include "array.h" // Array
+#include "color.h" // RGBA, C9_Gradient, gradient
+#include "input.h" // InputData
+#include "string.h" // s8
+#include "types.h" // u8, i32
+
+// Type of rerender
+typedef struct {
+  u8 none;
+  u8 all;
+  u8 selected;
+} RerenderType;
+
+const RerenderType rerender_type = {
+  .none = 0,
+  .all = 1,
+  .selected = 2,
+};
+
+// Layout alignment
+typedef struct {
+  u8 start; // Starts at parent 0,0 or where sibling ends
+  u8 end; // Starts at x and y relative to parent 0,0
+  u8 spread; // Starts at x and y relative to global 0,0
+} LayoutAlign;
+
+const LayoutAlign layout_align = {
+  .start = 0,
+  .end = 1,
+  .spread = 2,
+};
+
+// Layout direction
+typedef struct {
+  u8 horizontal;
+  u8 vertical;
+} LayoutDirection;
+
+const LayoutDirection layout_direction = {
+  .horizontal = 0,
+  .vertical = 1,
+};
+
+// Overflow type
+typedef struct {
+  u8 contain;
+  u8 scroll;
+  u8 scroll_x;
+  u8 scroll_y;
+} OverflowType;
+
+const OverflowType overflow_type = {
+  .contain = 0,
+  .scroll = 1,
+  .scroll_x = 2,
+  .scroll_y = 3,
+};
+
+// Background type
+typedef struct {
+  u8 none; // No background color
+  u8 color; // Single color
+  u8 horizontal_gradient; // Gradient from left to right
+  u8 vertical_gradient; // Gradient from top to bottom
+} BackgroundType;
+
+const BackgroundType background_type = {
+  .none = 0,
+  .color = 1,
+  .horizontal_gradient = 2,
+  .vertical_gradient = 3,
+};
+
+// Forward declaration of ElementTree
+struct ElementTree;
+typedef struct ElementTree ElementTree;
+
+// Function pointer typedef for on_click and on_blur
+// The function takes a pointer to the ElementTree and a void pointer to optional event data
+typedef void (*OnEvent)(ElementTree *, void *);
+
+typedef struct {
+  i32 x;
+  i32 y;
+  i32 max_width; // Flexible width
+  i32 max_height; // Flexible height
+  i32 scroll_width; // Width of children
+  i32 scroll_height; // Height of children
+  i32 scroll_x; // current horizontal scroll
+  i32 scroll_y; // current vertical scroll
+} LayoutProps;
+
+const LayoutProps empty_layout_props = {
+  .x = 0,
+  .y = 0,
+  .max_width = 0,
+  .max_height = 0,
+  .scroll_width = 0,
+  .scroll_height = 0,
+  .scroll_x = 0,
+  .scroll_y = 0,
+};
+
+typedef struct {
+  i32 top;
+  i32 right;
+  i32 bottom;
+  i32 left;
+} Padding;
+
+typedef struct {
+  i32 top;
+  i32 right;
+  i32 bottom;
+  i32 left;
+} Border;
+
+// element tree nodes
+typedef struct Element {
+  LayoutProps layout; // Props set by the layout engine
+  C9_Gradient background_gradient;
+  s8 text;
+  Padding padding;
+  Border border;
+  InputData *input;
+  Array *children; // Flexible array of child elements of type Element
+  OnEvent on_click; // Function pointer
+  OnEvent on_blur; // Function pointer
+  OnEvent on_key_press; // Function pointer
+  i32 width;
+  i32 height;
+  i32 min_width;
+  i32 min_height;
+  i32 gutter;
+  i32 corner_radius;
+  RGBA background_color;
+  RGBA border_color;
+  RGBA text_color;
+  u8 layout_direction;
+  u8 overflow;
+  u8 element_tag; // Optional id or group id
+  u8 background_type;
+} Element;
+
+Element empty_element = {
+  .element_tag = 0,
+  .background_type = 0, // No background color
+  .background_color = 0xFFFFFFFF,
+  .background_gradient = {
+    .start_color = 0xFFFFFFFF,
+    .end_color = 0xFFFFFFFF,
+    .start_at = 0,
+    .end_at = 1,
+  },
+  .width = 0,
+  .height = 0,
+  .min_width = 0,
+  .min_height = 0,
+  .gutter = 0,
+  .text = {.data = 0, .length = 0},
+  .input = 0,
+  .text_color = 0x000000FF,
+  .on_click = 0,
+  .on_blur = 0,
+  .padding = {0, 0, 0, 0},
+  .border = {0, 0, 0, 0},
+  .corner_radius = 0,
+  .border_color = 0x000000FF,
+  .children = 0,
+  .layout_direction = 0,
+  .overflow = 0,
+  .layout = {
+    .x = 0,
+    .y = 0,
+    .max_width = 0,
+    .max_height = 0,
+    .scroll_width = 0,
+    .scroll_height = 0,
+    .scroll_x = 0,
+    .scroll_y = 0,
+  },
+};
+
+// Create a new element and return a pointer to it
+Element *new_element(Arena *arena) {
+  Element *element = (Element *)arena_fill(arena, sizeof(Element));
+  *element = empty_element;
+  return element;
+}
+
+// Element Tree already typedefed
+struct ElementTree {
+  Arena *arena;
+  Element *root;
+  Element *active_element;
+  Element *rerender_element;
+  u8 rerender;
+};
+
+// Create a new element tree and return a pointer to it
+ElementTree *new_element_tree(Arena *arena) {
+  ElementTree *tree = (ElementTree *)arena_fill(arena, sizeof(ElementTree));
+  tree->arena = arena;
+  Element *root = new_element(arena);
+  root->layout_direction = layout_direction.vertical;
+
+  // Assign the root element to the tree
+  tree->root = root;
+  tree->active_element = 0;
+  tree->rerender_element = 0;
+  tree->rerender = rerender_type.all;
+  return tree;
+}
+
+// Add a new child element to a parent and return a pointer to it
+Element *add_new_element(Arena *arena, Element *parent) {
+  // If the parent element has no children, create a new array
+  if (parent->children == 0) {
+    parent->children = array_create(arena, sizeof(Element));
+  }
+  // Add a new child element to the parent element
+  array_push(parent->children, &empty_element);
+  // Return a pointer to the child element
+  return array_get(parent->children, array_last(parent->children));
+}
+
+// Add existing element to a parent
+void add_element(Arena *arena, Element *parent, Element *child) {
+  // If the parent element has no children, create a new array
+  if (parent->children == 0) {
+    parent->children = array_create(arena, sizeof(Element));
+  }
+  // Add a new child element to the parent element
+  array_push(parent->children, child);
+}
+
+// Recurses through the element children and returns the first element with the given tag
+Element *get_element_by_tag(Element *element, u8 tag) {
+  if (element->element_tag == tag) {
+    return element;
+  }
+  Array *children = element->children;
+  if (children == 0) {
+    return 0;
+  }
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    Element *selected = get_element_by_tag(child, tag);
+    if (selected != 0) {
+      return selected;
+    }
+  }
+  return 0;
+}
+
+#define C9_ELEMENT_TREE
+#endif

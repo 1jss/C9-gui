@@ -6,10 +6,10 @@
 #include "../constants/color_theme.h" // text_color, text_color_active, menu_active_color
 #include "../constants/element_tags.h" // side_panel_tag, content_panel_tag
 #include "../include/arena.h" // Arena
-#include "../include/layout.h" // Element, Padding, set_dimensions, background_type
-#include "../include/string.h" // to_s8
+#include "../include/element_tree.h" // Element, ElementTree, get_element_by_tag, add_new_element, Padding, background_type
+#include "../include/layout.h" //  set_dimensions
 #include "../include/renderer.h" // bump_rerender
-
+#include "../include/string.h" // to_s8
 
 void reset_menu_elements(Element *side_panel) {
   // Loop through all children and set background color to none

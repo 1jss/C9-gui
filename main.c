@@ -8,9 +8,10 @@
 #include "constants/element_tags.h" // content_panel_tag, search_panel_tag, side_panel_tag
 #include "include/arena.h" // Arena, arena_open, arena_close
 #include "include/color.h" // RGBA, C9_Gradient
+#include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, background_gradient, Border, Padding
 #include "include/event.h" // click_handler, blur_handler, input_handler
 #include "include/font.h" // init_font, close_font
-#include "include/layout.h" // Element, ElementTree, new_element_tree, add_new_element, get_min_width, get_min_height, set_dimensions, layout_direction, background_type, background_gradient, Border, Padding
+#include "include/layout.h" //  get_min_width, get_min_height, set_dimensions, get_clickable_element_at, scroll_x, scroll_y
 #include "include/renderer.h" // render_element_tree
 #include "include/types.h" // i32
 

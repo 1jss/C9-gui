@@ -1,7 +1,7 @@
 #ifndef C9_STYLE_HELPERS
 
 #include "../constants/color_theme.h" // border_color, border_color_active, text_color, text_color_active
-#include "../include/layout.h" // Element
+#include "../include/element_tree.h" // Element
 
 void set_active_input_style(Element *element) {
   element->border_color = border_color_active;

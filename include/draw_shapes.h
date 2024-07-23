@@ -275,6 +275,7 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
 
 // Rounded rectangles with borders
 
+// This type is the same as Border in element_tree, but defined here to keep some modularity. This BorderSize type is imported by the renderer.
 typedef struct {
   i32 top;
   i32 right;

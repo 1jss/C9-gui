@@ -5,8 +5,8 @@
 #include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
 #include "../include/arena.h" // Arena
 #include "../include/input.h"
-#include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
 #include "../include/renderer.h" // bump_rerender
+#include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree, get_element_by_tag
 
 Element *form_element = 0;
 

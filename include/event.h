@@ -1,6 +1,6 @@
 #ifndef C9_EVENT
 
-#include "layout.h" // ElementTree, Element
+#include "element_tree.h" // ElementTree, Element
 
 void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;

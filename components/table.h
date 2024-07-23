@@ -3,7 +3,7 @@
 #include "../constants/color_theme.h" // gray_2, white
 #include "../helpers/style_helpers.h" // set_table_style
 #include "../include/arena.h" // Arena
-#include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
+#include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
 #include "../include/string.h" // to_s8
 
 Element *table_element = 0;

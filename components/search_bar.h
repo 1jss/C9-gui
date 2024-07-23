@@ -4,9 +4,9 @@
 #include "../constants/element_tags.h" // search_panel_tag
 #include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
 #include "../include/arena.h" // Arena
-#include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
-#include "../include/string.h" // to_s8
+#include "../include/element_tree.h" // Element, ElementTree, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, get_element_by_tag
 #include "../include/renderer.h" // bump_rerender
+#include "../include/string.h" // to_s8
 
 Element *search_bar = 0;
 
