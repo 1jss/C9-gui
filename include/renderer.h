@@ -221,5 +221,14 @@ void render_element_tree(SDL_Renderer *renderer, ElementTree *element_tree) {
   draw_elements(renderer, element_tree->root, target_rectangle, element_tree->active_element);
 }
 
+// Sets selective rerendering if no rendering is set and all if selective is set
+void bump_rerender(ElementTree *tree) {
+  if (tree->rerender == rerender_type.none) {
+    tree->rerender = rerender_type.selected;
+  } else {
+    tree->rerender = rerender_type.all;
+  }
+}
+
 #define C9_RENDERER
 #endif

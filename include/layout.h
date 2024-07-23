@@ -10,10 +10,6 @@
 #include "string.h" // s8
 #include "types.h" // u8, i32
 
-const RGBA C9_default_background_color = 0xFFFFFFFF;
-const RGBA C9_default_text_color = 0x000000FF;
-const RGBA C9_default_border_color = 0x000000FF;
-
 // Type of rerender
 typedef struct {
   u8 none;
@@ -155,7 +151,7 @@ typedef struct Element {
 Element empty_element = {
   .element_tag = 0,
   .background_type = 0, // No background color
-  .background_color = C9_default_background_color,
+  .background_color = 0xFFFFFFFF,
   .background_gradient = {
     .start_color = 0xFFFFFFFF,
     .end_color = 0xFFFFFFFF,
@@ -169,13 +165,13 @@ Element empty_element = {
   .gutter = 0,
   .text = {.data = 0, .length = 0},
   .input = 0,
-  .text_color = C9_default_text_color,
+  .text_color = 0x000000FF,
   .on_click = 0,
   .on_blur = 0,
   .padding = {0, 0, 0, 0},
   .border = {0, 0, 0, 0},
   .corner_radius = 0,
-  .border_color = C9_default_border_color,
+  .border_color = 0x000000FF,
   .children = 0,
   .layout_direction = 0,
   .overflow = 0,
@@ -661,27 +657,6 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
   return scroll_delta;
 }
 
-void click_handler(ElementTree *tree, void *data) {
-  Element *element = tree->active_element;
-  if (element != 0 && element->on_click != 0) {
-    element->on_click(tree, data);
-  }
-}
-
-void blur_handler(ElementTree *tree, void *data) {
-  Element *element = tree->active_element;
-  if (element != 0 && element->on_blur != 0) {
-    element->on_blur(tree, data);
-  }
-}
-
-void input_handler(ElementTree *tree, void *data) {
-  Element *element = tree->active_element;
-  if (element != 0 && element->on_key_press != 0) {
-    element->on_key_press(tree, data);
-  }
-}
-
 // Recurses through the element children and returns the first element with the given tag
 Element *get_element_by_tag(Element *element, u8 tag) {
   if (element->element_tag == tag) {
@@ -699,15 +674,6 @@ Element *get_element_by_tag(Element *element, u8 tag) {
     }
   }
   return 0;
-}
-
-// Sets selective rerendering if no rendering is set and all if selective is set
-void bump_rerender(ElementTree *tree) {
-  if (tree->rerender == rerender_type.none) {
-    tree->rerender = rerender_type.selected;
-  } else {
-    tree->rerender = rerender_type.all;
-  }
 }
 
 #define C9_LAYOUT

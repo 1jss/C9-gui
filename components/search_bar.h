@@ -6,6 +6,7 @@
 #include "../include/arena.h" // Arena
 #include "../include/layout.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
 #include "../include/string.h" // to_s8
+#include "../include/renderer.h" // bump_rerender
 
 Element *search_bar = 0;
 
