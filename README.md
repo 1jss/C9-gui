@@ -56,6 +56,11 @@ The interface is only rendered when the `rerender` member of the element tree is
 ### Components
 Components are reusable standalone elements that can dynamically be added and removed from the tree. They are implemented as global Element references (pointers) that get initalized on their first use. This way no more memory is used than needed and the already initalized component can be removed and readded to the tree without loosing its state.
 
+## Project navigation
+The project starts from `main.c` and all C9 includes are header only. The base library implementation is located in the `include` folder. These do not need to be altered by the library user. The example components and helpers are located in the `components`, `helpers`, and `constants` folders. These should be altered by the library user.
+
+The foundational layer of drawing is handled in `draw_shapes.h`, where functions for directly drawing squircles and gradients of different types. These should normaly not be used directly by the library user, but only by the rendereer (`renderer.h`) that draws the Element tree. The layout of the tree is calculated in `layout.h`.
+
 ## Prerequisites
 SDL2, SDL2_ttf and SDL2_image libraries are required to compile and run this project.
 

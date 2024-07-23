@@ -1,6 +1,5 @@
 #ifndef FORM_COMPONENT
 
-#include <string.h> // strcmp
 #include "../constants/color_theme.h" // gray_2, white
 #include "../constants/element_tags.h" // content_panel_tag
 #include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style

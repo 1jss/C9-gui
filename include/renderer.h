@@ -5,7 +5,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_vertical_gradient, draw_rounded_rectangle_with_border, draw_filled_rounded_rectangle,
+#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient, draw_vertical_gradient, draw_rounded_rectangle_with_border, draw_filled_rounded_rectangle, BorderSize, largest_border
 #include "font.h" // get_font
 #include "input.h" // InputData, measure_selection
 #include "layout.h" // Element, ElementTree
@@ -49,7 +49,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
   };
   if (element->background_type == background_type.color) {
     if (element->corner_radius > 0) {
-      if (border_size.top > 0) {
+      if (largest_border(border_size) > 0) {
         draw_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_color);
       } else {
         draw_filled_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_color);
@@ -60,7 +60,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     }
   } else if (element->background_type == background_type.horizontal_gradient) {
     if (element->corner_radius > 0) {
-      if (border_size.top > 0) {
+      if (largest_border(border_size) > 0) {
         draw_horizontal_gradient_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
       } else {
         draw_horizontal_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
@@ -71,7 +71,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     }
   } else if (element->background_type == background_type.vertical_gradient) {
     if (element->corner_radius > 0) {
-      if (border_size.top > 0) {
+      if (largest_border(border_size) > 0) {
         draw_vertical_gradient_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
       } else {
         draw_vertical_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);

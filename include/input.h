@@ -1,7 +1,7 @@
 #ifndef C9_INPUT
 
 #include <stdbool.h> // bool
-#include <string.h> // memcpy
+#include <string.h> // memcpy, strcmp
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array

@@ -1,6 +1,5 @@
 #ifndef HOME_COMPONENT
 
-#include <string.h> // strcmp
 #include "../constants/color_theme.h" // gray_2, white
 #include "../constants/element_tags.h" // content_panel_tag
 #include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
@@ -37,8 +36,8 @@ void create_home_element(Arena *arena) {
     .height = 600,
     .background_type = background_type.color,
     .background_color = white,
-    .border = (Border){1, 1, 1, 1},
-    .corner_radius = 15,
+    .border = (Border){2, 2, 2, 2},
+    .border_color = border_color,
   };
 
   Element *content_panel_content_2 = add_new_element(arena, content_panel);
@@ -49,6 +48,7 @@ void create_home_element(Arena *arena) {
     .background_color = white,
     .border = (Border){2, 2, 2, 2},
     .corner_radius = 30,
+    .border_color = border_color,
   };
 
   Element *content_panel_content_3 = add_new_element(arena, content_panel);
@@ -60,8 +60,9 @@ void create_home_element(Arena *arena) {
       .start_color = white,
       .end_color = white_2,
     },
-    .border = (Border){1, 1, 1, 1},
+    .border = (Border){0, 4, 4, 0},
     .corner_radius = 30,
+    .border_color = border_color,
   };
 }
 
