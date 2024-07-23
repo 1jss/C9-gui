@@ -1,96 +1,17 @@
 #include <SDL2/SDL.h> // SDL_CreateWindow, SDL_DestroyWindow, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_RenderPresent, SDL_Delay, SDL_Event, SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
-#include "components/form.h" // form_element, create_form_element
-#include "components/table.h" // table_element, create_table_element
 #include "components/home.h" // home_element, create_home_element
+#include "components/menu.h" // add_menu_items
 #include "components/search_bar.h" // search_bar, create_search_bar_element
-#include "constants/color_theme.h" // white, white_2, gray_1, gray_2, border_color, text_color, text_color_active, menu_active_color
+#include "constants/color_theme.h" // white, white_2, gray_1, gray_2, border_color, text_color
 #include "constants/element_tags.h" // content_panel_tag, search_panel_tag, side_panel_tag
-#include "include/SDL_ttf.h" // TTF_Init, TTF_OpenFont, TTF_RenderText_Blended, TTF_CloseFont
 #include "include/arena.h" // Arena, arena_open, arena_close
 #include "include/color.h" // RGBA, C9_Gradient
+#include "include/font.h" // init_font, close_font
 #include "include/layout.h" // Element, ElementTree, new_element_tree, add_new_element, get_min_width, get_min_height, set_dimensions, layout_direction, background_type, background_gradient, Border, Padding
 #include "include/renderer.h" // render_element_tree
-#include "include/string.h" // to_s8
 #include "include/types.h" // i32
-#include "include/font.h" // init_font, close_font
-
-void reset_menu_elements(Element *side_panel) {
-  // Loop through all children and set background color to none
-  Array *children = side_panel->children;
-  if (children == 0) {
-    return;
-  }
-  for (size_t i = 0; i < array_length(children); i++) {
-    Element *child = array_get(children, i);
-    child->background_type = background_type.none;
-    child->text_color = text_color;
-  }
-}
-
-void set_active_menu_element(Element *element) {
-  element->background_type = background_type.color;
-  element->text_color = text_color_active;
-}
-
-void set_menu(ElementTree *tree) {
-  Element *active_element = tree->active_element;
-  Element *side_panel = get_element_by_tag(tree->root, side_panel_tag);
-  if (active_element != 0 && side_panel != 0) {
-    reset_menu_elements(side_panel);
-    set_active_menu_element(active_element);
-    bump_rerender(tree);
-    tree->rerender_element = side_panel;
-  }
-}
-
-void set_content_panel(ElementTree *tree, Element *element) {
-  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
-  if (content_panel != 0) {
-    // Clear children and add new element
-    content_panel->children = array_create(tree->arena, sizeof(Element));
-    array_push(content_panel->children, element);
-
-    // Reset scroll position
-    content_panel->layout.scroll_x = 0;
-    content_panel->layout.scroll_y = 0;
-
-    // Recalculate content layout
-    set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
-
-    // Set rerendering
-    bump_rerender(tree);
-    tree->rerender_element = content_panel;
-  }
-}
-
-void click_item_1(ElementTree *tree, void *data) {
-  (void)data;
-  set_menu(tree);
-  if (home_element == 0) {
-    create_home_element(tree->arena);
-  }
-  set_content_panel(tree, home_element);
-}
-
-void click_item_2(ElementTree *tree, void *data) {
-  (void)data;
-  set_menu(tree);
-  if (form_element == 0) {
-    create_form_element(tree->arena);
-  }
-  set_content_panel(tree, form_element);
-}
-
-void click_item_3(ElementTree *tree, void *data) {
-  (void)data;
-  set_menu(tree);
-  if (table_element == 0) {
-    create_table_element(tree->arena);
-  }
-  set_content_panel(tree, table_element);
-}
 
 i32 main() {
   i32 window_width = 640;
@@ -139,7 +60,7 @@ i32 main() {
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
   // Initialize font
-  if(init_font() < 0) return -1;
+  if (init_font() < 0) return -1;
   SDL_Event event;
 
   // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
@@ -203,38 +124,8 @@ i32 main() {
   create_home_element(tree->arena);
   add_element(tree->arena, content_panel, home_element);
 
-  Element *menu_item = add_new_element(tree->arena, side_panel);
-  *menu_item = (Element){
-    .background_type = background_type.none,
-    .background_color = menu_active_color,
-    .padding = (Padding){5, 10, 5, 10},
-    .corner_radius = 15,
-    .text = to_s8("Home"),
-    .text_color = text_color,
-    .on_click = &click_item_1,
-  };
-
-  Element *menu_item_2 = add_new_element(tree->arena, side_panel);
-  *menu_item_2 = (Element){
-    .background_type = background_type.none,
-    .background_color = menu_active_color,
-    .padding = (Padding){5, 10, 5, 10},
-    .corner_radius = 15,
-    .text = to_s8("Page 1"),
-    .text_color = text_color,
-    .on_click = &click_item_2,
-  };
-
-  Element *menu_item_3 = add_new_element(tree->arena, side_panel);
-  *menu_item_3 = (Element){
-    .background_type = background_type.none,
-    .background_color = menu_active_color,
-    .padding = (Padding){5, 10, 5, 10},
-    .corner_radius = 15,
-    .text = to_s8("Element ref"),
-    .text_color = text_color,
-    .on_click = &click_item_3,
-  };
+  // Fill side panel with menu items
+  add_menu_items(tree->arena, side_panel);
 
   // search_bar is defined in search_bar.h
   create_search_bar_element(tree->arena);
