@@ -27,6 +27,7 @@ void create_home_element(Arena *arena) {
     .corner_radius = 15,
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.horizontal,
+    .overflow = overflow_type.scroll_x,
     .gutter = 10,
   };
 
@@ -61,7 +62,20 @@ void create_home_element(Arena *arena) {
       .end_color = white_2,
     },
     .border = (Border){0, 4, 4, 0},
-    .corner_radius = 30,
+    .corner_radius = 40,
+    .border_color = border_color,
+  };
+  Element *content_panel_content_4 = add_new_element(arena, content_panel);
+  *content_panel_content_4 = (Element){
+    .width = 100,
+    .height = 100,
+    .background_type = background_type.horizontal_gradient,
+    .background_gradient = (C9_Gradient){
+      .start_color = white,
+      .end_color = white_2,
+    },
+    .border = (Border){0, 4, 4, 0},
+    .corner_radius = 40,
     .border_color = border_color,
   };
 }
