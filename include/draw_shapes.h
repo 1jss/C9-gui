@@ -97,6 +97,7 @@ void draw_filled_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i
 
 void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, i32 corner_radius, C9_Gradient gradient) {
   set_seed(2); // get same gradient every time
+  f32 dither_spread = get_dither_spread(gradient);
   // Cap corner radius to half of the rectangle width or height
   if (2 * corner_radius >= rectangle.w || 2 * corner_radius >= rectangle.h) {
     corner_radius = rectangle.w < rectangle.h ? rectangle.w / 2 : rectangle.h / 2;
@@ -104,32 +105,38 @@ void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect
   // Fill the area between the left corners
   for (i32 x = 0; x < corner_radius; x++) {
     f32 percent = 1.0 * x / rectangle.w;
-    RGBA color = get_gradient_color(gradient, percent);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
-    SDL_RenderDrawLine(renderer, rectangle.x + x, rectangle.y + corner_radius, rectangle.x + x, rectangle.y + rectangle.h - corner_radius);
+    for (i32 y = corner_radius; y <= rectangle.h - corner_radius; y++) {
+      RGBA color = get_dithered_gradient_color(gradient, percent, dither_spread);
+      SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
+      SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
+    }
   }
 
   // Fill the area between the left and right corners
   for (i32 x = corner_radius; x < rectangle.w - corner_radius; x++) {
     f32 percent = 1.0 * x / rectangle.w;
-    RGBA color = get_gradient_color(gradient, percent);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
-    SDL_RenderDrawLine(renderer, rectangle.x + x, rectangle.y, rectangle.x + x, rectangle.y + rectangle.h);
+    for (i32 y = 0; y < rectangle.h; y++) {
+      RGBA color = get_dithered_gradient_color(gradient, percent, dither_spread);
+      SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
+      SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
+    }
   }
 
-  // Fill the area between the bottom corners
+  // Fill the area between the right corners
   for (i32 x = rectangle.w - corner_radius; x < rectangle.w; x++) {
     f32 percent = 1.0 * x / rectangle.w;
-    RGBA color = get_gradient_color(gradient, percent);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
-    SDL_RenderDrawLine(renderer, rectangle.x + x, rectangle.y + corner_radius, rectangle.x + x, rectangle.y + rectangle.h - corner_radius);
+    for (i32 y = corner_radius; y < rectangle.h - corner_radius; y++) {
+      RGBA color = get_dithered_gradient_color(gradient, percent, dither_spread);
+      SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
+      SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
+    }
   }
 
   // Center points for the corners
   i32 left_center_x = rectangle.x + corner_radius - 1;
   i32 right_center_x = rectangle.x + rectangle.w - corner_radius;
   i32 top_center_y = rectangle.y + corner_radius - 1;
-  i32 bottom_center_y = rectangle.y + rectangle.h - corner_radius + 1;
+  i32 bottom_center_y = rectangle.y + rectangle.h - corner_radius;
 
   // Set thresholds for antialiasing and boundary detection
   f32 antialiasing_threshold = pow(corner_radius - 1, 4);
@@ -163,7 +170,7 @@ void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect
       if (inside_shape == true) {
         // Calculate gradient position for left corners
         percent = 1.0 * (corner_radius - x - 1) / rectangle.w;
-        color = get_gradient_color(gradient, percent);
+        color = get_dithered_gradient_color(gradient, percent, dither_spread);
         SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), (u8)(opacity * 255));
 
         // Top left quadrant
@@ -173,7 +180,7 @@ void draw_horizontal_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect
 
         // Calculate gradient position for right corners
         percent = 1.0 * (rectangle.w - corner_radius + x) / rectangle.w;
-        color = get_gradient_color(gradient, percent);
+        color = get_dithered_gradient_color(gradient, percent, dither_spread);
         SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), (u8)(opacity * 255));
 
         // Top right quadrant
@@ -197,7 +204,6 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
     f32 percent = 1.0 * y / rectangle.h;
     for (i32 x = corner_radius; x < rectangle.w - corner_radius; x++) {
       RGBA color = get_dithered_gradient_color(gradient, percent, dither_spread);
-      // RGBA color = get_gradient_color(gradient, percent);
       SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
       SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
     }
@@ -208,7 +214,6 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
     f32 percent = 1.0 * y / rectangle.h;
     for (i32 x = 0; x < rectangle.w; x++) {
       RGBA color = get_dithered_gradient_color(gradient, percent, dither_spread);
-      // RGBA color = get_gradient_color(gradient, percent);
       SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
       SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
     }
@@ -219,7 +224,6 @@ void draw_vertical_gradient_rounded_rectangle(SDL_Renderer *renderer, SDL_Rect r
     f32 percent = 1.0 * y / rectangle.h;
     for (i32 x = corner_radius; x < rectangle.w - corner_radius; x++) {
       RGBA color = get_dithered_gradient_color(gradient, percent, dither_spread);
-      // RGBA color = get_gradient_color(gradient, percent);
       SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
       SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
     }
