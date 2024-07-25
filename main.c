@@ -278,7 +278,6 @@ i32 main() {
       tree->rerender_element = 0;
     }
 
-    // Throttle frame rate to 125fps
     SDL_Delay(8);
   }; // End of rendering loop
 
