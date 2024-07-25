@@ -2,6 +2,7 @@
 
 #include "random.h" // random_number
 #include "types.h" // u8, u32, f32
+#include "blue_noise.h" // get_blue_noise_value
 
 typedef u32 RGBA; // 0xRRGGBBAA
 
@@ -71,18 +72,21 @@ RGBA get_gradient_color(C9_Gradient gradient, f32 position) {
 f32 get_dither_spread(C9_Gradient gradient) {
   RGBA start_color = gradient.start_color;
   RGBA end_color = gradient.end_color;
-  i32 red_spread = abs(red(start_color) - red(end_color));
-  i32 green_spread = abs(green(start_color) - green(end_color));
-  i32 blue_spread = abs(blue(start_color) - blue(end_color));
+
+  // Sum and weight each channel (YIQ luminance formula)
+  f32 red_spread = 0.299 * abs(red(start_color) - red(end_color));
+  f32 green_spread = 0.587 * abs(green(start_color) - green(end_color));
+  f32 blue_spread = 0.114 * abs(blue(start_color) - blue(end_color));
+  
   i32 total_spread = red_spread + green_spread + blue_spread;
   if (total_spread != 0) {
-    return 3.0 / total_spread;
+    return 1.0 / total_spread;
   }
   return 0.0;
 }
 
 // Get the color at a given position in a gradient.
-RGBA get_dithered_gradient_color(C9_Gradient gradient, f32 position, f32 scale) {
+RGBA get_dithered_gradient_color(C9_Gradient gradient, f32 position, f32 random_variation) {
   // Destruct the gradient
   RGBA start_color = gradient.start_color;
   RGBA end_color = gradient.end_color;
@@ -95,7 +99,6 @@ RGBA get_dithered_gradient_color(C9_Gradient gradient, f32 position, f32 scale) 
   if (position < start_at) return start_color;
   if (position > end_at) return end_color;
 
-  f32 random_variation = 1.0 * random_number() * scale;
   // The current position between the start and end of the gradient expressed as a value between 0 and 1.
   f32 normalized_position = (position + random_variation - start_at) / (end_at - start_at);
 
@@ -121,12 +124,7 @@ RGBA get_dithered_gradient_color(C9_Gradient gradient, f32 position, f32 scale) 
   u8 end_b = blue(end_color);
   u8 b = start_b + (end_b - start_b) * normalized_position;
 
-  // Calculate alpha
-  u8 start_a = alpha(start_color);
-  u8 end_a = alpha(end_color);
-  u8 a = start_a + (end_a - start_a) * normalized_position;
-
-  RGBA color = (r << 24) | (g << 16) | (b << 8) | a;
+  RGBA color = (r << 24) | (g << 16) | (b << 8) | 0xFF;
   return color;
 }
 
