@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include <time.h> // clock
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
@@ -13,6 +14,7 @@
 
 // Recursively draws all elements
 void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element) {
+  clock_t start = clock();
   TTF_Font *font = get_font();
   // Save the current render target for later
   SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
@@ -207,6 +209,10 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     };
     draw_filled_rectangle(renderer, scrollbar_rect, scrollbar_color);
   }
+
+  clock_t end = clock();
+  f64 time_spent = (f64)(end - start) / CLOCKS_PER_SEC;
+  printf("Time spent redrawing: %f\n", time_spent);
 }
 
 void render_element_tree(SDL_Renderer *renderer, ElementTree *element_tree) {

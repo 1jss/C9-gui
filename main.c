@@ -44,7 +44,7 @@ i32 main() {
   // Create SDL window
   SDL_Window *window = SDL_CreateWindow(
     "Window Title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-    window_width, window_height, SDL_WINDOW_RESIZABLE
+    window_width, window_height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN
   );
   if (!window) {
     printf("SDL_CreateWindow: %s\n", SDL_GetError());
@@ -63,7 +63,6 @@ i32 main() {
 
   // Initialize font
   if (init_font() < 0) return -1;
-  SDL_Event event;
 
   // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
   SDL_Texture *target_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, window_width, window_height);
@@ -140,6 +139,9 @@ i32 main() {
   if (tree->root->children == 0) {
     printf("No children\n");
   }
+
+  SDL_Event event;
+  SDL_RaiseWindow(window);
 
   // Begin main loop
   bool done = false;
@@ -220,13 +222,14 @@ i32 main() {
         if (event.wheel.y != 0) {
           scroll_y(tree->root, mouse_x, mouse_y, event.wheel.y * scroll_speed);
           set_y(tree->root, 0);
+          tree->rerender = rerender_type.all;
         }
         // scroll left or right
         if (event.wheel.x != 0) {
           scroll_x(tree->root, mouse_x, mouse_y, event.wheel.x * -scroll_speed);
           set_x(tree->root, 0);
+          tree->rerender = rerender_type.all;
         }
-        tree->rerender = rerender_type.all;
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         i32 mouse_x = 0;
