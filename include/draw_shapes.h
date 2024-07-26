@@ -357,20 +357,30 @@ void draw_filled_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, RGBA colo
 }
 
 void draw_horizontal_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradient gradient) {
-  for (i32 i = 0; i < rectangle.w; i++) {
-    f32 t = 1.0 * i / rectangle.w;
-    RGBA color = get_gradient_color(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
-    SDL_RenderDrawLine(renderer, rectangle.x + i, rectangle.y, rectangle.x + i, rectangle.y + rectangle.h - 1);
+  f32 dither_spread = get_dither_spread(gradient);
+  f32 one_percent_width = 1.0 / rectangle.w; // avoid division in loops
+  for (i32 x = 0; x < rectangle.w; x++) {
+    f32 percent = x * one_percent_width;
+    for (i32 y = 0; y < rectangle.h; y++) {
+      f32 random_variation = get_blue_noise_value(x, y) * dither_spread;
+      RGBA color = get_dithered_gradient_color(gradient, percent, random_variation);
+      SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
+      SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
+    }
   }
 }
 
 void draw_vertical_gradient(SDL_Renderer *renderer, SDL_Rect rectangle, C9_Gradient gradient) {
-  for (i32 i = 0; i < rectangle.h; i++) {
-    f32 t = 1.0 * i / rectangle.h;
-    RGBA color = get_gradient_color(gradient, t);
-    SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
-    SDL_RenderDrawLine(renderer, rectangle.x, rectangle.y + i, rectangle.x + rectangle.w - 1, rectangle.y + i);
+  f32 dither_spread = get_dither_spread(gradient);
+  f32 one_percent_height = 1.0 / rectangle.h; // avoid division in loops
+  for (i32 y = 0; y < rectangle.h; y++) {
+    f32 percent = y * one_percent_height;
+    for (i32 x = 0; x < rectangle.w; x++) {
+      f32 random_variation = get_blue_noise_value(x, y) * dither_spread;
+      RGBA color = get_dithered_gradient_color(gradient, percent, random_variation);
+      SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), 255);
+      SDL_RenderDrawPoint(renderer, rectangle.x + x, rectangle.y + y);
+    }
   }
 }
 

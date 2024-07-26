@@ -72,6 +72,10 @@ RGBA get_gradient_color(C9_Gradient gradient, f32 position) {
 f32 get_dither_spread(C9_Gradient gradient) {
   RGBA start_color = gradient.start_color;
   RGBA end_color = gradient.end_color;
+  f32 gradient_span = gradient.end_at - gradient.start_at;
+  if (gradient_span <= 0) {
+    gradient_span = 1.0;
+  }
 
   // Sum and weight each channel (YIQ luminance formula)
   f32 red_spread = 0.299 * abs(red(start_color) - red(end_color));
@@ -80,7 +84,7 @@ f32 get_dither_spread(C9_Gradient gradient) {
   
   i32 total_spread = red_spread + green_spread + blue_spread;
   if (total_spread != 0) {
-    return 1.0 / total_spread;
+    return gradient_span / total_spread;
   }
   return 0.0;
 }
