@@ -292,6 +292,7 @@ i32 main() {
   }
   SDL_StopTextInput();
   // printf("Size of element_arena %zu\n", arena_size(element_arena));
+  free_textures(tree->root);
   arena_close(element_arena);
   close_font();
   SDL_Quit();

@@ -21,6 +21,7 @@ void reset_menu_elements(Element *side_panel) {
     Element *child = array_get(children, i);
     child->background_type = background_type.none;
     child->text_color = text_color;
+    child->render.changed = 1;
   }
 }
 

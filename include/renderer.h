@@ -16,155 +16,197 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
   TTF_Font *font = get_font();
   // Save the current render target for later
   SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
-  // Set the width and height of the target texture
-  i32 target_right_edge = target_rect.x + target_rect.w;
-  i32 target_bottom_edge = target_rect.y + target_rect.h;
-  // Create a new texture to draw the element on
-  SDL_Texture *element_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, target_right_edge, target_bottom_edge);
-  SDL_SetTextureBlendMode(element_texture, SDL_BLENDMODE_BLEND);
-  // Set the new texture as the render target
-  SDL_SetRenderTarget(renderer, element_texture);
-  // Clear the texture
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-  SDL_RenderClear(renderer);
-  SDL_RenderCopy(renderer, target_texture, &target_rect, &target_rect);
 
+  // Rectangle that covers the entire element texture
+  SDL_Rect element_texture_rect = {
+    .x = 0,
+    .y = 0,
+    .w = element->layout.max_width,
+    .h = element->layout.max_height,
+  };
+
+  // Rectangle that represents the true uncut position of an element
   SDL_Rect element_rect = {
     .x = element->layout.x,
     .y = element->layout.y,
     .w = element->layout.max_width,
     .h = element->layout.max_height,
   };
+
+  // Target left edge (where to copy to)
+  i32 target_left_edge = 0;
+  // Target right edge (how far to copy)
+  i32 target_right_edge = 0;
+  // Texture left edge (where to copy from)
+  i32 texture_left_edge = 0;
+
+  // Target top edge (where to copy to)
+  i32 target_top_edge = 0;
+  // Texture top edge (where to copy from)
+  i32 texture_top_edge = 0;
+  // Target bottom edge (how far to copy)
+  i32 target_bottom_edge = 0;
+
+  // Set left and right bounds
+  if (element_rect.x < target_rect.x) {
+    texture_left_edge = target_rect.x - element_rect.x; // start copying a bit into the texture
+    target_left_edge = target_rect.x; // copy to the target x
+  } else {
+    texture_left_edge = 0; // start copying from the beginning of the texture
+    target_left_edge = element_rect.x; // copy to the element x position
+  }
+  if (element_rect.x + element_rect.w > target_rect.x + target_rect.w) {
+    target_right_edge = target_rect.x + target_rect.w; // copy to the end of the target texture
+  } else {
+    target_right_edge = element_rect.x + element_rect.w; // copy to the end of the element
+  }
+  // Set top and bottom bounds
+  if (element_rect.y < target_rect.y) {
+    texture_top_edge = target_rect.y - element_rect.y; // start copying a bit into the texture
+    target_top_edge = target_rect.y; // copy to the target y
+  } else {
+    texture_top_edge = 0; // start copying from the beginning of the texture
+    target_top_edge = element_rect.y; // copy to the element y position
+  }
+  if (element_rect.y + element_rect.h > target_rect.y + target_rect.h) {
+    target_bottom_edge = target_rect.y + target_rect.h; // copy to the end of the target texture
+  } else {
+    target_bottom_edge = element_rect.y + element_rect.h; // copy to the end of the element
+  }
+
+  SDL_Rect texture_rect = {
+    .x = texture_left_edge,
+    .y = texture_top_edge,
+    .w = target_right_edge - target_left_edge,
+    .h = target_bottom_edge - target_top_edge,
+  };
+  SDL_Rect render_target_rect = {
+    .x = target_left_edge,
+    .y = target_top_edge,
+    .w = target_right_edge - target_left_edge,
+    .h = target_bottom_edge - target_top_edge,
+  };
+
   // Invalid shape
-  if (element_rect.w == 0 || element_rect.h == 0) {
+  if (element_texture_rect.w == 0 || element_texture_rect.h == 0) {
     return;
   };
 
-  // Convert from Border to BorderSize
-  BorderSize border_size = {
-    .top = element->border.top,
-    .right = element->border.right,
-    .bottom = element->border.bottom,
-    .left = element->border.left
-  };
-  if (element->background_type == background_type.color) {
-    if (element->corner_radius > 0) {
-      if (largest_border(border_size) > 0) {
-        draw_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_color);
-      } else {
-        draw_filled_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_color);
-      }
-    } else {
-      draw_filled_rectangle(renderer, element_rect, element->background_color);
-      draw_border(renderer, element_rect, border_size, element->border_color);
+  // If the element has a cached texture and it hasn't changed we just copy it
+  if (element->render.texture != 0 &&
+      element->render.changed == 0 &&
+      element->render.width == element_texture_rect.w &&
+      element->render.height == element_texture_rect.h) {
+    // Copy a portion of the element texture to the same location on the target texture
+    SDL_RenderCopy(renderer, element->render.texture, &texture_rect, &render_target_rect);
+  } else {
+    // If the element has a cached texture but its dimensions are not correct we need to destroy it
+    if (element->render.texture != 0 && (element->render.width != element_texture_rect.w || element->render.height != element_texture_rect.h)) {
+      SDL_DestroyTexture(element->render.texture);
+      element->render.texture = 0;
     }
-  } else if (element->background_type == background_type.horizontal_gradient) {
-    if (element->corner_radius > 0) {
-      if (largest_border(border_size) > 0) {
-        draw_horizontal_gradient_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
-      } else {
-        draw_horizontal_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
-      }
-    } else {
-      draw_horizontal_gradient(renderer, element_rect, element->background_gradient);
-      draw_border(renderer, element_rect, border_size, element->border_color);
+    // If the element doesn't have a cached texture we need to create one
+    if (element->render.texture == 0) {
+      element->render.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, element_texture_rect.w, element_texture_rect.h);
+      SDL_SetTextureBlendMode(element->render.texture, SDL_BLENDMODE_BLEND);
+      element->render.width = element_texture_rect.w;
+      element->render.height = element_texture_rect.h;
     }
-  } else if (element->background_type == background_type.vertical_gradient) {
-    if (element->corner_radius > 0) {
-      if (largest_border(border_size) > 0) {
-        draw_vertical_gradient_rounded_rectangle_with_border(renderer, element_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
-      } else {
-        draw_vertical_gradient_rounded_rectangle(renderer, element_rect, element->corner_radius, element->background_gradient);
-      }
-    } else {
-      draw_vertical_gradient(renderer, element_rect, element->background_gradient);
-      draw_border(renderer, element_rect, border_size, element->border_color);
-    }
-  }
-  if (element->text.length > 0) {
-    i32 text_x = element_rect.x + element->padding.left + element->layout.scroll_x;
-    i32 text_y = element_rect.y + element->padding.top + element->layout.scroll_y;
-    draw_text(
-      renderer, font, to_char(element->text), text_x, text_y, element->text_color
-    );
-  } else if (element->input != 0) {
-    // If the element is the active element we should also draw the cursor
-    if (element == active_element) {
-      SDL_Rect selection_rect = measure_selection(font, element->input);
-      SDL_Rect selection = {
-        .x = element_rect.x + element->padding.left + selection_rect.x - 1, // Subtract 1 pixel for the cursor
-        .y = element_rect.y + element->padding.top + selection_rect.y,
-        .w = selection_rect.w + 2, // Add 2 pixels for the cursor
-        .h = element_rect.h - element->padding.top - element->padding.bottom,
-      };
-      if (selection_rect.w == 0) {
-        draw_filled_rectangle(renderer, selection, text_cursor_color);
-      } else {
-        draw_filled_rectangle(renderer, selection, selection_color);
-      }
-    }
-    InputData input = *element->input;
-    i32 text_x = element_rect.x + element->padding.left;
-    i32 text_y = element_rect.y + element->padding.top;
-    char *text_data = (char *)input.text.data;
+    // Set the element texture as the render target
+    SDL_SetRenderTarget(renderer, element->render.texture);
+    // Clear the texture
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+    SDL_RenderClear(renderer);
+    // Draw the background to the texture
+    SDL_RenderCopy(renderer, target_texture, &render_target_rect, &texture_rect);
 
-    draw_text(
-      renderer, font, text_data, text_x, text_y, element->text_color
-    );
-  }
+    // Convert from Border to BorderSize
+    BorderSize border_size = {
+      .top = element->border.top,
+      .right = element->border.right,
+      .bottom = element->border.bottom,
+      .left = element->border.left
+    };
+    if (element->background_type == background_type.color) {
+      if (element->corner_radius > 0) {
+        if (largest_border(border_size) > 0) {
+          draw_rounded_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_color);
+        } else {
+          draw_filled_rounded_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_color);
+        }
+      } else {
+        draw_filled_rectangle(renderer, element_texture_rect, element->background_color);
+        draw_border(renderer, element_texture_rect, border_size, element->border_color);
+      }
+    } else if (element->background_type == background_type.horizontal_gradient) {
+      if (element->corner_radius > 0) {
+        if (largest_border(border_size) > 0) {
+          draw_horizontal_gradient_rounded_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+        } else {
+          draw_horizontal_gradient_rounded_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_gradient);
+        }
+      } else {
+        draw_horizontal_gradient(renderer, element_texture_rect, element->background_gradient);
+        draw_border(renderer, element_texture_rect, border_size, element->border_color);
+      }
+    } else if (element->background_type == background_type.vertical_gradient) {
+      if (element->corner_radius > 0) {
+        if (largest_border(border_size) > 0) {
+          draw_vertical_gradient_rounded_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+        } else {
+          draw_vertical_gradient_rounded_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_gradient);
+        }
+      } else {
+        draw_vertical_gradient(renderer, element_texture_rect, element->background_gradient);
+        draw_border(renderer, element_texture_rect, border_size, element->border_color);
+      }
+    }
+    if (element->text.length > 0) {
+      i32 text_x = element_texture_rect.x + element->padding.left + element->layout.scroll_x;
+      i32 text_y = element_texture_rect.y + element->padding.top + element->layout.scroll_y;
+      draw_text(
+        renderer, font, to_char(element->text), text_x, text_y, element->text_color
+      );
+    } else if (element->input != 0) {
+      // If the element is the active element we should also draw the cursor
+      if (element == active_element) {
+        SDL_Rect selection_rect = measure_selection(font, element->input);
+        SDL_Rect selection = {
+          .x = element_texture_rect.x + element->padding.left + selection_rect.x - 1, // Subtract 1 pixel for the cursor
+          .y = element_texture_rect.y + element->padding.top + selection_rect.y,
+          .w = selection_rect.w + 2, // Add 2 pixels for the cursor
+          .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
+        };
+        if (selection_rect.w == 0) {
+          draw_filled_rectangle(renderer, selection, text_cursor_color);
+        } else {
+          draw_filled_rectangle(renderer, selection, selection_color);
+        }
+      }
+      InputData input = *element->input;
+      i32 text_x = element_texture_rect.x + element->padding.left;
+      i32 text_y = element_texture_rect.y + element->padding.top;
+      char *text_data = (char *)input.text.data;
 
-  // Reset the target texture as the render target
-  SDL_SetRenderTarget(renderer, target_texture);
-  // Copy a portion of the element texture to the same location on the target texture
-  SDL_RenderCopy(renderer, element_texture, &target_rect, &target_rect);
-  if (element_texture) {
-    SDL_DestroyTexture(element_texture);
+      draw_text(
+        renderer, font, text_data, text_x, text_y, element->text_color
+      );
+    }
+
+    // Reset the target texture as the render target
+    SDL_SetRenderTarget(renderer, target_texture);
+    // Copy a portion of the element texture to the same location on the target texture
+    SDL_RenderCopy(renderer, element->render.texture, &texture_rect, &render_target_rect);
+    // Set the element as unchanged
+    element->render.changed = 0;
   }
 
   Array *children = element->children;
   if (children == 0) return;
 
-  // Set outer bounds for the children
-  i32 child_left_edge = 0;
-  i32 child_right_edge = 0;
-  i32 child_top_edge = 0;
-  i32 child_bottom_edge = 0;
-  i32 element_right_edge = element_rect.x + element_rect.w;
-  i32 element_bottom_edge = element_rect.y + element_rect.h;
-
-  // Set left and right bounds
-  if (element_rect.x < target_rect.x) {
-    child_left_edge = target_rect.x;
-  } else {
-    child_left_edge = element_rect.x;
-  }
-  if (element_right_edge > target_right_edge) {
-    child_right_edge = target_right_edge;
-  } else {
-    child_right_edge = element_right_edge;
-  }
-
-  // Set top and bottom bounds
-  if (element_rect.y < target_rect.y) {
-    child_top_edge = target_rect.y;
-  } else {
-    child_top_edge = element_rect.y;
-  }
-  if (element_bottom_edge > target_bottom_edge) {
-    child_bottom_edge = target_bottom_edge;
-  } else {
-    child_bottom_edge = element_bottom_edge;
-  }
-
-  SDL_Rect child_bounds_rect = {
-    .x = child_left_edge,
-    .y = child_top_edge,
-    .w = child_right_edge - child_left_edge,
-    .h = child_bottom_edge - child_top_edge,
-  };
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, child, child_bounds_rect, active_element);
+    draw_elements(renderer, child, render_target_rect, active_element);
   }
 
   // Draw a scrollbar if the element has Y overflow

@@ -21,6 +21,8 @@ void table_title_style(Element *element) {
 }
 
 void table_content_style(Element *element) {
+  element->background_type = background_type.color;
+  element->background_color = white;
   element->padding = (Padding){5, 10, 5, 10};
 }
 

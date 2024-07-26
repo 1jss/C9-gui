@@ -1,5 +1,6 @@
 #ifndef C9_ELEMENT_TREE
 
+#include <SDL2/SDL.h> // SDL_Texture
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "color.h" // RGBA, C9_Gradient, gradient
@@ -104,6 +105,14 @@ const LayoutProps empty_layout_props = {
   .scroll_y = 0,
 };
 
+// SDL texture cache for rendering
+typedef struct {
+  SDL_Texture *texture;
+  i32 width;
+  i32 height;
+  u8 changed;
+} RenderProps;
+
 typedef struct {
   i32 top;
   i32 right;
@@ -121,6 +130,7 @@ typedef struct {
 // element tree nodes
 typedef struct Element {
   LayoutProps layout; // Props set by the layout engine
+  RenderProps render; // Cache for renderer
   C9_Gradient background_gradient;
   s8 text;
   Padding padding;
@@ -182,6 +192,12 @@ Element empty_element = {
     .scroll_x = 0,
     .scroll_y = 0,
   },
+  .render = {
+    .texture = 0,
+    .width = 0,
+    .height = 0,
+    .changed = 0,
+  },
 };
 
 // Create a new element and return a pointer to it
@@ -213,6 +229,19 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->rerender_element = 0;
   tree->rerender = rerender_type.all;
   return tree;
+}
+
+// Free all textures in the element tree
+void free_textures(Element *element) {
+  if (element->render.texture != 0) {
+    SDL_DestroyTexture(element->render.texture);
+    element->render.texture = 0;
+  }
+  if (element->children == 0) return;
+  for (size_t i = 0; i < array_length(element->children); i++) {
+    Element *child = array_get(element->children, i);
+    free_textures(child);
+  }
 }
 
 // Add a new child element to a parent and return a pointer to it
