@@ -106,4 +106,5 @@ Render image directly to texture:
 - Break out event handling
 - Image rendering
 - Multiline text
-- Lock surfaces before drawing
+- Lock surfaces before drawing (https://wiki.libsdl.org/SDL2/SDL_LockSurface)
+- Copy and paste text

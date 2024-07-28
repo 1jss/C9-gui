@@ -65,12 +65,12 @@ i32 main() {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderClear(renderer);
   SDL_Rect logo_rect = {
-    .x = window_width / 2 - 100,
-    .y = window_height / 2 - 100,
-    .w = 200,
-    .h = 200
+    .x = window_width / 2 - 180,
+    .y = window_height / 2 - 155,
+    .w = 360,
+    .h = 310
   };
-  draw_image(renderer, "C9_loading.png", logo_rect);
+  draw_image(renderer, "C9_segment_large.png", logo_rect);
   SDL_RenderPresent(renderer);
 
   // Initialize font
@@ -105,10 +105,10 @@ i32 main() {
 
   Element *top_left_logo = add_new_element(tree->arena, top_left_panel);
   *top_left_logo = (Element){
-    .width = 32,
-    .height = 32,
+    .width = 36,
+    .height = 31,
     .background_type = background_type.image,
-    .background_image = to_s8("C9_logo.png")
+    .background_image = to_s8("C9_segment_small.png")
   };
 
   Element *top_right_panel = add_new_element(tree->arena, top_panel);
