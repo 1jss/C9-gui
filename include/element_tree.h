@@ -66,6 +66,7 @@ typedef struct {
   u8 color; // Single color
   u8 horizontal_gradient; // Gradient from left to right
   u8 vertical_gradient; // Gradient from top to bottom
+  u8 image; // Load image from URL
 } BackgroundType;
 
 const BackgroundType background_type = {
@@ -73,6 +74,7 @@ const BackgroundType background_type = {
   .color = 1,
   .horizontal_gradient = 2,
   .vertical_gradient = 3,
+  .image = 4,
 };
 
 // Forward declaration of ElementTree
@@ -133,6 +135,7 @@ typedef struct Element {
   RenderProps render; // Cache for renderer
   C9_Gradient background_gradient;
   s8 text;
+  s8 background_image;
   Padding padding;
   Border border;
   InputData *input;
@@ -165,6 +168,7 @@ Element empty_element = {
     .start_at = 0,
     .end_at = 1,
   },
+  .background_image = {.data = 0, .length = 0},
   .width = 0,
   .height = 0,
   .min_width = 0,

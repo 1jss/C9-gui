@@ -1,11 +1,10 @@
 #ifndef C9_RENDERER
 
-#include <SDL2/SDL.h>
-#include <stdio.h>
+#include <SDL2/SDL.h> // SDL_rect, SDL_Texture
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rounded_rectangle_with_border, draw_filled_rounded_rectangle, BorderSize, largest_border
+#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, BorderSize, largest_border
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
 #include "input.h" // InputData, measure_selection
@@ -139,12 +138,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       } else {
         draw_horizontal_gradient_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_gradient);
       }
-
     } else if (element->background_type == background_type.vertical_gradient) {
       if (largest_border(border_size) > 0) {
         draw_vertical_gradient_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
       } else {
         draw_vertical_gradient_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_gradient);
+      }
+    } else if (element->background_type == background_type.image) {
+      if (element->background_image.length > 0) {
+        draw_image(renderer, to_char(element->background_image), element_texture_rect);
       }
     }
     if (element->text.length > 0) {

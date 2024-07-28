@@ -1,6 +1,6 @@
 #ifndef C9_BLUE_NOISE
 
-#include "types.h" // f32, u8
+#include "types.h" // f32, i32
 #include "blue_noise_texture_f32.h"
 
 // Function to get a blue noise value from the texture

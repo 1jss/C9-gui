@@ -61,6 +61,18 @@ i32 main() {
   SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
+  // Set a background while loading
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderClear(renderer);
+  SDL_Rect logo_rect = {
+    .x = window_width / 2 - 100,
+    .y = window_height / 2 - 100,
+    .w = 200,
+    .h = 200
+  };
+  draw_image(renderer, "C9_loading.png", logo_rect);
+  SDL_RenderPresent(renderer);
+
   // Initialize font
   if (init_font() < 0) return -1;
 
@@ -88,6 +100,15 @@ i32 main() {
     .background_gradient = white_shade,
     .border_color = border_color,
     .border = (Border){0, 1, 1, 0},
+    .padding = (Padding){9, 9, 9, 9},
+  };
+
+  Element *top_left_logo = add_new_element(tree->arena, top_left_panel);
+  *top_left_logo = (Element){
+    .width = 32,
+    .height = 32,
+    .background_type = background_type.image,
+    .background_image = to_s8("C9_logo.png")
   };
 
   Element *top_right_panel = add_new_element(tree->arena, top_panel);

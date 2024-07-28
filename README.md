@@ -106,3 +106,4 @@ Render image directly to texture:
 - Break out event handling
 - Image rendering
 - Multiline text
+- Lock surfaces before drawing

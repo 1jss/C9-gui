@@ -2,9 +2,18 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h> // bool
+#include "SDL_image.h"
 #include "SDL_ttf.h" // TTF_RenderUTF8_Blended
-#include "color.h" // RGBA, get_gradient_color, C9_Gradient, red, green, blue, alpha
+#include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
 #include "types.h" // u8, f32, i32
+
+void draw_image(SDL_Renderer *renderer, char *image_url, SDL_Rect image_position) {
+  SDL_Texture *texture = IMG_LoadTexture(renderer, image_url);
+  if (texture != NULL) {
+    SDL_RenderCopy(renderer, texture, NULL, &image_position);
+    SDL_DestroyTexture(texture);
+  }
+}
 
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, char *text, i32 x, i32 y, RGBA color) {
   // Check if text has any content
