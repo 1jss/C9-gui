@@ -12,10 +12,6 @@
 
 // Recursively draws all elements
 void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element) {
-  TTF_Font *font = get_font();
-  // Save the current render target for later
-  SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
-
   // Rectangle that covers the entire element texture
   SDL_Rect element_texture_rect = {
     .x = 0,
@@ -106,18 +102,33 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     }
     // If the element doesn't have a cached texture we need to create one
     if (element->render.texture == 0) {
-      element->render.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, element_texture_rect.w, element_texture_rect.h);
+      element->render.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, element_texture_rect.w, element_texture_rect.h);
+      if (element->render.texture == 0) {
+        printf("Failed to create texture: %s\n", SDL_GetError());
+        return;
+      }
       SDL_SetTextureBlendMode(element->render.texture, SDL_BLENDMODE_BLEND);
       element->render.width = element_texture_rect.w;
       element->render.height = element_texture_rect.h;
     }
-    // Set the element texture as the render target
-    SDL_SetRenderTarget(renderer, element->render.texture);
-    // Clear the texture
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-    SDL_RenderClear(renderer);
-    // Draw the background to the texture
-    SDL_RenderCopy(renderer, target_texture, &render_target_rect, &texture_rect);
+
+    // Lock element texture for direct pixel access
+    PixelData locked_element = {0};
+    void *void_pixels = 0;
+    i32 bytes_width = 0; // Row width in bytes
+    if (SDL_LockTexture(element->render.texture, NULL, &void_pixels, &bytes_width)) {
+      printf("Failed to lock element texture: %s\n", SDL_GetError());
+      return;
+    }
+    locked_element.pixels = (RGBA *)void_pixels;
+    locked_element.width = bytes_width / sizeof(RGBA); // Row width in pixels
+
+    // Empty the element texture from any previous data
+    for (i32 y = 0; y < element_texture_rect.h; y++) {
+      for (i32 x = 0; x < element_texture_rect.w; x++) {
+        locked_element.pixels[y * locked_element.width + x] = 0;
+      }
+    }
 
     // Convert from Border to BorderSize
     BorderSize border_size = {
@@ -128,34 +139,34 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     };
     if (element->background_type == background_type.color) {
       if (largest_border(border_size) > 0) {
-        draw_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_color);
+        draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_color);
       } else {
-        draw_filled_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_color);
+        draw_filled_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_color);
       }
     } else if (element->background_type == background_type.horizontal_gradient) {
       if (largest_border(border_size) > 0) {
-        draw_horizontal_gradient_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+        draw_horizontal_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
       } else {
-        draw_horizontal_gradient_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_gradient);
+        draw_horizontal_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
       }
     } else if (element->background_type == background_type.vertical_gradient) {
       if (largest_border(border_size) > 0) {
-        draw_vertical_gradient_rectangle_with_border(renderer, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+        draw_vertical_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
       } else {
-        draw_vertical_gradient_rectangle(renderer, element_texture_rect, element->corner_radius, element->background_gradient);
+        draw_vertical_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
       }
     } else if (element->background_type == background_type.image) {
       if (element->background_image.length > 0) {
-        draw_image(renderer, to_char(element->background_image), element_texture_rect);
+        // draw_image(renderer, to_char(element->background_image), element_texture_rect);
       }
     }
     if (element->text.length > 0) {
+      TTF_Font *font = get_font();
       i32 text_x = element_texture_rect.x + element->padding.left + element->layout.scroll_x;
       i32 text_y = element_texture_rect.y + element->padding.top + element->layout.scroll_y;
-      draw_text(
-        renderer, font, to_char(element->text), text_x, text_y, element->text_color
-      );
+      draw_text(locked_element, font, to_char(element->text), text_x, text_y, element->text_color);
     } else if (element->input != 0) {
+      TTF_Font *font = get_font();
       // If the element is the active element we should also draw the cursor
       if (element == active_element) {
         SDL_Rect selection_rect = measure_selection(font, element->input);
@@ -166,23 +177,21 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
         };
         if (selection_rect.w == 0) {
-          draw_filled_rectangle(renderer, selection, 0, text_cursor_color);
+          draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
         } else {
-          draw_filled_rectangle(renderer, selection, 0, selection_color);
+          draw_filled_rectangle(locked_element, selection, 0, selection_color);
         }
       }
       InputData input = *element->input;
       i32 text_x = element_texture_rect.x + element->padding.left;
       i32 text_y = element_texture_rect.y + element->padding.top;
       char *text_data = (char *)input.text.data;
-
-      draw_text(
-        renderer, font, text_data, text_x, text_y, element->text_color
-      );
+      draw_text(locked_element, font, text_data, text_x, text_y, element->text_color);
     }
 
-    // Reset the target texture as the render target
-    SDL_SetRenderTarget(renderer, target_texture);
+    // Unlock element texture to make it readable again
+    SDL_UnlockTexture(element->render.texture);
+
     // Copy a portion of the element texture to the same location on the target texture
     SDL_RenderCopy(renderer, element->render.texture, &texture_rect, &render_target_rect);
     // Set the element as unchanged
@@ -215,7 +224,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       .w = scrollbar_width,
       .h = scrollbar_height,
     };
-    draw_filled_rectangle(renderer, scrollbar_rect, 0, scrollbar_color);
+    renderer_fill_rectangle(renderer, scrollbar_rect, scrollbar_color);
   }
   // Draw a scrollbar if the element has X overflow
   if ((element->overflow == overflow_type.scroll ||
@@ -235,7 +244,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       .w = scrollbar_width,
       .h = scrollbar_height,
     };
-    draw_filled_rectangle(renderer, scrollbar_rect, 0, scrollbar_color);
+    renderer_fill_rectangle(renderer, scrollbar_rect, scrollbar_color);
   }
 }
 

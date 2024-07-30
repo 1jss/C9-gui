@@ -18,6 +18,30 @@ u8 alpha(RGBA color) {
   return color & 0x000000FF;
 }
 
+RGBA set_alpha(RGBA color, u8 alpha) {
+  return (color & 0xFFFFFF00) | alpha;
+}
+
+RGBA blend_colors(RGBA color_1, RGBA color_2) {
+  u8 r_1 = (color_1 & 0xFF000000) >> 24;
+  u8 g_1 = (color_1 & 0x00FF0000) >> 16;
+  u8 b_1 = (color_1 & 0x0000FF00) >> 8;
+  u8 a_1 = color_1 & 0x000000FF;
+  u8 r_2 = (color_2 & 0xFF000000) >> 24;
+  u8 g_2 = (color_2 & 0x00FF0000) >> 16;
+  u8 b_2 = (color_2 & 0x0000FF00) >> 8;
+  u8 a_2 = color_2 & 0x000000FF;
+  u8 blend_r = (a_1 * r_1 + (255 - a_1) * r_2) / 255;
+  u8 blend_g = (a_1 * g_1 + (255 - a_1) * g_2) / 255;
+  u8 blend_b = (a_1 * b_1 + (255 - a_1) * b_2) / 255;
+  u8 blend_a = a_1 + (255 - a_1) * a_2 / 255;
+  return (blend_r << 24) | (blend_g << 16) | (blend_b << 8) | blend_a;
+}
+
+RGBA RGBA_from_u8(u8 r, u8 g, u8 b, u8 a) {
+  return (r << 24) | (g << 16) | (b << 8) | a;
+}
+
 // Gradient is a struct that represents a color gradient between two colors. The start_at and end_at parameters are values between 0 and 1.
 typedef struct {
   RGBA start_color;

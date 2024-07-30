@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h> // SDL_CreateWindow, SDL_DestroyWindow, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_RenderPresent, SDL_Delay, SDL_Event, SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
+#include <time.h> // clock
 #include "components/home.h" // home_element, create_home_element
 #include "components/menu.h" // add_menu_items
 #include "components/search_bar.h" // search_bar, create_search_bar_element
@@ -239,17 +240,24 @@ i32 main() {
         i32 mouse_x = 0;
         i32 mouse_y = 0;
         SDL_GetMouseState(&mouse_x, &mouse_y);
+        i32 scroll_delta_y = event.wheel.y * scroll_speed;
+        i32 scroll_delta_x = event.wheel.x * -scroll_speed;
+
         // scroll up or down
         if (event.wheel.y != 0) {
-          scroll_y(tree->root, mouse_x, mouse_y, event.wheel.y * scroll_speed);
-          set_y(tree->root, 0);
-          tree->rerender = rerender_type.all;
+          i32 remaining_scroll = scroll_y(tree->root, mouse_x, mouse_y, scroll_delta_y);
+          if (remaining_scroll != scroll_delta_y) {
+            set_y(tree->root, 0);
+            tree->rerender = rerender_type.all;
+          }
         }
         // scroll left or right
         if (event.wheel.x != 0) {
-          scroll_x(tree->root, mouse_x, mouse_y, event.wheel.x * -scroll_speed);
-          set_x(tree->root, 0);
-          tree->rerender = rerender_type.all;
+          i32 remaining_scroll = scroll_x(tree->root, mouse_x, mouse_y, scroll_delta_x);
+          if (remaining_scroll != scroll_delta_x) {
+            set_x(tree->root, 0);
+            tree->rerender = rerender_type.all;
+          }
         }
         SDL_FlushEvent(SDL_MOUSEWHEEL);
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -274,6 +282,7 @@ i32 main() {
     }
 
     if (tree->rerender == rerender_type.all) {
+      clock_t render_start = clock();
       SDL_SetRenderTarget(renderer, target_texture);
       render_element_tree(renderer, tree);
       // Draw target_texture to back buffer and present
@@ -282,6 +291,9 @@ i32 main() {
       SDL_RenderPresent(renderer);
       tree->rerender = rerender_type.none;
       tree->rerender_element = 0;
+      clock_t render_end = clock();
+      f64 render_time_spent = (f64)(render_end - render_start) / CLOCKS_PER_SEC;
+      printf("Time spent render: %f\n", render_time_spent);
     } else if (tree->rerender == rerender_type.selected && tree->rerender_element != 0) {
       SDL_Rect target_rectangle = {
         .x = tree->rerender_element->layout.x,

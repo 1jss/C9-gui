@@ -372,21 +372,24 @@ i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
          element->overflow == overflow_type.scroll_x) &&
         element->layout.scroll_width > element->layout.max_width) {
       i32 max_scroll_x = element->layout.max_width - element->layout.scroll_width;
-      i32 new_scroll_x = element->layout.scroll_x + scroll_delta;
 
-      // Scroll the element left or right to the min or max
-      if (new_scroll_x < max_scroll_x) {
-        scroll_delta = new_scroll_x + max_scroll_x;
-        element->layout.scroll_x = max_scroll_x;
-        element->render.changed = 1;
-      } else if (new_scroll_x > 0) {
-        scroll_delta = new_scroll_x;
-        element->layout.scroll_x = 0;
-        element->render.changed = 1;
-      } else {
-        scroll_delta = 0;
-        element->layout.scroll_x = new_scroll_x;
-        element->render.changed = 1;
+      // Only scroll if delta is positive scroll has not reached max
+      if (scroll_delta > 0 || element->layout.scroll_x > max_scroll_x) {
+        i32 new_scroll_x = element->layout.scroll_x + scroll_delta;
+        // Scroll the element left or right to the min or max
+        if (new_scroll_x < max_scroll_x) {
+          scroll_delta = new_scroll_x + max_scroll_x;
+          element->layout.scroll_x = max_scroll_x;
+          element->render.changed = 1;
+        } else if (new_scroll_x > 0) {
+          scroll_delta = new_scroll_x;
+          element->layout.scroll_x = 0;
+          element->render.changed = 1;
+        } else {
+          scroll_delta = 0;
+          element->layout.scroll_x = new_scroll_x;
+          element->render.changed = 1;
+        }
       }
     }
   }
@@ -409,21 +412,23 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
          element->overflow == overflow_type.scroll_y) &&
         element->layout.scroll_height > element->layout.max_height) {
       i32 max_scroll_y = element->layout.max_height - element->layout.scroll_height;
-      i32 new_scroll_y = element->layout.scroll_y + scroll_delta;
-
-      // Scroll the element up or down to the min or max
-      if (new_scroll_y < max_scroll_y) {
-        scroll_delta = new_scroll_y + max_scroll_y;
-        element->render.changed = 1;
-        element->layout.scroll_y = max_scroll_y;
-      } else if (new_scroll_y > 0) {
-        scroll_delta = new_scroll_y;
-        element->layout.scroll_y = 0;
-        element->render.changed = 1;
-      } else {
-        scroll_delta = 0;
-        element->layout.scroll_y = new_scroll_y;
-        element->render.changed = 1;
+      // Only scroll if delta is positive or scroll has not reached max
+      if (scroll_delta > 0 || element->layout.scroll_y > max_scroll_y) {
+        i32 new_scroll_y = element->layout.scroll_y + scroll_delta;
+        // Scroll the element up or down to the min or max
+        if (new_scroll_y < max_scroll_y) {
+          scroll_delta = new_scroll_y + max_scroll_y;
+          element->render.changed = 1;
+          element->layout.scroll_y = max_scroll_y;
+        } else if (new_scroll_y > 0) {
+          scroll_delta = new_scroll_y;
+          element->layout.scroll_y = 0;
+          element->render.changed = 1;
+        } else {
+          scroll_delta = 0;
+          element->layout.scroll_y = new_scroll_y;
+          element->render.changed = 1;
+        }
       }
     }
   }
