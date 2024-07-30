@@ -71,7 +71,7 @@ i32 main() {
     .w = 360,
     .h = 310
   };
-  draw_image(renderer, "C9_segment_large.png", logo_rect);
+  renderer_draw_image(renderer, "C9_segment_large.png", logo_rect);
   SDL_RenderPresent(renderer);
 
   // Initialize font

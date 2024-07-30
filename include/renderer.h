@@ -157,7 +157,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       }
     } else if (element->background_type == background_type.image) {
       if (element->background_image.length > 0) {
-        // draw_image(renderer, to_char(element->background_image), element_texture_rect);
+        draw_image(locked_element, to_char(element->background_image), element_texture_rect);
       }
     }
     if (element->text.length > 0) {

@@ -13,11 +13,31 @@ typedef struct {
   i32 width;
 } PixelData;
 
-void draw_image(SDL_Renderer *renderer, char *image_url, SDL_Rect image_position) {
+void renderer_draw_image(SDL_Renderer *renderer, char *image_url, SDL_Rect image_position) {
   SDL_Texture *texture = IMG_LoadTexture(renderer, image_url);
   if (texture != NULL) {
     SDL_RenderCopy(renderer, texture, NULL, &image_position);
     SDL_DestroyTexture(texture);
+  }
+}
+
+void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
+  SDL_Surface *surface = IMG_Load(image_url);
+  if (surface != NULL) {
+    SDL_LockSurface(surface);
+    for (i32 y = 0; y < surface->h; y++) {
+      if (y < image_position.h) {
+        for (i32 x = 0; x < surface->w; x++) {
+          if (x < image_position.w) {
+            u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
+            RGBA image_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
+            target.pixels[(image_position.y + y) * target.width + image_position.y + x] = image_pixel;
+          }
+        }
+      }
+    }
+    SDL_UnlockSurface(surface);
+    SDL_FreeSurface(surface);
   }
 }
 
@@ -365,7 +385,7 @@ void draw_vertical_gradient_rectangle(PixelData target, SDL_Rect rectangle, i32 
           }
 
           // Top left quadrant
-            target.pixels[(top_center_y - y) * target.width + left_center_x - x] = color;
+          target.pixels[(top_center_y - y) * target.width + left_center_x - x] = color;
           // Top right quadrant
           target.pixels[(top_center_y - y) * target.width + right_center_x + x] = color;
 
