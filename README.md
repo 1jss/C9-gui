@@ -104,7 +104,5 @@ Render image directly to texture:
 ## Todo
 - Mouse text selection
 - Break out event handling
-- Image rendering
 - Multiline text
-- Lock surfaces before drawing (https://wiki.libsdl.org/SDL2/SDL_LockSurface)
 - Copy and paste text

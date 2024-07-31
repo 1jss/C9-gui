@@ -69,13 +69,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     target_bottom_edge = element_rect.y + element_rect.h; // copy to the end of the element
   }
 
-  SDL_Rect texture_rect = {
+  // Rectangle that covers the visible part of the element texture
+  SDL_Rect element_texture_cutout_rect = {
     .x = texture_left_edge,
     .y = texture_top_edge,
     .w = target_right_edge - target_left_edge,
     .h = target_bottom_edge - target_top_edge,
   };
-  SDL_Rect render_target_rect = {
+  // Rectangle that positions the element texture in the target texture
+  SDL_Rect element_cutout_rect = {
     .x = target_left_edge,
     .y = target_top_edge,
     .w = target_right_edge - target_left_edge,
@@ -93,7 +95,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       element->render.width == element_texture_rect.w &&
       element->render.height == element_texture_rect.h) {
     // Copy a portion of the element texture to the same location on the target texture
-    SDL_RenderCopy(renderer, element->render.texture, &texture_rect, &render_target_rect);
+    SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &element_cutout_rect);
   } else {
     // If the element has a cached texture but its dimensions are not correct we need to destroy it
     if (element->render.texture != 0 && (element->render.width != element_texture_rect.w || element->render.height != element_texture_rect.h)) {
@@ -193,7 +195,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     SDL_UnlockTexture(element->render.texture);
 
     // Copy a portion of the element texture to the same location on the target texture
-    SDL_RenderCopy(renderer, element->render.texture, &texture_rect, &render_target_rect);
+    SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &element_cutout_rect);
     // Set the element as unchanged
     element->render.changed = 0;
   }
@@ -203,7 +205,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
 
   for (size_t i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, child, render_target_rect, active_element);
+    draw_elements(renderer, child, element_cutout_rect, active_element);
   }
 
   // Draw a scrollbar if the element has Y overflow

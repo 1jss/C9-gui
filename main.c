@@ -106,8 +106,6 @@ i32 main() {
 
   Element *top_left_logo = add_new_element(tree->arena, top_left_panel);
   *top_left_logo = (Element){
-    .width = 36,
-    .height = 31,
     .background_type = background_type.image,
     .background_image = to_s8("C9_segment_small.png")
   };
