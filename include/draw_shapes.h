@@ -76,6 +76,7 @@ f32 clamp(f32 value, f32 min, f32 max) {
   }
 }
 
+// Draws a rectangle to the renderer
 void renderer_fill_rectangle(SDL_Renderer *renderer, SDL_Rect rectangle, RGBA color) {
   SDL_SetRenderDrawColor(renderer, red(color), green(color), blue(color), alpha(color));
   SDL_RenderFillRect(renderer, &rectangle);
@@ -186,6 +187,7 @@ void draw_filled_rectangle(PixelData target, SDL_Rect rectangle, i32 corner_radi
   }
 }
 
+// Draws a gradient rectangle with optional superellipse corners
 void draw_horizontal_gradient_rectangle(PixelData target, SDL_Rect rectangle, i32 corner_radius, C9_Gradient gradient) {
   f32 dither_spread = get_dither_spread(gradient);
   f32 one_percent_width = 1.0 / rectangle.w; // avoid division in loops
@@ -302,6 +304,7 @@ void draw_horizontal_gradient_rectangle(PixelData target, SDL_Rect rectangle, i3
   }
 }
 
+// Draws a gradient rectangle with optional superellipse corners
 void draw_vertical_gradient_rectangle(PixelData target, SDL_Rect rectangle, i32 corner_radius, C9_Gradient gradient) {
   f32 dither_spread = get_dither_spread(gradient);
   f32 one_percent_height = 1.0 / rectangle.h; // avoid division in loops
