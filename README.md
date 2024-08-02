@@ -85,3 +85,4 @@ Running:
 - Break out event handling
 - Multiline text
 - Copy and paste text
+- Rect as text bounds

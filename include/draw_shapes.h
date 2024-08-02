@@ -48,10 +48,10 @@ void draw_text(PixelData target, TTF_Font *font, char *text, i32 x_pos, i32 y_po
     SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, text_color);
     SDL_LockSurface(surface);
     // Loop over text pixels
-    for (i32 y = 0; y < surface->h; y++) {
-      for (i32 x = 0; x < surface->w; x++) {
-        // Check if we're inside the target bounds
-        if (x_pos + x < target.width) {
+    for (i32 x = 0; x < surface->w; x++) {
+      // Check if we're inside the target bounds
+      if (x_pos + x < target.width) {
+        for (i32 y = 0; y < surface->h; y++) {
           // Get the pixel color from the text surface
           u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
           RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);

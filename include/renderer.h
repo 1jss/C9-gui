@@ -178,10 +178,17 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           .w = selection_rect.w + 2, // Add 2 pixels for the cursor
           .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
         };
-        if (selection_rect.w == 0) {
-          draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
-        } else {
-          draw_filled_rectangle(locked_element, selection, 0, selection_color);
+        // Make sure selection is not drawn outside texture
+        i32 text_limit = element_texture_rect.x + element_texture_rect.w - element->border.right - element->padding.right;
+        if(selection.x + selection.w >= text_limit) {
+          selection.w = text_limit - selection.x;
+        }
+        if(selection.x < text_limit){
+          if (selection_rect.w == 0) {
+            draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
+          } else {
+            draw_filled_rectangle(locked_element, selection, 0, selection_color);
+          }
         }
       }
       InputData input = *element->input;
