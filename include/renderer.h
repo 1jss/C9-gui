@@ -164,22 +164,32 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     }
     if (element->text.length > 0) {
       TTF_Font *font = get_font();
-      i32 text_x = element_texture_rect.x + element->padding.left + element->layout.scroll_x;
-      i32 text_y = element_texture_rect.y + element->padding.top + element->layout.scroll_y;
-      draw_text(locked_element, font, to_char(element->text), text_x, text_y, element->text_color);
+      SDL_Rect text_position = {
+        .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
+        .y = element_texture_rect.y + element->padding.top + element->layout.scroll_y,
+        .w = element_texture_rect.w - element->padding.left - element->padding.right,
+        .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
+      };
+      draw_text(locked_element, font, to_char(element->text), element->text_color, text_position);
     } else if (element->input != 0) {
       TTF_Font *font = get_font();
+       SDL_Rect text_position = {
+        .x = element_texture_rect.x + element->padding.left,
+        .y = element_texture_rect.y + element->padding.top,
+        .w = element_texture_rect.w - element->padding.left - element->padding.right,
+        .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
+      };
       // If the element is the active element we should also draw the cursor
       if (element == active_element) {
         SDL_Rect selection_rect = measure_selection(font, element->input);
         SDL_Rect selection = {
-          .x = element_texture_rect.x + element->padding.left + selection_rect.x - 1, // Subtract 1 pixel for the cursor
-          .y = element_texture_rect.y + element->padding.top + selection_rect.y,
+          .x = text_position.x + selection_rect.x - 1, // Subtract 1 pixel for the cursor
+          .y = text_position.y + selection_rect.y,
           .w = selection_rect.w + 2, // Add 2 pixels for the cursor
-          .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
+          .h = text_position.h,
         };
-        // Make sure selection is not drawn outside texture
-        i32 text_limit = element_texture_rect.x + element_texture_rect.w - element->border.right - element->padding.right;
+        // Make sure selection is not drawn outside text bounds
+        i32 text_limit = element_texture_rect.x + element_texture_rect.w - element->padding.right;
         if(selection.x + selection.w >= text_limit) {
           selection.w = text_limit - selection.x;
         }
@@ -192,10 +202,8 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
         }
       }
       InputData input = *element->input;
-      i32 text_x = element_texture_rect.x + element->padding.left;
-      i32 text_y = element_texture_rect.y + element->padding.top;
       char *text_data = (char *)input.text.data;
-      draw_text(locked_element, font, text_data, text_x, text_y, element->text_color);
+      draw_text(locked_element, font, text_data, element->text_color, text_position);
     }
 
     // Unlock element texture to make it readable again

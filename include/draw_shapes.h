@@ -41,24 +41,28 @@ void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
   }
 }
 
-void draw_text(PixelData target, TTF_Font *font, char *text, i32 x_pos, i32 y_pos, RGBA color) {
+void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position) {
   // Check if text has any content
   if (text[0] != '\0') {
-    const SDL_Color text_color = {red(color), green(color), blue(color), alpha(color)};
-    SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, text_color);
+    SDL_Color text_base_color = {red(color), green(color), blue(color), alpha(color)};
+    SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, text_base_color);
     SDL_LockSurface(surface);
     // Loop over text pixels
     for (i32 x = 0; x < surface->w; x++) {
       // Check if we're inside the target bounds
-      if (x_pos + x < target.width) {
+      if (x < text_position.w) {
         for (i32 y = 0; y < surface->h; y++) {
           // Get the pixel color from the text surface
           u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
           RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
-          RGBA target_pixel = target.pixels[(y_pos + y) * target.width + x_pos + x];
+          RGBA target_pixel = target.pixels[(text_position.y + y) * target.width + text_position.x + x];
           RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
-          target.pixels[(y_pos + y) * target.width + x_pos + x] = blended_pixel;
+          target.pixels[(text_position.y + y) * target.width + text_position.x + x] = blended_pixel;
         }
+      }
+      // If text is inside parent rect
+      else if (text_position.x + x < target.width) {
+
       }
     }
     SDL_UnlockSurface(surface);
