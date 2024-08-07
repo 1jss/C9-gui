@@ -6,6 +6,7 @@
 #include "SDL_ttf.h" // TTF_RenderUTF8_Blended
 #include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
 #include "types.h" // u8, f32, i32
+#include "types_draw.h" // Border, Padding
 
 // Locked texture as pixel data
 typedef struct {
@@ -41,7 +42,7 @@ void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
   }
 }
 
-void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position) {
+void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
   if (text[0] != '\0') {
     SDL_Color text_base_color = {red(color), green(color), blue(color), alpha(color)};
@@ -50,7 +51,7 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
     // Loop over text pixels
     for (i32 x = 0; x < surface->w; x++) {
       // Check if we're inside the target bounds
-      if (x < text_position.w) {
+      if (text_position.x + x >= padding.left && text_position.x + x < text_position.w + padding.left) {
         for (i32 y = 0; y < surface->h; y++) {
           // Get the pixel color from the text surface
           u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
@@ -59,10 +60,6 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
           RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
           target.pixels[(text_position.y + y) * target.width + text_position.x + x] = blended_pixel;
         }
-      }
-      // If text is inside parent rect
-      else if (text_position.x + x < target.width) {
-
       }
     }
     SDL_UnlockSurface(surface);
@@ -425,15 +422,7 @@ void draw_vertical_gradient_rectangle(PixelData target, SDL_Rect rectangle, i32 
   }
 }
 
-// This type is the same as Border in element_tree, but defined here to keep some modularity. This BorderSize type is imported by the renderer.
-typedef struct {
-  i32 top;
-  i32 right;
-  i32 bottom;
-  i32 left;
-} BorderSize;
-
-i32 largest_border(BorderSize border) {
+i32 largest_border(Border border) {
   i32 largest = 0;
   if (border.top > largest) largest = border.top;
   if (border.right > largest) largest = border.right;
@@ -442,7 +431,7 @@ i32 largest_border(BorderSize border) {
   return largest;
 }
 
-void draw_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, BorderSize border, RGBA border_color, RGBA background_color) {
+void draw_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, Border border, RGBA border_color, RGBA background_color) {
   draw_filled_rectangle(target, rectangle, corner_radius, border_color);
   SDL_Rect inner_rectangle = {
     .x = rectangle.x + border.left,
@@ -457,7 +446,7 @@ void draw_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner
   draw_filled_rectangle(target, inner_rectangle, inner_corner_radius, background_color);
 }
 
-void draw_horizontal_gradient_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, BorderSize border, RGBA border_color, C9_Gradient background_gradient) {
+void draw_horizontal_gradient_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, Border border, RGBA border_color, C9_Gradient background_gradient) {
   draw_filled_rectangle(target, rectangle, corner_radius, border_color);
   SDL_Rect inner_rectangle = {
     .x = rectangle.x + border.left,
@@ -472,7 +461,7 @@ void draw_horizontal_gradient_rectangle_with_border(PixelData target, SDL_Rect r
   draw_horizontal_gradient_rectangle(target, inner_rectangle, inner_corner_radius, background_gradient);
 }
 
-void draw_vertical_gradient_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, BorderSize border, RGBA border_color, C9_Gradient background_gradient) {
+void draw_vertical_gradient_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, Border border, RGBA border_color, C9_Gradient background_gradient) {
   draw_filled_rectangle(target, rectangle, corner_radius, border_color);
   SDL_Rect inner_rectangle = {
     .x = rectangle.x + border.left,

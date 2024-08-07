@@ -7,6 +7,7 @@
 #include "input.h" // InputData
 #include "string.h" // s8
 #include "types.h" // u8, i32
+#include "types_draw.h" // Border, Padding
 
 // Type of rerender
 typedef struct {
@@ -114,20 +115,6 @@ typedef struct {
   i32 height;
   u8 changed;
 } RenderProps;
-
-typedef struct {
-  i32 top;
-  i32 right;
-  i32 bottom;
-  i32 left;
-} Padding;
-
-typedef struct {
-  i32 top;
-  i32 right;
-  i32 bottom;
-  i32 left;
-} Border;
 
 // element tree nodes
 typedef struct Element {

@@ -4,7 +4,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, BorderSize, largest_border
+#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, largest_border
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
 #include "input.h" // InputData, measure_selection
@@ -132,28 +132,21 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       }
     }
 
-    // Convert from Border to BorderSize
-    BorderSize border_size = {
-      .top = element->border.top,
-      .right = element->border.right,
-      .bottom = element->border.bottom,
-      .left = element->border.left
-    };
     if (element->background_type == background_type.color) {
-      if (largest_border(border_size) > 0) {
-        draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_color);
+      if (largest_border(element->border) > 0) {
+        draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_color);
       } else {
         draw_filled_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_color);
       }
     } else if (element->background_type == background_type.horizontal_gradient) {
-      if (largest_border(border_size) > 0) {
-        draw_horizontal_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+      if (largest_border(element->border) > 0) {
+        draw_horizontal_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_gradient);
       } else {
         draw_horizontal_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
       }
     } else if (element->background_type == background_type.vertical_gradient) {
-      if (largest_border(border_size) > 0) {
-        draw_vertical_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, border_size, element->border_color, element->background_gradient);
+      if (largest_border(element->border) > 0) {
+        draw_vertical_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_gradient);
       } else {
         draw_vertical_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
       }
@@ -170,7 +163,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
         .w = element_texture_rect.w - element->padding.left - element->padding.right,
         .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
       };
-      draw_text(locked_element, font, to_char(element->text), element->text_color, text_position);
+      draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
     } else if (element->input != 0) {
       TTF_Font *font = get_font();
        SDL_Rect text_position = {
@@ -203,7 +196,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       }
       InputData input = *element->input;
       char *text_data = (char *)input.text.data;
-      draw_text(locked_element, font, text_data, element->text_color, text_position);
+      draw_text(locked_element, font, text_data, element->text_color, text_position, element->padding);
     }
 
     // Unlock element texture to make it readable again

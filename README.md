@@ -85,4 +85,4 @@ Running:
 - Break out event handling
 - Multiline text
 - Copy and paste text
-- Text scroll bounds
+- Selection_start selection_end
