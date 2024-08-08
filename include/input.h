@@ -6,8 +6,8 @@
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "fixed_string.h" // FixedString, new_fixed_string, to_fixed_string, insert_fixed_string, delete_fixed_string
-#include "types.h" // u8, u32
 #include "font.h" // get_font
+#include "types.h" // u8, u32
 
 typedef struct {
   u8 insert;
@@ -100,52 +100,68 @@ bool has_continuation_byte(u8 byte) {
   return (byte & 0b11000000) == 0b10000000;
 }
 
+// Returns a reference to start of the selection
+u32 *get_start_ref(Selection *selection) {
+  return selection->start_index < selection->end_index ? &selection->start_index : &selection->end_index;
+}
+// Returns a reference to the end of the selection
+u32 *get_end_ref(Selection *selection) {
+  return selection->start_index < selection->end_index ? &selection->end_index : &selection->start_index;
+}
+
 // Cursor movement
 void move_cursor_left(InputData *input) {
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
   // Move the cursor to the left
-  if (input->selection.start_index > 0) {
-    input->selection.start_index--;
+  if (*start_index > 0) {
+    *start_index = *start_index - 1;
   }
   // Move the cursor to the start of the previous character
-  while (input->selection.start_index > 0 && has_continuation_byte(input->text.data[input->selection.start_index])) {
-    input->selection.start_index--;
+  while (*start_index > 0 && has_continuation_byte(input->text.data[*start_index])) {
+    *start_index = *start_index - 1;
   }
-  input->selection.end_index = input->selection.start_index;
+  *end_index = *start_index;
 }
 void move_cursor_right(InputData *input) {
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
   // Move the cursor to the right
-  if (input->selection.end_index < input->text.length) {
-    input->selection.end_index++;
+  if (*end_index < input->text.length) {
+    *end_index = *end_index + 1;
   }
   // Move the cursor to the start of the next character
-  while (input->selection.end_index < input->text.length && has_continuation_byte(input->text.data[input->selection.end_index])) {
-    input->selection.end_index++;
+  while (*end_index < input->text.length && has_continuation_byte(input->text.data[*end_index])) {
+    *end_index = *end_index + 1;
   }
-  input->selection.start_index = input->selection.end_index;
+  *start_index = *end_index;
 }
-// Text selection
+// Moves end_index to the right
 void select_right(InputData *input) {
-  if (input->selection.end_index < input->text.length) {
-    input->selection.end_index++;
+  u32 *end_index = &input->selection.end_index;
+  if (*end_index < input->text.length) {
+    *end_index = *end_index + 1;
   }
   // Keep moving if next character has continuation byte, which means we're still in the same character
-  while (input->selection.end_index < input->text.length && has_continuation_byte(input->text.data[input->selection.end_index])) {
-    input->selection.end_index++;
+  while (*end_index < input->text.length && has_continuation_byte(input->text.data[*end_index])) {
+    *end_index = *end_index + 1;
   }
 }
+// Moves end_index to the left
 void select_left(InputData *input) {
-  if (input->selection.start_index > 0) {
-    input->selection.start_index--;
+  u32 *end_index = &input->selection.end_index;
+  if (*end_index > 0) {
+    *end_index = *end_index - 1;
   }
   // Keep moving if previous character has continuation byte which means we haven't yet reached the start of the character
-  while (input->selection.start_index > 0 && has_continuation_byte(input->text.data[input->selection.start_index])) {
-    input->selection.start_index--;
+  while (*end_index > 0 && has_continuation_byte(input->text.data[*end_index])) {
+    *end_index = *end_index - 1;
   }
 }
 void select_start(InputData *input) {
-  input->selection.start_index = 0;
+  input->selection.end_index = 0;
 }
-void select_end(InputData *input){
+void select_end(InputData *input) {
   input->selection.end_index = input->text.length;
 }
 void select_all(InputData *input) {
@@ -158,12 +174,14 @@ void deselect(InputData *input) {
 
 // Text editing
 void replace_text(InputData *input, char *text) {
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
   // Find the length of the text to be replaced
-  u32 replaced_text_length = input->selection.end_index - input->selection.start_index;
+  u32 replaced_text_length = *end_index - *start_index;
   // Allocate memory for the text
   char *replaced_text_data = arena_fill(input->text_arena, sizeof(char) * replaced_text_length + 1);
   // Copy the replaced text
-  memcpy(replaced_text_data, input->text.data + input->selection.start_index, replaced_text_length);
+  memcpy(replaced_text_data, input->text.data + *start_index, replaced_text_length);
   // Add null terminator
   replaced_text_data[replaced_text_length] = '\0';
   FixedString replaced_text = {
@@ -189,13 +207,13 @@ void replace_text(InputData *input, char *text) {
   };
 
   // Replace the text by removing the replaced text and then inserting the new text
-  delete_fixed_string(&input->text, input->selection.start_index, replaced_text_length);
-  insert_fixed_string(&input->text, new_text, input->selection.start_index);
+  delete_fixed_string(&input->text, *start_index, replaced_text_length);
+  insert_fixed_string(&input->text, new_text, *start_index);
 
   // Create an edit action
   EditAction action = {
     .type = edit_action_type.replace,
-    .index = input->selection.start_index,
+    .index = *start_index,
     .text = new_text,
     .replaced_text = replaced_text
   };
@@ -203,13 +221,15 @@ void replace_text(InputData *input, char *text) {
   // Add the edit action to the history
   add_edit_action(input->history, action);
   // Move the selection to the end of the inserted text
-  input->selection.start_index += new_text.length;
-  input->selection.end_index = input->selection.start_index;
+  *start_index += new_text.length;
+  *end_index = *start_index;
 }
 
 void insert_text(InputData *input, char *text) {
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
   // If there is a selection, replace the text
-  if (input->selection.start_index != input->selection.end_index) {
+  if (*start_index != *end_index) {
     replace_text(input, text);
   } else {
     // Find the length of the new text
@@ -230,42 +250,44 @@ void insert_text(InputData *input, char *text) {
     };
 
     // Insert the text
-    insert_fixed_string(&input->text, new_text, input->selection.start_index);
+    insert_fixed_string(&input->text, new_text, *start_index);
 
     // Create an edit action
     EditAction action = {
       .type = edit_action_type.insert,
-      .index = input->selection.start_index,
+      .index = *start_index,
       .text = new_text
     };
     // Add the edit action to the history
     add_edit_action(input->history, action);
     // Move the selection to the end of the inserted text
-    input->selection.start_index += new_text.length;
-    input->selection.end_index = input->selection.start_index;
+    *start_index += new_text.length;
+    *end_index = *start_index;
   }
 }
 
 void delete_text(InputData *input) {
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
   // Check if there is anything to delete
-  if (input->selection.end_index == 0) {
+  if (*end_index == 0) {
     return;
   }
-  if (input->selection.start_index == input->selection.end_index) {
+  if (*start_index == *end_index) {
     // Move the start index to the left
-    if (input->selection.start_index > 0) {
-      input->selection.start_index--;
+    if (*start_index > 0) {
+      *start_index = *start_index - 1;
     }
     // Move the start index to the start of the character if it is a multi-byte character
-    while (input->selection.start_index > 0 && has_continuation_byte(input->text.data[input->selection.start_index])) {
-      input->selection.start_index--;
+    while (*start_index > 0 && has_continuation_byte(input->text.data[*start_index])) {
+      *start_index = *start_index - 1;
     }
   }
 
   // Store the deleted text
-  u32 deleted_text_length = input->selection.end_index - input->selection.start_index;
+  u32 deleted_text_length = *end_index - *start_index;
   char *deleted_text_data = arena_fill(input->text_arena, sizeof(char) * deleted_text_length + 1);
-  memcpy(deleted_text_data, input->text.data + input->selection.start_index, deleted_text_length);
+  memcpy(deleted_text_data, input->text.data + *start_index, deleted_text_length);
   deleted_text_data[deleted_text_length] = '\0';
   FixedString deleted_text = {
     .data = (u8 *)deleted_text_data,
@@ -273,12 +295,12 @@ void delete_text(InputData *input) {
   };
 
   // Delete the text
-  delete_fixed_string(&input->text, input->selection.start_index, deleted_text_length);
+  delete_fixed_string(&input->text, *start_index, deleted_text_length);
 
   // Create an edit action
   EditAction action = {
     .type = edit_action_type.delete,
-    .index = input->selection.start_index,
+    .index = *start_index,
     .text = {
       .data = NULL,
       .length = 0
@@ -289,34 +311,36 @@ void delete_text(InputData *input) {
   // Add the edit action to the history
   add_edit_action(input->history, action);
   // Move the selection to the start index
-  input->selection.end_index = input->selection.start_index;
+  *end_index = *start_index;
 }
 
 // Undo an action
-void undoAction(InputData *input) {
+void undo_action(InputData *input) {
   EditHistory *history = input->history;
   if (history->current_index != history->start) {
+    u32 *start_index = get_start_ref(&input->selection);
+    u32 *end_index = get_end_ref(&input->selection);
     // Perform the undo action for current index
     EditAction action = history->actions[history->current_index];
     if (action.type == edit_action_type.insert) {
       // Delete the inserted text
       delete_fixed_string(&input->text, action.index, action.text.length);
       // Set the selection to the start index
-      input->selection.start_index = action.index;
-      input->selection.end_index = action.index;
+      *start_index = action.index;
+      *end_index = action.index;
     } else if (action.type == edit_action_type.delete) {
       // Insert the deleted text
       insert_fixed_string(&input->text, action.replaced_text, action.index);
       // Set the selection to the end of the inserted text
-      input->selection.start_index = action.index + action.replaced_text.length;
-      input->selection.end_index = action.index + action.replaced_text.length;
+      *start_index = action.index + action.replaced_text.length;
+      *end_index = action.index + action.replaced_text.length;
     } else if (action.type == edit_action_type.replace) {
       // Replace the replaced text with the text by first removing the replaced text and then inserting the text
       delete_fixed_string(&input->text, action.index, action.text.length);
       insert_fixed_string(&input->text, action.replaced_text, action.index);
       // Set the selection to the end of the inserted text
-      input->selection.start_index = action.index + action.replaced_text.length;
-      input->selection.end_index = input->selection.start_index;
+      *start_index = action.index + action.replaced_text.length;
+      *end_index = *start_index;
     }
     // Move current_index backwards
     if (history->current_index > 0) {
@@ -328,31 +352,33 @@ void undoAction(InputData *input) {
 }
 
 // Redo an action
-void redoAction(InputData *input) {
+void redo_action(InputData *input) {
   EditHistory *history = input->history;
   size_t next_index = (history->current_index + 1) % history->capacity;
   if (next_index != history->end) {
+    u32 *start_index = get_start_ref(&input->selection);
+    u32 *end_index = get_end_ref(&input->selection);
     // Perform the redo action for next_index
     EditAction action = history->actions[next_index];
     if (action.type == edit_action_type.insert) {
       // Insert the inserted text
       insert_fixed_string(&input->text, action.text, action.index);
       // Move the selection to the end of the inserted text
-      input->selection.start_index = action.index + action.text.length;
-      input->selection.end_index = action.index + action.text.length;
+      *start_index = action.index + action.text.length;
+      *end_index = action.index + action.text.length;
     } else if (action.type == edit_action_type.delete) {
       // Delete the deleted text
       delete_fixed_string(&input->text, action.index, action.replaced_text.length);
       // Set the selection to the start index
-      input->selection.start_index = action.index;
-      input->selection.end_index = action.index;
+      *start_index = action.index;
+      *end_index = action.index;
     } else if (action.type == edit_action_type.replace) {
       // Replace by first removing the replaced_text and then inserting the new text
       delete_fixed_string(&input->text, action.index, action.replaced_text.length);
       insert_fixed_string(&input->text, action.text, action.index);
       // Set the selection to the end of the inserted text
-      input->selection.start_index = action.index + action.text.length;
-      input->selection.end_index = input->selection.start_index;
+      *start_index = action.index + action.text.length;
+      *end_index = *start_index;
     }
     history->current_index = next_index;
   }
@@ -378,27 +404,27 @@ void handle_text_input(InputData *input, char *text) {
   } else if (strcmp(text, "MOVE_RIGHT") == 0) {
     move_cursor_right(input);
   } else if (strcmp(text, "UNDO") == 0) {
-    undoAction(input);
+    undo_action(input);
   } else if (strcmp(text, "REDO") == 0) {
-    redoAction(input);
+    redo_action(input);
   } else {
     insert_text(input, text);
   }
 }
 
 SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
+  i32 start_index = *get_start_ref(&input->selection);
+  i32 end_index = *get_end_ref(&input->selection);
   Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
-  u32 start_index = input->selection.start_index;
-  u32 end_index = input->selection.end_index;
   FixedString text = input->text;
 
-  // Measure the text before the selection
-  char *before_selection = arena_fill(temp_arena, start_index + 1); // +1 for null terminator
-  memcpy(before_selection, text.data, start_index);
+  // Measure from text start to end of selection
+  char *selection_end = arena_fill(temp_arena, end_index + 1); // +1 for null terminator
+  memcpy(selection_end, text.data, end_index);
   // Add null-terminator
-  before_selection[start_index] = '\0';
-  i32 selection_x;
-  TTF_SizeUTF8(font, before_selection, &selection_x, 0);
+  selection_end[end_index] = '\0';
+  i32 selection_end_x;
+  TTF_SizeUTF8(font, selection_end, &selection_end_x, 0);
 
   // Measure the selected text
   i32 selection_length = end_index - start_index;
@@ -412,7 +438,7 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
 
   arena_close(temp_arena);
   SDL_Rect result = {
-    .x = selection_x,
+    .x = selection_end_x - selection_w,
     .y = 0,
     .w = selection_w,
     .h = selection_h
@@ -449,10 +475,12 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 
 // Set selection based on mouse position
 void set_selection(InputData *input, i32 realative_mouse_x_position) {
+  u32 *start_index = &input->selection.start_index;
+  u32 *end_index = &input->selection.end_index;
   TTF_Font *font = get_font();
   if (realative_mouse_x_position <= 0) {
-    input->selection.start_index = 0;
-    input->selection.end_index = 0;
+    *start_index = 0;
+    *end_index = 0;
   } else {
     i32 character_count = 0;
     i32 character_width = 0;
@@ -462,8 +490,8 @@ void set_selection(InputData *input, i32 realative_mouse_x_position) {
       character_count++;
     }
 
-    input->selection.start_index = 0;
-    input->selection.end_index = 0;
+    *start_index = 0;
+    *end_index = 0;
     for (i32 i = 0; i < character_count; i++) {
       move_cursor_right(input);
     }
