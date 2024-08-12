@@ -1,6 +1,25 @@
 # C9 gui
 
-C9 gui is a boilerplate for creating a simple gui in C9 using SDL2. Note that SDL2 needs to be installed on your system for this to work.
+C9 gui is a performant and flexible GUI library built on SDL2. C9 gui primarily targets the [C9 language](https://github.com/1jss/C9-lang), which is a C99 subset.
+
+## Features
+- Flexible element tree structure (with dynamic loading of children)
+- Padding, border and gutter around elements and between children
+- Superellipse rounded corners (with anti-aliasing)
+- Gradient backgrounds (smoothed with blue noise dithering) 
+- Image backgrounds (png, jpg, bmp)
+- Event handling (click, blur, key press)
+- Layout engine (flex or scroll children in any direction)
+- Text rendering (TTF)
+- Easy table layout (with automatic column sizing)
+- Text input (single line with selection and undo history)
+- Partial rendering (only rerender elements that have changed)
+- Buffered rendering (all elements are cached as textures)
+- Element tags for easy element selection
+
+## Screenshots
+![image_1](/screenshots/Screenshot_240812_1.png?raw=true)
+![image_2](/screenshots/Screenshot_240812_2.png?raw=true)
 
 ## Architecture
 
@@ -52,7 +71,7 @@ If the event is a key press event, the active element will have its on_key_press
 If the event is a scroll event, the entire tree will be searched for scrollable elements under the pointer and the scroll event will be applied to them, starting with the outermost element, so that children get scrolled before parents. The active element is not changed on scroll.
 
 ### Rendering
-The interface is only rendered when the `rerender` member of the element tree is set to either all or selected. The render function will then traverse the tree and redraw all child elements of either the root element or the selected element. All element are cached as textures, so only the elements that have new dimenstions or are marked as changed will be rerendered from scratch. This means that scrolling and moving elements around is very efficient.
+The interface is only rendered when the `rerender` member of the element tree is set to either all or selected. The render function will then traverse the tree and redraw all child elements of either the root element or the selected element. All element are cached as textures, so only the elements that have new dimensions or are marked as changed will be rerendered from scratch. This means that scrolling and moving elements around is very efficient.
 
 ### Components
 Components are reusable standalone elements that can dynamically be added and removed from the tree. They are implemented as global Element references (pointers) that get initalized on their first use. This way no more memory is used than needed and the already initalized component can be removed and readded to the tree without loosing its state and rendering cache.
