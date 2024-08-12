@@ -1,5 +1,6 @@
 #ifndef C9_INPUT
 
+#include <SDL2/SDL.h> // SDL_SetClipboardText, SDL_GetClipboardText
 #include <stdbool.h> // bool
 #include <string.h> // memcpy, strcmp
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
@@ -384,6 +385,45 @@ void redo_action(InputData *input) {
   }
 }
 
+// Copy the selected text to the clipboard
+void copy_text(InputData *input) {
+  // Get the selection
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
+  u32 selection_length = *end_index - *start_index;
+  size_t selection_size = sizeof(char) * (selection_length + 1); // +1 for null terminator
+  // Open a temporary arena
+  Arena *temp_arena = arena_open(selection_size);
+  char *selection_data = arena_fill(temp_arena, selection_size);
+  // Copy the selected text
+  memcpy(selection_data, input->text.data + *start_index, selection_length);
+  selection_data[selection_length] = '\0';
+  // Add to the clipboard
+  SDL_SetClipboardText(selection_data);
+  // Close the temporary arena
+  arena_close(temp_arena);
+}
+
+// Cut the selected text
+void cut_text(InputData *input) {
+  // Copy the selected text to the clipboard
+  copy_text(input);
+  // Delete the selected text
+  delete_text(input);
+}
+
+// Paste the copied text
+void paste_text(InputData *input) {
+  // Get the clipboard text
+  char *clipboard_text = SDL_GetClipboardText();
+  if (clipboard_text != NULL) {
+    // Insert the clipboard text
+    insert_text(input, clipboard_text);
+    // Free the clipboard text
+    SDL_free(clipboard_text);
+  }
+}
+
 void handle_text_input(InputData *input, char *text) {
   if (strcmp(text, "BACKSPACE") == 0) {
     delete_text(input);
@@ -407,6 +447,12 @@ void handle_text_input(InputData *input, char *text) {
     undo_action(input);
   } else if (strcmp(text, "REDO") == 0) {
     redo_action(input);
+  } else if (strcmp(text, "COPY") == 0) {
+    copy_text(input);
+  } else if (strcmp(text, "CUT") == 0) {
+    cut_text(input);
+  } else if (strcmp(text, "PASTE") == 0) {
+    paste_text(input);
   } else {
     insert_text(input, text);
   }
