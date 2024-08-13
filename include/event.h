@@ -1,6 +1,7 @@
 #ifndef C9_EVENT
 
 #include "element_tree.h" // ElementTree, Element
+#include "layout.h" // fill_scroll_width
 
 void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
@@ -23,6 +24,7 @@ void input_handler(ElementTree *tree, void *data) {
   if (element != 0 && element->on_key_press != 0) {
     element->on_key_press(tree, data);
     element->render.changed = 1;
+    fill_scroll_width(element);
   }
 }
 

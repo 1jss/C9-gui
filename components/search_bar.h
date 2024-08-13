@@ -55,6 +55,7 @@ void create_search_bar_element(Arena *arena) {
     .on_click = &click_search_bar,
     .on_blur = &blur_search_bar,
     .on_key_press = &on_search_bar_input,
+    .overflow = overflow_type.scroll_x
   };
 }
 

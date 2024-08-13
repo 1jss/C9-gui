@@ -102,5 +102,4 @@ Running:
 ## Todo
 - Mouse text selection
 - Break out event handling
-- Multiline text
-- Text scrolling in input
+- Multiline text input

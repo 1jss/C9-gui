@@ -279,7 +279,7 @@ i32 main() {
         // Set selection if active element has input
         if (tree->active_element != 0 &&
             tree->active_element->input != 0) {
-          i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left;
+          i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
           set_selection(tree->active_element->input, relative_x_position);
         }
         click_handler(tree, 0);

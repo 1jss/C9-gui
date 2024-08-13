@@ -37,9 +37,32 @@ i32 fill_scroll_width(Element *element) {
     }
   } else if (element->text.length != 0) {
     TTF_Font *font = get_font();
-    i32 text_w;
+    i32 text_w = 0;
     TTF_SizeUTF8(font, (char *)element->text.data, &text_w, NULL);
     child_width += text_w;
+  } else if (element->input != 0) {
+    TTF_Font *font = get_font();
+    i32 text_w = 0;
+    TTF_SizeUTF8(font, (char *)element->input->text.data, &text_w, NULL);
+    if (text_w > 0) {
+      child_width += text_w + 1; // Add 1 for cursor
+    } else {
+      child_width += 2; // Add 2 for cursor
+    }
+    // Reset scroll if input is smaller than parent
+    if (child_width < element->layout.max_width) {
+      element->layout.scroll_x = 0;
+    }
+    // Make sure scroll is decresed when text is subtracted
+    else if (child_width > element->layout.max_width &&
+        child_width + element->layout.scroll_x < element->layout.max_width) {
+      element->layout.scroll_x = element->layout.max_width - child_width;
+    }
+    // Scroll to end if cursor is at the end and outside of view
+    else if (child_width + element->layout.scroll_x > element->layout.max_width &&
+        element->input->selection.end_index == element->input->text.length) {
+      element->layout.scroll_x = element->layout.max_width - child_width;
+    }
   }
   if (child_width > self_width) {
     element->layout.scroll_width = child_width;

@@ -167,7 +167,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     } else if (element->input != 0) {
       TTF_Font *font = get_font();
        SDL_Rect text_position = {
-        .x = element_texture_rect.x + element->padding.left,
+        .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
         .y = element_texture_rect.y + element->padding.top,
         .w = element_texture_rect.w - element->padding.left - element->padding.right,
         .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
@@ -182,11 +182,18 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           .h = text_position.h,
         };
         // Make sure selection is not drawn outside text bounds
-        i32 text_limit = element_texture_rect.x + element_texture_rect.w - element->padding.right;
-        if(selection.x + selection.w >= text_limit) {
-          selection.w = text_limit - selection.x;
+        i32 text_limit_left = element_texture_rect.x + element->padding.left - 1;
+        i32 text_limit_right = element_texture_rect.x + element_texture_rect.w - element->padding.right + 1;
+        // Left bound
+        if(selection.x < text_limit_left) {
+          selection.w = selection.w - (text_limit_left - selection.x);
+          selection.x = text_limit_left;
         }
-        if(selection.x < text_limit){
+        // Right bound
+        if(selection.x + selection.w >= text_limit_right) {
+          selection.w = text_limit_right - selection.x;
+        }
+        if(selection.x < text_limit_right){
           if (selection_rect.w == 0) {
             draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
           } else {
