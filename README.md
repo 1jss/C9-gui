@@ -103,4 +103,4 @@ Running:
 - Mouse text selection
 - Break out event handling
 - Multiline text
-- Copy and paste text
+- Text scrolling in input
