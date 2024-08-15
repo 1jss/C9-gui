@@ -276,5 +276,29 @@ Element *get_element_by_tag(Element *element, u8 tag) {
   return 0;
 }
 
+// Returns a reference to the parent element of the given element
+Element *get_parent(ElementTree *tree, Element *element){
+  if (element == tree->root) {
+    return 0;
+  }
+  Element *parent = tree->root;
+  Array *children = parent->children;
+  if (children == 0) {
+    return 0;
+  }
+  for (size_t i = 0; i < array_length(children); i++) {
+    Element *child = array_get(children, i);
+    if (child == element) {
+      return parent;
+    }
+    Element *selected = get_parent(tree, child);
+    if (selected != 0) {
+      return selected;
+    }
+  }
+  return 0;
+
+}
+
 #define C9_ELEMENT_TREE
 #endif

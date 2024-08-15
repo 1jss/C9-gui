@@ -544,5 +544,27 @@ void set_selection(InputData *input, i32 realative_mouse_x_position) {
   }
 }
 
+// Set selection end based on mouse position
+void set_selection_end(InputData *input, i32 realative_mouse_x_position) {
+  u32 *end_index = &input->selection.end_index;
+  TTF_Font *font = get_font();
+  if (realative_mouse_x_position <= 0) {
+    *end_index = 0;
+  } else {
+    i32 character_count = 0;
+    i32 character_width = 0;
+    TTF_MeasureUTF8(font, (char *)input->text.data, realative_mouse_x_position, &character_width, &character_count);
+    i32 next_character_width = get_next_character_width(font, (char *)input->text.data, character_count);
+    if (realative_mouse_x_position - character_width > next_character_width / 2) {
+      character_count++;
+    }
+
+    *end_index = 0;
+    for (i32 i = 0; i < character_count; i++) {
+      select_right(input);
+    }
+  }
+}
+
 #define C9_INPUT
 #endif

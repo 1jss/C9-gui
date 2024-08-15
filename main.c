@@ -284,6 +284,21 @@ i32 main() {
         }
         click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
+      } else if (event.type == SDL_MOUSEMOTION) {
+        i32 mouse_x = 0;
+        u32 mouse_button_down = SDL_GetMouseState(&mouse_x, NULL);
+        if (mouse_button_down & SDL_BUTTON_LMASK &&
+            tree->active_element != 0 &&
+            tree->active_element->input != 0) {
+          i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
+          set_selection_end(tree->active_element->input, relative_x_position);
+          // Set input to rerender
+          tree->active_element->render.changed = 1;
+          // Redraw parent to prevent bleeding corners
+          tree->rerender_element = get_parent(tree, tree->active_element);
+          bump_rerender(tree);
+        }
+        SDL_FlushEvent(SDL_MOUSEMOTION);
       } else if (event.type == SDL_QUIT) {
         done = true;
       }
