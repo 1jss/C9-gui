@@ -265,16 +265,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
   }
 }
 
-void render_element_tree(SDL_Renderer *renderer, ElementTree *element_tree) {
+void render_element_tree(SDL_Renderer *renderer, ElementTree *tree) {
   // Clear buffer
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderClear(renderer);
   // Create a rectangle that covers the entire target texture
-  SDL_Texture *target_texture = SDL_GetRenderTarget(renderer);
   SDL_Rect target_rectangle = {0, 0, 0, 0};
   // Get the width and height of the target texture
-  SDL_QueryTexture(target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
-  draw_elements(renderer, element_tree->root, target_rectangle, element_tree->active_element);
+  SDL_QueryTexture(tree->target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
+  draw_elements(renderer, tree->root, target_rectangle, tree->active_element);
 }
 
 // Sets selective rerendering if no rendering is set and all if selective is set

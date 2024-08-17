@@ -100,5 +100,7 @@ Running:
 `./main`
 
 ## Todo
-- Break out event handling
 - Multiline text input
+  - Piece table
+- Double click word selection
+- More exact scroll
