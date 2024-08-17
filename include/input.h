@@ -520,19 +520,19 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 }
 
 // Set selection based on mouse position
-void set_selection(InputData *input, i32 realative_mouse_x_position) {
+void set_selection(InputData *input, i32 relative_mouse_x_position) {
   u32 *start_index = &input->selection.start_index;
   u32 *end_index = &input->selection.end_index;
   TTF_Font *font = get_font();
-  if (realative_mouse_x_position <= 0) {
+  if (relative_mouse_x_position <= 0) {
     *start_index = 0;
     *end_index = 0;
   } else {
     i32 character_count = 0;
     i32 character_width = 0;
-    TTF_MeasureUTF8(font, (char *)input->text.data, realative_mouse_x_position, &character_width, &character_count);
+    TTF_MeasureUTF8(font, (char *)input->text.data, relative_mouse_x_position, &character_width, &character_count);
     i32 next_character_width = get_next_character_width(font, (char *)input->text.data, character_count);
-    if (realative_mouse_x_position - character_width > next_character_width / 2) {
+    if (relative_mouse_x_position - character_width > next_character_width / 2) {
       character_count++;
     }
 
@@ -545,24 +545,51 @@ void set_selection(InputData *input, i32 realative_mouse_x_position) {
 }
 
 // Set selection end based on mouse position
-void set_selection_end(InputData *input, i32 realative_mouse_x_position) {
+void set_selection_end(InputData *input, i32 relative_mouse_x_position) {
   u32 *end_index = &input->selection.end_index;
   TTF_Font *font = get_font();
-  if (realative_mouse_x_position <= 0) {
+  if (relative_mouse_x_position <= 0) {
     *end_index = 0;
   } else {
     i32 character_count = 0;
     i32 character_width = 0;
-    TTF_MeasureUTF8(font, (char *)input->text.data, realative_mouse_x_position, &character_width, &character_count);
+    TTF_MeasureUTF8(font, (char *)input->text.data, relative_mouse_x_position, &character_width, &character_count);
     i32 next_character_width = get_next_character_width(font, (char *)input->text.data, character_count);
-    if (realative_mouse_x_position - character_width > next_character_width / 2) {
+    if (relative_mouse_x_position - character_width > next_character_width / 2) {
       character_count++;
     }
-
     *end_index = 0;
     for (i32 i = 0; i < character_count; i++) {
       select_right(input);
     }
+  }
+}
+
+// Select a word based on mouse position
+void select_word(InputData *input, i32 relative_mouse_x_position) {
+  u32 *start_index = &input->selection.start_index;
+  u32 *end_index = &input->selection.end_index;
+  char *text_data = (char *)input->text.data;
+  TTF_Font *font = get_font();
+  i32 character_count = 0;
+  i32 character_width = 0;
+  TTF_MeasureUTF8(font, text_data, relative_mouse_x_position, &character_width, &character_count);
+  // Set the cursor to the mouse selection position
+  // This handles UTF8 characters that take several bytes per character
+  *start_index = 0;
+  *end_index = 0;
+  for (i32 i = 0; i < character_count; i++) {
+    move_cursor_right(input);
+  }
+  // Move cursor to the left until we reach a space character
+  while (*start_index > 0 &&
+         text_data[*start_index - 1] != (char)32) {
+    move_cursor_left(input);
+  }
+  // Select to the right until we reach a space character
+  while (*end_index < input->text.length &&
+         text_data[*end_index] != (char)32) {
+    select_right(input);
   }
 }
 

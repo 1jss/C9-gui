@@ -151,8 +151,13 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         // Set selection if active element has input
         if (tree->active_element != 0 &&
             tree->active_element->input != 0) {
+          // Doubble click selects word
+          if (event.button.clicks == 2) {
+            i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
+            select_word(tree->active_element->input, relative_x_position);
+          }
           // Triple click selects all
-          if (event.button.clicks == 3) {
+          else if (event.button.clicks == 3) {
             input_handler(tree, "SELECT_ALL");
           } else {
             i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
