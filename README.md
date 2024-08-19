@@ -102,5 +102,4 @@ Running:
 ## Todo
 - Multiline text input
   - Piece table
-- Double click word selection
 - More exact scroll
