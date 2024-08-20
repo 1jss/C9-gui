@@ -34,6 +34,9 @@ i32 main() {
     .end_at = 1
   };
 
+  // Make sure we get multitouch events for scrolling
+  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO)) {
     printf("SDL_Init: %s\n", SDL_GetError());

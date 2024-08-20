@@ -116,6 +116,13 @@ typedef struct {
   u8 changed;
 } RenderProps;
 
+// Scroll handling state
+typedef struct {
+  bool is_active; // If the user is scrolling
+  f32 last_x; // Last horizontal scroll position
+  f32 last_y; // Last vertical scroll position
+} ScrollProps;
+
 // element tree nodes
 typedef struct Element {
   LayoutProps layout; // Props set by the layout engine
@@ -205,6 +212,7 @@ struct ElementTree {
   Element *active_element;
   Element *rerender_element;
   SDL_Texture *target_texture;
+  ScrollProps scroll;
   u8 rerender;
 };
 
@@ -221,6 +229,11 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->rerender_element = 0;
   tree->rerender = rerender_type.all;
   tree->target_texture = 0;
+  tree->scroll = (ScrollProps){
+    .is_active = false,
+    .last_x = 0,
+    .last_y = 0,
+  };
   return tree;
 }
 
@@ -279,7 +292,7 @@ Element *get_element_by_tag(Element *element, u8 tag) {
 }
 
 // Returns a reference to the parent element of the given element
-Element *get_parent(ElementTree *tree, Element *element){
+Element *get_parent(ElementTree *tree, Element *element) {
   if (element == tree->root) {
     return 0;
   }
@@ -299,7 +312,6 @@ Element *get_parent(ElementTree *tree, Element *element){
     }
   }
   return 0;
-
 }
 
 #define C9_ELEMENT_TREE

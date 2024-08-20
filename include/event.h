@@ -36,6 +36,12 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
   SDL_Event event;
   // Wait for events before continuing
   if (SDL_WaitEvent(NULL)) {
+    i32 mouse_x = 0;
+    i32 mouse_y = 0;
+    i32 mouse_button_down = SDL_GetMouseState(&mouse_x, &mouse_y);
+    i32 scroll_distance_x = 0;
+    i32 scroll_distance_y = 0;
+
     // Handle all available events before rendering
     while (main_loop && SDL_PollEvent(&event)) {
       if (event.type == SDL_WINDOWEVENT) {
@@ -115,35 +121,23 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           char *text = (char *)event.text.text;
           input_handler(tree, text);
         }
-      } else if (event.type == SDL_MOUSEWHEEL) {
-        i32 mouse_x = 0;
-        i32 mouse_y = 0;
-        i32 scroll_speed = 10;
-        SDL_GetMouseState(&mouse_x, &mouse_y);
-        i32 scroll_delta_y = event.wheel.y * scroll_speed;
-        i32 scroll_delta_x = event.wheel.x * -scroll_speed;
-
-        // scroll up or down
-        if (event.wheel.y != 0) {
-          i32 remaining_scroll = scroll_y(tree->root, mouse_x, mouse_y, scroll_delta_y);
-          if (remaining_scroll != scroll_delta_y) {
-            set_y(tree->root, 0);
-            tree->rerender = rerender_type.all;
+      } else if (event.type == SDL_MULTIGESTURE) {
+        if (event.mgesture.numFingers == 2) {
+          if (!tree->scroll.is_active) {
+            tree->scroll.is_active = true;
+            tree->scroll.last_x = event.mgesture.x;
+            tree->scroll.last_y = event.mgesture.y;
+          } else {
+            scroll_distance_x += (event.mgesture.x - tree->scroll.last_x) * 800;
+            scroll_distance_y += (event.mgesture.y - tree->scroll.last_y) * 800;
+            tree->scroll.last_x = event.mgesture.x;
+            tree->scroll.last_y = event.mgesture.y;
           }
         }
-        // scroll left or right
-        if (event.wheel.x != 0) {
-          i32 remaining_scroll = scroll_x(tree->root, mouse_x, mouse_y, scroll_delta_x);
-          if (remaining_scroll != scroll_delta_x) {
-            set_x(tree->root, 0);
-            tree->rerender = rerender_type.all;
-          }
-        }
-        SDL_FlushEvent(SDL_MOUSEWHEEL);
+        // We do not flush the SDL_MULTIGESTURE event here as we want to add up the scroll distance for each frame
+      } else if (event.type == SDL_FINGERDOWN) {
+        tree->scroll.is_active = false;
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-        i32 mouse_x = 0;
-        i32 mouse_y = 0;
-        SDL_GetMouseState(&mouse_x, &mouse_y);
         // Blur former active element
         blur_handler(tree, 0);
         // Set new active element
@@ -167,8 +161,6 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
       } else if (event.type == SDL_MOUSEMOTION) {
-        i32 mouse_x = 0;
-        u32 mouse_button_down = SDL_GetMouseState(&mouse_x, NULL);
         if (mouse_button_down & SDL_BUTTON_LMASK &&
             tree->active_element != 0 &&
             tree->active_element->input != 0) {
@@ -183,6 +175,22 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         SDL_FlushEvent(SDL_MOUSEMOTION);
       } else if (event.type == SDL_QUIT) {
         main_loop = false;
+      }
+    }
+    // Scroll left or right
+    if (tree->scroll.is_active && scroll_distance_x != 0) {
+      i32 remaining_scroll = scroll_x(tree->root, mouse_x, mouse_y, scroll_distance_x);
+      if (remaining_scroll != scroll_distance_x) {
+        set_x(tree->root, 0);
+        tree->rerender = rerender_type.all;
+      }
+    }
+    // Scroll up or down
+    if (tree->scroll.is_active && scroll_distance_y != 0) {
+      i32 remaining_scroll = scroll_y(tree->root, mouse_x, mouse_y, scroll_distance_y);
+      if (remaining_scroll != scroll_distance_y) {
+        set_y(tree->root, 0);
+        tree->rerender = rerender_type.all;
       }
     }
   }
