@@ -100,5 +100,19 @@ Running:
 `./main`
 
 ## Todo
+- Mac .app packaging
+- Popup layer
+- Text sizes
+- Bold font
+- To-Done example app
+- Replace input history circular buffer with array
 - Multiline text input
-  - Piece table
+  - Piece table?
+  - Start from undo history
+  - Every edit is a diff
+  - Continously grow array of edits
+    - Position, length, text
+  - Render one element per line
+    - Only rerender edited lines
+    - Other lines are buffered and just copied
+  - Deleted rows are soft deleted
