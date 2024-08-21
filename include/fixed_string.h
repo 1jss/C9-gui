@@ -2,6 +2,7 @@
 
 #include "arena.h" // Arena, arena_fill
 #include "types.h" // u8, i32
+#include "status.h" // status
 
 typedef struct {
   u8 *data;
@@ -36,10 +37,10 @@ FixedString new_fixed_string(Arena *arena, u32 max_length) {
 }
 
 // Inserts a string into another string at a given index
-void insert_fixed_string(FixedString *source, FixedString target, u32 index) {
+i32 insert_fixed_string(FixedString *source, FixedString target, u32 index) {
   if (index > source->length ||
       source->length + target.length + 1 > source->capacity) {
-    return;
+    return status.ERROR;
   }
   // Signed loop counter so that index can be negative
   for (i32 i = (i32)source->length - 1; i >= (i32)index; --i) {
@@ -53,6 +54,7 @@ void insert_fixed_string(FixedString *source, FixedString target, u32 index) {
   source->length += target.length;
   // Add null terminator
   source->data[source->length] = '\0';
+  return status.OK;
 }
 
 // Deletes a string from another string at a given index

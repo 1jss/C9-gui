@@ -105,7 +105,6 @@ Running:
 - Text sizes
 - Bold font
 - To-Done example app
-- Replace input history circular buffer with array
 - Multiline text input
   - Piece table?
   - Start from undo history

@@ -8,6 +8,7 @@
 #include "array.h" // Array
 #include "fixed_string.h" // FixedString, new_fixed_string, to_fixed_string, insert_fixed_string, delete_fixed_string
 #include "font.h" // get_font
+#include "status.h" // status
 #include "types.h" // u8, u32
 
 typedef struct {
@@ -30,11 +31,8 @@ typedef struct {
 } EditAction;
 
 typedef struct {
-  EditAction *actions;
-  size_t capacity;
-  size_t start;
-  size_t end;
-  size_t current_index;
+  Array *actions; // Array of EditAction;
+  size_t current_index; // Index from 1 to be able to use 0 as a null value
 } EditHistory;
 
 typedef struct {
@@ -53,10 +51,7 @@ typedef struct {
 EditHistory *new_edit_history(Arena *arena, u32 capacity) {
   EditHistory *history = arena_fill(arena, sizeof(EditHistory));
   *history = (EditHistory){
-    .actions = arena_fill(arena, sizeof(EditAction) * capacity),
-    .capacity = capacity,
-    .start = 0,
-    .end = 0,
+    .actions = array_create_width(arena, sizeof(EditAction), capacity),
     .current_index = 0
   };
   return history;
@@ -74,27 +69,17 @@ InputData *new_input(Arena *arena, size_t max_length) {
   return input;
 }
 
-// EditHistory is a circular buffer of EditActions
+// EditHistory is an Array of of EditActions
 void add_edit_action(EditHistory *history, EditAction action) {
-  size_t next_index = (history->current_index + 1) % history->capacity;
-  // Overwrite future actions if next is not end
-  if (next_index != history->end) {
-    history->end = next_index;
+  // Pop all actions after current_index if history size is larger than current index
+  while (array_length(history->actions) > history->current_index) {
+    array_pop(history->actions);
   }
-
   // Add the new action at the current end position
-  history->actions[history->end] = action;
-
-  // Increment the end index
-  history->end = (history->end + 1) % history->capacity;
-
-  // Increment start if reached by end
-  if (history->end == history->start) {
-    history->start = (history->start + 1) % history->capacity;
-  }
+  array_push(history->actions, &action);
 
   // Increment the current index
-  history->current_index = next_index;
+  history->current_index += 1;
 }
 
 bool has_continuation_byte(u8 byte) {
@@ -209,7 +194,11 @@ void replace_text(InputData *input, char *text) {
 
   // Replace the text by removing the replaced text and then inserting the new text
   delete_fixed_string(&input->text, *start_index, replaced_text_length);
-  insert_fixed_string(&input->text, new_text, *start_index);
+  if (insert_fixed_string(&input->text, new_text, *start_index) == status.ERROR) {
+    // Clean up and abort if the insert fails
+    insert_fixed_string(&input->text, replaced_text, *start_index);
+    return;
+  }
 
   // Create an edit action
   EditAction action = {
@@ -251,7 +240,7 @@ void insert_text(InputData *input, char *text) {
     };
 
     // Insert the text
-    insert_fixed_string(&input->text, new_text, *start_index);
+    if (insert_fixed_string(&input->text, new_text, *start_index) == status.ERROR) return;
 
     // Create an edit action
     EditAction action = {
@@ -318,71 +307,78 @@ void delete_text(InputData *input) {
 // Undo an action
 void undo_action(InputData *input) {
   EditHistory *history = input->history;
-  if (history->current_index != history->start) {
-    u32 *start_index = get_start_ref(&input->selection);
-    u32 *end_index = get_end_ref(&input->selection);
-    // Perform the undo action for current index
-    EditAction action = history->actions[history->current_index];
-    if (action.type == edit_action_type.insert) {
-      // Delete the inserted text
-      delete_fixed_string(&input->text, action.index, action.text.length);
-      // Set the selection to the start index
-      *start_index = action.index;
-      *end_index = action.index;
-    } else if (action.type == edit_action_type.delete) {
-      // Insert the deleted text
-      insert_fixed_string(&input->text, action.replaced_text, action.index);
-      // Set the selection to the end of the inserted text
-      *start_index = action.index + action.replaced_text.length;
-      *end_index = action.index + action.replaced_text.length;
-    } else if (action.type == edit_action_type.replace) {
-      // Replace the replaced text with the text by first removing the replaced text and then inserting the text
-      delete_fixed_string(&input->text, action.index, action.text.length);
-      insert_fixed_string(&input->text, action.replaced_text, action.index);
-      // Set the selection to the end of the inserted text
-      *start_index = action.index + action.replaced_text.length;
-      *end_index = *start_index;
+  // Check if there are any actions to undo
+  if (history->current_index == 0) return;
+  EditAction *action = array_get(history->actions, history->current_index - 1);
+  // Return if no action is found
+  if (action == 0) return;
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
+  if (action->type == edit_action_type.insert) {
+    // Delete the inserted text
+    delete_fixed_string(&input->text, action->index, action->text.length);
+    // Set the selection to the start index
+    *start_index = action->index;
+    *end_index = action->index;
+  } else if (action->type == edit_action_type.delete) {
+    // Insert the deleted text
+    if (insert_fixed_string(&input->text, action->replaced_text, action->index) == status.ERROR) return;
+
+    // Set the selection to the end of the inserted text
+    *start_index = action->index + action->replaced_text.length;
+    *end_index = action->index + action->replaced_text.length;
+  } else if (action->type == edit_action_type.replace) {
+    // Replace the replaced text with the text by first removing the replaced text and then inserting the text
+    delete_fixed_string(&input->text, action->index, action->text.length);
+    if (insert_fixed_string(&input->text, action->replaced_text, action->index) == status.ERROR) {
+      // Clean up and abort if the insert fails
+      insert_fixed_string(&input->text, action->replaced_text, action->index);
+      return;
     }
-    // Move current_index backwards
-    if (history->current_index > 0) {
-      history->current_index--;
-    } else {
-      history->current_index = history->capacity - 1;
-    }
+    // Set the selection to the end of the inserted text
+    *start_index = action->index + action->replaced_text.length;
+    *end_index = *start_index;
   }
+  // Move current_index backwards
+  history->current_index -= 1;
 }
 
 // Redo an action
 void redo_action(InputData *input) {
   EditHistory *history = input->history;
-  size_t next_index = (history->current_index + 1) % history->capacity;
-  if (next_index != history->end) {
-    u32 *start_index = get_start_ref(&input->selection);
-    u32 *end_index = get_end_ref(&input->selection);
-    // Perform the redo action for next_index
-    EditAction action = history->actions[next_index];
-    if (action.type == edit_action_type.insert) {
-      // Insert the inserted text
-      insert_fixed_string(&input->text, action.text, action.index);
-      // Move the selection to the end of the inserted text
-      *start_index = action.index + action.text.length;
-      *end_index = action.index + action.text.length;
-    } else if (action.type == edit_action_type.delete) {
-      // Delete the deleted text
-      delete_fixed_string(&input->text, action.index, action.replaced_text.length);
-      // Set the selection to the start index
-      *start_index = action.index;
-      *end_index = action.index;
-    } else if (action.type == edit_action_type.replace) {
-      // Replace by first removing the replaced_text and then inserting the new text
-      delete_fixed_string(&input->text, action.index, action.replaced_text.length);
-      insert_fixed_string(&input->text, action.text, action.index);
-      // Set the selection to the end of the inserted text
-      *start_index = action.index + action.text.length;
-      *end_index = *start_index;
+  // Check if there are any actions to redo
+  if (history->current_index == array_length(history->actions)) return;
+  EditAction *action = array_get(history->actions, history->current_index);
+  // Return if no action is found
+  if (action == 0) return;
+  u32 *start_index = get_start_ref(&input->selection);
+  u32 *end_index = get_end_ref(&input->selection);
+  // Perform the redo action for next_index
+  if (action->type == edit_action_type.insert) {
+    // Insert the inserted text
+    if (insert_fixed_string(&input->text, action->text, action->index) == status.ERROR) return;
+    // Move the selection to the end of the inserted text
+    *start_index = action->index + action->text.length;
+    *end_index = action->index + action->text.length;
+  } else if (action->type == edit_action_type.delete) {
+    // Delete the deleted text
+    delete_fixed_string(&input->text, action->index, action->replaced_text.length);
+    // Set the selection to the start index
+    *start_index = action->index;
+    *end_index = action->index;
+  } else if (action->type == edit_action_type.replace) {
+    // Replace by first removing the replaced_text and then inserting the new text
+    delete_fixed_string(&input->text, action->index, action->replaced_text.length);
+    if (insert_fixed_string(&input->text, action->text, action->index) == status.ERROR) {
+      // Clean up and abort if the insert fails
+      insert_fixed_string(&input->text, action->replaced_text, action->index);
+      return;
     }
-    history->current_index = next_index;
+    // Set the selection to the end of the inserted text
+    *start_index = action->index + action->text.length;
+    *end_index = *start_index;
   }
+  history->current_index += 1;
 }
 
 // Copy the selected text to the clipboard
@@ -406,10 +402,13 @@ void copy_text(InputData *input) {
 
 // Cut the selected text
 void cut_text(InputData *input) {
-  // Copy the selected text to the clipboard
-  copy_text(input);
-  // Delete the selected text
-  delete_text(input);
+  // Check if there is a selection at all
+  if (input->selection.start_index != input->selection.end_index) {
+    // Copy the selected text to the clipboard
+    copy_text(input);
+    // Delete the selected text
+    delete_text(input);
+  }
 }
 
 // Paste the copied text
