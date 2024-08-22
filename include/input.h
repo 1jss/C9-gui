@@ -6,7 +6,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
-#include "growing_string.h" // GrowingString, new_string, insert_into_string, delete_from_string, string_from_substring
+#include "string.h" // s8, new_string, insert_into_string, delete_from_string, string_from_substring
 #include "font.h" // get_font
 #include "status.h" // status
 #include "types.h" // u8, i32
@@ -26,8 +26,8 @@ EditActionType edit_action_type = {
 typedef struct {
   u8 type;
   i32 index;
-  GrowingString text;
-  GrowingString replaced_text;
+  s8 text;
+  s8 replaced_text;
 } EditAction;
 
 typedef struct {
@@ -41,7 +41,7 @@ typedef struct {
 } Selection;
 
 typedef struct {
-  GrowingString text;
+  s8 text;
   Selection selection;
   EditHistory *history;
   Arena *arena;
@@ -163,14 +163,14 @@ void replace_text(InputData *input, char *text) {
 
   // Find the length of the text to be replaced
   i32 replaced_text_length = *end_index - *start_index;
-  GrowingString replaced_text = string_from_substring(input->arena, input->text.data, *start_index, replaced_text_length);
+  s8 replaced_text = string_from_substring(input->arena, input->text.data, *start_index, replaced_text_length);
 
   // Find the length of the new text
   i32 new_text_length = 0;
   while (text[new_text_length] != '\0') {
     new_text_length++;
   }
-  GrowingString new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
+  s8 new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
 
   // Replace the text by removing the replaced text and then inserting the new text
   delete_from_string(&input->text, *start_index, replaced_text_length);
@@ -207,7 +207,7 @@ void insert_text(InputData *input, char *text) {
     while (text[new_text_length] != '\0') {
       new_text_length++;
     }
-    GrowingString new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
+    s8 new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
 
     // Insert the text
     if (insert_into_string(input->arena, &input->text, new_text, *start_index) == status.ERROR) return;
@@ -246,7 +246,7 @@ void delete_text(InputData *input) {
 
   // Store the deleted text
   i32 deleted_text_length = *end_index - *start_index;
-  GrowingString deleted_text = string_from_substring(input->arena, input->text.data, *start_index, deleted_text_length);
+  s8 deleted_text = string_from_substring(input->arena, input->text.data, *start_index, deleted_text_length);
 
   // Delete the text
   delete_from_string(&input->text, *start_index, deleted_text_length);
@@ -425,7 +425,7 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
   i32 start_index = *get_start_ref(&input->selection);
   i32 end_index = *get_end_ref(&input->selection);
   Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
-  GrowingString text = input->text;
+  s8 text = input->text;
 
   // Measure from text start to end of selection
   char *selection_end = arena_fill(temp_arena, end_index + 1); // +1 for null terminator
