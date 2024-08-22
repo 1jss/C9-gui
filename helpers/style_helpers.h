@@ -2,6 +2,7 @@
 
 #include "../constants/color_theme.h" // border_color, border_color_active, text_color, text_color_active
 #include "../include/element_tree.h" // Element
+#include "../include/types.h" // i32
 
 void set_active_input_style(Element *element) {
   element->border_color = border_color_active;
@@ -29,11 +30,11 @@ void table_content_style(Element *element) {
 void set_table_style(Element *element) {
   if (element->children == 0) return;
   // Get child elements (columns) of the table
-  for (size_t i = 0; i < array_length(element->children); i++) {
+  for (i32 i = 0; i < array_length(element->children); i++) {
     Element *column = array_get(element->children, i);
     if (column->children == 0) return;
    // Loop over the column's children (cells)
-    for (size_t j = 0; j < array_length(column->children); j++) {
+    for (i32 j = 0; j < array_length(column->children); j++) {
       Element *cell = array_get(column->children, j);
       // Set the first cell in each column to table_title_style
       if (j == 0) {

@@ -1,10 +1,9 @@
 #ifndef C9_STRING
 
-#include <inttypes.h> // uint8_t
 #include <stdbool.h> // bool
-#include <stddef.h> // size_t
 #include <stdio.h> // printf
 #include "arena.h" // Arena, arena_fill
+#include "types.h" // u8, u32, i32
 
 #if 0
 
@@ -21,19 +20,22 @@ This header defines a string type and helper functions for it. The string type i
 
 #endif
 
-const size_t INVALID_STRING_INDEX = -1;
+const i32 INVALID_STRING_INDEX = -1;
 
 typedef struct {
-  uint8_t *data;
-  size_t length;
+  u8 *data;
+  i32 length;
 } s8;
 
 s8 to_s8(char *string) {
-  size_t length = 0;
+  i32 length = 0;
   while (string[length] != '\0') {
     length++;
   }
-  return (s8){(uint8_t *)string, length};
+  return (s8){
+    .data = (u8 *)string,
+    .length = length
+  };
 }
 
 char *to_char(s8 string) {
@@ -41,14 +43,14 @@ char *to_char(s8 string) {
 }
 
 void print_s8(s8 string) {
-  for (size_t i = 0; i < string.length; i++) {
+  for (i32 i = 0; i < string.length; i++) {
     printf("%c", string.data[i]);
   }
 }
 
 bool equal_s8(s8 a, s8 b) {
   if (a.length != b.length) return false;
-  for (size_t i = 0; i < a.length; i++) {
+  for (i32 i = 0; i < a.length; i++) {
     if (a.data[i] != b.data[i]) {
       return false;
     }
@@ -56,11 +58,11 @@ bool equal_s8(s8 a, s8 b) {
   return true;
 }
 
-size_t indexof_s8(s8 source, s8 target) {
+i32 indexof_s8(s8 source, s8 target) {
   if (source.length < target.length) return INVALID_STRING_INDEX;
-  for (size_t i = 0; i < source.length - target.length; i++) {
+  for (i32 i = 0; i < source.length - target.length; i++) {
     bool found = true;
-    for (size_t j = 0; j < target.length; j++) {
+    for (i32 j = 0; j < target.length; j++) {
       if (source.data[i + j] != target.data[j]) {
         found = false;
         break;
@@ -77,12 +79,12 @@ bool includes_s8(s8 source, s8 target) {
 
 // Concatenate two strings
 s8 concat_s8(Arena *arena, s8 a, s8 b) {
-  size_t total_length = a.length + b.length;
-  uint8_t *data = (uint8_t *)arena_fill(arena, total_length);
-  for (size_t i = 0; i < a.length; i++) {
+  i32 total_length = a.length + b.length;
+  u8 *data = (u8 *)arena_fill(arena, total_length);
+  for (i32 i = 0; i < a.length; i++) {
     data[i] = a.data[i];
   }
-  for (size_t i = 0; i < b.length; i++) {
+  for (i32 i = 0; i < b.length; i++) {
     data[a.length + i] = b.data[i];
   }
   return (s8){data, total_length};
@@ -90,15 +92,15 @@ s8 concat_s8(Arena *arena, s8 a, s8 b) {
 
 // Concatenate three strings (for internal use only)
 static s8 concat3_s8(Arena *arena, s8 a, s8 b, s8 c) {
-  size_t total_length = a.length + b.length + c.length;
-  uint8_t *data = (uint8_t *)arena_fill(arena, total_length);
-  for (size_t i = 0; i < a.length; i++) {
+  i32 total_length = a.length + b.length + c.length;
+  u8 *data = (u8 *)arena_fill(arena, total_length);
+  for (i32 i = 0; i < a.length; i++) {
     data[i] = a.data[i];
   }
-  for (size_t i = 0; i < b.length; i++) {
+  for (i32 i = 0; i < b.length; i++) {
     data[a.length + i] = b.data[i];
   }
-  for (size_t i = 0; i < c.length; i++) {
+  for (i32 i = 0; i < c.length; i++) {
     data[a.length + b.length + i] = c.data[i];
   }
   return (s8){
@@ -108,7 +110,7 @@ static s8 concat3_s8(Arena *arena, s8 a, s8 b, s8 c) {
 }
 
 s8 replace_s8(Arena *arena, s8 source, s8 target, s8 replacement) {
-  size_t index = indexof_s8(source, target);
+  i32 index = indexof_s8(source, target);
   if (index == INVALID_STRING_INDEX) return source;
   s8 prefix = {
     .data = source.data,

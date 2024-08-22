@@ -244,7 +244,7 @@ void free_textures(Element *element) {
     element->render.texture = 0;
   }
   if (element->children == 0) return;
-  for (size_t i = 0; i < array_length(element->children); i++) {
+  for (i32 i = 0; i < array_length(element->children); i++) {
     Element *child = array_get(element->children, i);
     free_textures(child);
   }
@@ -281,7 +281,7 @@ Element *get_element_by_tag(Element *element, u8 tag) {
   if (children == 0) {
     return 0;
   }
-  for (size_t i = 0; i < array_length(children); i++) {
+  for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     Element *selected = get_element_by_tag(child, tag);
     if (selected != 0) {
@@ -301,7 +301,7 @@ Element *get_parent(ElementTree *tree, Element *element) {
   if (children == 0) {
     return 0;
   }
-  for (size_t i = 0; i < array_length(children); i++) {
+  for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     if (child == element) {
       return parent;

@@ -17,7 +17,7 @@ i32 fill_scroll_width(Element *element) {
   i32 child_width = element_padding;
   Array *children = element->children;
   if (children != 0) {
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       // Horizontal layout adds widths
       if (element->layout_direction == layout_direction.horizontal) {
@@ -83,7 +83,7 @@ i32 fill_scroll_height(Element *element) {
   i32 child_height = element_padding;
   Array *children = element->children;
   if (children != 0) {
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       // Vertical layout adds heights
       if (element->layout_direction == layout_direction.vertical) {
@@ -142,7 +142,7 @@ void fill_max_width(Element *element, i32 max_width) {
     if (element->layout_direction == layout_direction.horizontal) {
       // How many children have flexible width
       i32 split_count = 0;
-      for (size_t i = 0; i < array_length(children); i++) {
+      for (i32 i = 0; i < array_length(children); i++) {
         Element *child = array_get(children, i);
         if (child->width == 0) {
           split_count++;
@@ -163,7 +163,7 @@ void fill_max_width(Element *element, i32 max_width) {
     }
 
     // Set new width for children
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       if (element->overflow == overflow_type.scroll ||
           element->overflow == overflow_type.scroll_x) {
@@ -202,7 +202,7 @@ void fill_max_height(Element *element, i32 max_height) {
     if (element->layout_direction == layout_direction.vertical) {
       // How many children have flexible height
       i32 split_count = 0;
-      for (size_t i = 0; i < array_length(children); i++) {
+      for (i32 i = 0; i < array_length(children); i++) {
         Element *child = array_get(children, i);
         if (child->height == 0) {
           split_count++;
@@ -223,7 +223,7 @@ void fill_max_height(Element *element, i32 max_height) {
     }
 
     // Set new height for children
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       if (element->overflow == overflow_type.scroll ||
           element->overflow == overflow_type.scroll_y) {
@@ -243,7 +243,7 @@ i32 set_x(Element *element, i32 x) {
   // If child array is initalized
   if (children != 0) {
     i32 child_x = x + element->layout.scroll_x + element->padding.left;
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       // Horizontal layout sets children after each another
       if (element->layout_direction == layout_direction.horizontal) {
@@ -266,7 +266,7 @@ i32 set_y(Element *element, i32 y) {
   // If child array is initalized
   if (children != 0) {
     i32 child_y = y + element->layout.scroll_y + element->padding.top;
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       // Vertical layout sets children after each another
       if (element->layout_direction == layout_direction.vertical) {
@@ -309,7 +309,7 @@ Element *get_clickable_element_at(Element *element, i32 x, i32 y) {
   }
   Array *children = element->children;
   if (children != 0) {
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       if (is_pointer_in_element(child, x, y)) {
         return get_clickable_element_at(child, x, y);
@@ -331,7 +331,7 @@ i32 get_min_width(Element *element) {
     Array *children = element->children;
     if (children == 0) return 0;
     i32 width = element_padding;
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       i32 child_width = get_min_width(child);
       if (element->layout_direction == layout_direction.horizontal) {
@@ -361,7 +361,7 @@ i32 get_min_height(Element *element) {
     Array *children = element->children;
     if (children == 0) return 0;
     i32 height = element_padding;
-    for (size_t i = 0; i < array_length(children); i++) {
+    for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       i32 child_height = get_min_height(child);
       if (element->layout_direction == layout_direction.vertical) {
@@ -385,7 +385,7 @@ i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
   if (is_pointer_in_element(element, x, y)) {
     Array *children = element->children;
     if (children != 0) {
-      for (size_t i = 0; i < array_length(children); i++) {
+      for (i32 i = 0; i < array_length(children); i++) {
         Element *child = array_get(children, i);
         scroll_delta = scroll_x(child, x, y, scroll_delta);
       }
@@ -425,7 +425,7 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
   if (is_pointer_in_element(element, x, y)) {
     Array *children = element->children;
     if (children != 0) {
-      for (size_t i = 0; i < array_length(children); i++) {
+      for (i32 i = 0; i < array_length(children); i++) {
         Element *child = array_get(children, i);
         scroll_delta = scroll_y(child, x, y, scroll_delta);
       }

@@ -10,6 +10,7 @@
 #include "../include/layout.h" //  set_dimensions
 #include "../include/renderer.h" // bump_rerender
 #include "../include/string.h" // to_s8
+#include "../include/types.h" // i32
 
 void reset_menu_elements(Element *side_panel) {
   // Loop through all children and set background color to none
@@ -17,7 +18,7 @@ void reset_menu_elements(Element *side_panel) {
   if (children == 0) {
     return;
   }
-  for (size_t i = 0; i < array_length(children); i++) {
+  for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     child->background_type = background_type.none;
     child->text_color = text_color;

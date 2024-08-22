@@ -9,7 +9,7 @@
 #include "growing_string.h" // GrowingString, new_string, insert_into_string, delete_from_string, string_from_substring
 #include "font.h" // get_font
 #include "status.h" // status
-#include "types.h" // u8, u32
+#include "types.h" // u8, i32
 
 typedef struct {
   u8 insert;
@@ -25,19 +25,19 @@ EditActionType edit_action_type = {
 
 typedef struct {
   u8 type;
-  u32 index;
+  i32 index;
   GrowingString text;
   GrowingString replaced_text;
 } EditAction;
 
 typedef struct {
   Array *actions; // Array of EditAction;
-  size_t current_index; // Index from 1 to be able to use 0 as a null value
+  i32 current_index; // Index from 1 to be able to use 0 as a null value
 } EditHistory;
 
 typedef struct {
-  u32 start_index;
-  u32 end_index;
+  i32 start_index;
+  i32 end_index;
 } Selection;
 
 typedef struct {
@@ -85,18 +85,18 @@ bool has_continuation_byte(u8 byte) {
 }
 
 // Returns a reference to start of the selection
-u32 *get_start_ref(Selection *selection) {
+i32 *get_start_ref(Selection *selection) {
   return selection->start_index < selection->end_index ? &selection->start_index : &selection->end_index;
 }
 // Returns a reference to the end of the selection
-u32 *get_end_ref(Selection *selection) {
+i32 *get_end_ref(Selection *selection) {
   return selection->start_index < selection->end_index ? &selection->end_index : &selection->start_index;
 }
 
 // Cursor movement
 void move_cursor_left(InputData *input) {
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
   // Move the cursor to the left
   if (*start_index > 0) {
     *start_index = *start_index - 1;
@@ -108,8 +108,8 @@ void move_cursor_left(InputData *input) {
   *end_index = *start_index;
 }
 void move_cursor_right(InputData *input) {
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
   // Move the cursor to the right
   if (*end_index < input->text.length) {
     *end_index = *end_index + 1;
@@ -122,7 +122,7 @@ void move_cursor_right(InputData *input) {
 }
 // Moves end_index to the right
 void select_right(InputData *input) {
-  u32 *end_index = &input->selection.end_index;
+  i32 *end_index = &input->selection.end_index;
   if (*end_index < input->text.length) {
     *end_index = *end_index + 1;
   }
@@ -133,7 +133,7 @@ void select_right(InputData *input) {
 }
 // Moves end_index to the left
 void select_left(InputData *input) {
-  u32 *end_index = &input->selection.end_index;
+  i32 *end_index = &input->selection.end_index;
   if (*end_index > 0) {
     *end_index = *end_index - 1;
   }
@@ -158,15 +158,15 @@ void deselect(InputData *input) {
 
 // Text editing
 void replace_text(InputData *input, char *text) {
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
 
   // Find the length of the text to be replaced
-  u32 replaced_text_length = *end_index - *start_index;
+  i32 replaced_text_length = *end_index - *start_index;
   GrowingString replaced_text = string_from_substring(input->arena, input->text.data, *start_index, replaced_text_length);
 
   // Find the length of the new text
-  u32 new_text_length = 0;
+  i32 new_text_length = 0;
   while (text[new_text_length] != '\0') {
     new_text_length++;
   }
@@ -196,14 +196,14 @@ void replace_text(InputData *input, char *text) {
 }
 
 void insert_text(InputData *input, char *text) {
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
   // If there is a selection, replace the text
   if (*start_index != *end_index) {
     replace_text(input, text);
   } else {
     // Find the length of the new text
-    u32 new_text_length = 0;
+    i32 new_text_length = 0;
     while (text[new_text_length] != '\0') {
       new_text_length++;
     }
@@ -227,8 +227,8 @@ void insert_text(InputData *input, char *text) {
 }
 
 void delete_text(InputData *input) {
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
   // Check if there is anything to delete
   if (*end_index == 0) {
     return;
@@ -245,7 +245,7 @@ void delete_text(InputData *input) {
   }
 
   // Store the deleted text
-  u32 deleted_text_length = *end_index - *start_index;
+  i32 deleted_text_length = *end_index - *start_index;
   GrowingString deleted_text = string_from_substring(input->arena, input->text.data, *start_index, deleted_text_length);
 
   // Delete the text
@@ -276,8 +276,8 @@ void undo_action(InputData *input) {
   EditAction *action = array_get(history->actions, history->current_index - 1);
   // Return if no action is found
   if (action == 0) return;
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
   if (action->type == edit_action_type.insert) {
     // Delete the inserted text
     delete_from_string(&input->text, action->index, action->text.length);
@@ -315,8 +315,8 @@ void redo_action(InputData *input) {
   EditAction *action = array_get(history->actions, history->current_index);
   // Return if no action is found
   if (action == 0) return;
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
   // Perform the redo action for next_index
   if (action->type == edit_action_type.insert) {
     // Add the inserted text
@@ -348,10 +348,10 @@ void redo_action(InputData *input) {
 // Copy the selected text to the clipboard
 void copy_text(InputData *input) {
   // Get the selection
-  u32 *start_index = get_start_ref(&input->selection);
-  u32 *end_index = get_end_ref(&input->selection);
-  u32 selection_length = *end_index - *start_index;
-  size_t selection_size = sizeof(char) * (selection_length + 1); // +1 for null terminator
+  i32 *start_index = get_start_ref(&input->selection);
+  i32 *end_index = get_end_ref(&input->selection);
+  i32 selection_length = *end_index - *start_index;
+  i32 selection_size = sizeof(char) * (selection_length + 1); // +1 for null terminator
   // Open a temporary arena
   Arena *temp_arena = arena_open(selection_size);
   char *selection_data = arena_fill(temp_arena, selection_size);
@@ -484,8 +484,8 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 
 // Set selection based on mouse position
 void set_selection(InputData *input, i32 relative_mouse_x_position) {
-  u32 *start_index = &input->selection.start_index;
-  u32 *end_index = &input->selection.end_index;
+  i32 *start_index = &input->selection.start_index;
+  i32 *end_index = &input->selection.end_index;
   TTF_Font *font = get_font();
   if (relative_mouse_x_position <= 0) {
     *start_index = 0;
@@ -509,7 +509,7 @@ void set_selection(InputData *input, i32 relative_mouse_x_position) {
 
 // Set selection end based on mouse position
 void set_selection_end(InputData *input, i32 relative_mouse_x_position) {
-  u32 *end_index = &input->selection.end_index;
+  i32 *end_index = &input->selection.end_index;
   TTF_Font *font = get_font();
   if (relative_mouse_x_position <= 0) {
     *end_index = 0;
@@ -530,8 +530,8 @@ void set_selection_end(InputData *input, i32 relative_mouse_x_position) {
 
 // Select a word based on mouse position
 void select_word(InputData *input, i32 relative_mouse_x_position) {
-  u32 *start_index = &input->selection.start_index;
-  u32 *end_index = &input->selection.end_index;
+  i32 *start_index = &input->selection.start_index;
+  i32 *end_index = &input->selection.end_index;
   char *text_data = (char *)input->text.data;
   TTF_Font *font = get_font();
   i32 character_count = 0;

@@ -218,7 +218,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
   Array *children = element->children;
   if (children == 0) return;
 
-  for (size_t i = 0; i < array_length(children); i++) {
+  for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
     draw_elements(renderer, child, element_cutout_rect, active_element);
   }

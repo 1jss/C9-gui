@@ -3,12 +3,12 @@
 #include <string.h> // memcpy
 #include "arena.h" // Arena, arena_fill
 #include "status.h" // status
-#include "types.h" // u8, u32, i32
+#include "types.h" // u8, i32
 
 typedef struct {
   u8 *data;
-  u32 length; // Length of the string
-  u32 capacity; // Current capacity of the string
+  i32 length; // Length of the string
+  i32 capacity; // Current capacity of the string
 } GrowingString;
 
 // Get a growing string with initial space for 32 characters
@@ -24,7 +24,7 @@ GrowingString new_string(Arena *arena) {
 }
 
 // Returns a growing string from a u8 pointer, index and length
-GrowingString string_from_substring(Arena *arena, u8 *string, u32 index, u32 length) {
+GrowingString string_from_substring(Arena *arena, u8 *string, i32 index, i32 length) {
   u8 *data = arena_fill(arena, sizeof(u8) * length + 1);
   // Copy the replaced text
   memcpy(data, string + index, length);
@@ -38,7 +38,7 @@ GrowingString string_from_substring(Arena *arena, u8 *string, u32 index, u32 len
 }
 
 // Inserts a string into another string at a given index
-i32 insert_into_string(Arena *arena, GrowingString *target, GrowingString substring, u32 index) {
+i32 insert_into_string(Arena *arena, GrowingString *target, GrowingString substring, i32 index) {
   if (index > target->length) return status.ERROR;
   // Grow the string if needed
   if (target->length + substring.length + 1 > target->capacity) {
@@ -66,9 +66,9 @@ i32 insert_into_string(Arena *arena, GrowingString *target, GrowingString substr
 }
 
 // Deletes a string from another string at a given index
-void delete_from_string(GrowingString *target, u32 index, u32 length) {
+void delete_from_string(GrowingString *target, i32 index, i32 length) {
   // Shift the characters to the right of the deleted text to the left
-  for (u32 i = index + length; i < target->length; ++i) {
+  for (i32 i = index + length; i < target->length; i++) {
     target->data[i - length] = target->data[i];
   }
   target->length = target->length - length;
