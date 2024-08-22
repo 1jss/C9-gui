@@ -140,8 +140,9 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         // Blur former active element
         blur_handler(tree, 0);
+        Element *click_root = tree->overlay != 0 ? tree->overlay : tree->root;
         // Set new active element
-        tree->active_element = get_clickable_element_at(tree->root, mouse_x, mouse_y);
+        tree->active_element = get_clickable_element_at(click_root, mouse_x, mouse_y);
         // Set selection if active element has input
         if (tree->active_element != 0 &&
             tree->active_element->input != 0) {
@@ -177,20 +178,23 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         main_loop = false;
       }
     }
-    // Scroll left or right
-    if (tree->scroll.is_active && scroll_distance_x != 0) {
-      i32 remaining_scroll = scroll_x(tree->root, mouse_x, mouse_y, scroll_distance_x);
-      if (remaining_scroll != scroll_distance_x) {
-        set_x(tree->root, 0);
-        tree->rerender = rerender_type.all;
+    if (tree->scroll.is_active) {
+      Element *scroll_root = tree->overlay != 0 ? tree->overlay : tree->root;
+      // Scroll left or right
+      if (scroll_distance_x != 0) {
+        i32 remaining_scroll = scroll_x(scroll_root, mouse_x, mouse_y, scroll_distance_x);
+        if (remaining_scroll != scroll_distance_x) {
+          set_x(scroll_root, 0);
+          tree->rerender = rerender_type.all;
+        }
       }
-    }
-    // Scroll up or down
-    if (tree->scroll.is_active && scroll_distance_y != 0) {
-      i32 remaining_scroll = scroll_y(tree->root, mouse_x, mouse_y, scroll_distance_y);
-      if (remaining_scroll != scroll_distance_y) {
-        set_y(tree->root, 0);
-        tree->rerender = rerender_type.all;
+      // Scroll up or down
+      if (scroll_distance_y != 0) {
+        i32 remaining_scroll = scroll_y(scroll_root, mouse_x, mouse_y, scroll_distance_y);
+        if (remaining_scroll != scroll_distance_y) {
+          set_y(scroll_root, 0);
+          tree->rerender = rerender_type.all;
+        }
       }
     }
   }

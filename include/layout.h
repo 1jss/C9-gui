@@ -282,14 +282,24 @@ i32 set_y(Element *element, i32 y) {
   return y + element->layout.max_height;
 }
 
+// Sets dimensions for a root element
+void set_root_element_dimensions(Element *element, i32 window_width, i32 window_height){
+  if (element != 0) {
+    fill_scroll_width(element);
+    fill_scroll_height(element);
+    fill_max_width(element, window_width);
+    fill_max_height(element, window_height);
+    set_x(element, 0);
+    set_y(element, 0);
+  }
+}
+
 // Loop through element tree and set LayoutProp dimensions
 void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
-  fill_scroll_width(tree->root);
-  fill_scroll_height(tree->root);
-  fill_max_width(tree->root, window_width);
-  fill_max_height(tree->root, window_height);
-  set_x(tree->root, 0);
-  set_y(tree->root, 0);
+  set_root_element_dimensions(tree->root, window_width, window_height);
+  if(tree->overlay != 0) {
+    set_root_element_dimensions(tree->overlay, window_width, window_height);
+  }
 }
 
 // Checks if a pointer position is within an element

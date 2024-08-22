@@ -7,6 +7,7 @@
 #include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree, get_element_by_tag
 #include "../include/input.h"
 #include "../include/renderer.h" // bump_rerender
+#include "overlay.h" // open_overlay
 
 Element *form_element = 0;
 
@@ -49,6 +50,7 @@ void click_content(ElementTree *tree, void *data) {
     bump_rerender(tree);
     tree->rerender_element = content_panel;
   }
+  open_overlay(tree);
 }
 
 void create_form_element(Arena *arena) {

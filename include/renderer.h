@@ -274,6 +274,9 @@ void render_element_tree(SDL_Renderer *renderer, ElementTree *tree) {
   // Get the width and height of the target texture
   SDL_QueryTexture(tree->target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
   draw_elements(renderer, tree->root, target_rectangle, tree->active_element);
+  if(tree->overlay != 0) {
+    draw_elements(renderer, tree->overlay, target_rectangle, tree->active_element);
+  }
 }
 
 // Sets selective rerendering if no rendering is set and all if selective is set
