@@ -97,7 +97,7 @@ void create_form_element(Arena *arena) {
     .corner_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
-    .input = new_input(arena, 100),
+    .input = new_input(arena),
     .text_color = text_color,
     .on_click = &click_text_input,
     .on_blur = &blur_text_input,

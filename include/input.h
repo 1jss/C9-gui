@@ -6,7 +6,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
-#include "fixed_string.h" // FixedString, new_fixed_string, to_fixed_string, insert_fixed_string, delete_fixed_string
+#include "growing_string.h" // GrowingString, new_string, insert_into_string, delete_from_string, string_from_substring
 #include "font.h" // get_font
 #include "status.h" // status
 #include "types.h" // u8, u32
@@ -26,8 +26,8 @@ EditActionType edit_action_type = {
 typedef struct {
   u8 type;
   u32 index;
-  FixedString text;
-  FixedString replaced_text;
+  GrowingString text;
+  GrowingString replaced_text;
 } EditAction;
 
 typedef struct {
@@ -41,30 +41,28 @@ typedef struct {
 } Selection;
 
 typedef struct {
-  FixedString text;
-  u32 max_length;
+  GrowingString text;
   Selection selection;
   EditHistory *history;
-  Arena *text_arena;
+  Arena *arena;
 } InputData;
 
-EditHistory *new_edit_history(Arena *arena, u32 capacity) {
+EditHistory *new_edit_history(Arena *arena) {
   EditHistory *history = arena_fill(arena, sizeof(EditHistory));
   *history = (EditHistory){
-    .actions = array_create_width(arena, sizeof(EditAction), capacity),
+    .actions = array_create(arena, sizeof(EditAction)),
     .current_index = 0
   };
   return history;
 }
 
-InputData *new_input(Arena *arena, size_t max_length) {
+InputData *new_input(Arena *arena) {
   InputData *input = arena_fill(arena, sizeof(InputData));
   *input = (InputData){
-    .text = new_fixed_string(arena, max_length),
-    .max_length = max_length,
+    .text = new_string(arena),
     .selection = (Selection){0, 0},
-    .history = new_edit_history(arena, 100),
-    .text_arena = arena
+    .history = new_edit_history(arena),
+    .arena = arena
   };
   return input;
 }
@@ -162,41 +160,23 @@ void deselect(InputData *input) {
 void replace_text(InputData *input, char *text) {
   u32 *start_index = get_start_ref(&input->selection);
   u32 *end_index = get_end_ref(&input->selection);
+
   // Find the length of the text to be replaced
   u32 replaced_text_length = *end_index - *start_index;
-  // Allocate memory for the text
-  char *replaced_text_data = arena_fill(input->text_arena, sizeof(char) * replaced_text_length + 1);
-  // Copy the replaced text
-  memcpy(replaced_text_data, input->text.data + *start_index, replaced_text_length);
-  // Add null terminator
-  replaced_text_data[replaced_text_length] = '\0';
-  FixedString replaced_text = {
-    .data = (u8 *)replaced_text_data,
-    .length = replaced_text_length
-  };
+  GrowingString replaced_text = string_from_substring(input->arena, input->text.data, *start_index, replaced_text_length);
 
   // Find the length of the new text
   u32 new_text_length = 0;
   while (text[new_text_length] != '\0') {
     new_text_length++;
   }
-  // Allocate memory for the text
-  char *new_text_data = arena_fill(input->text_arena, sizeof(char) * new_text_length + 1);
-  // Copy the new text
-  memcpy(new_text_data, text, new_text_length);
-  // Add null terminator
-  new_text_data[new_text_length] = '\0';
-  // Create a fixed string for the new text
-  FixedString new_text = {
-    .data = (u8 *)new_text_data,
-    .length = new_text_length
-  };
+  GrowingString new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
 
   // Replace the text by removing the replaced text and then inserting the new text
-  delete_fixed_string(&input->text, *start_index, replaced_text_length);
-  if (insert_fixed_string(&input->text, new_text, *start_index) == status.ERROR) {
+  delete_from_string(&input->text, *start_index, replaced_text_length);
+  if (insert_into_string(&input->text, new_text, *start_index) == status.ERROR) {
     // Clean up and abort if the insert fails
-    insert_fixed_string(&input->text, replaced_text, *start_index);
+    insert_into_string(&input->text, replaced_text, *start_index);
     return;
   }
 
@@ -227,20 +207,10 @@ void insert_text(InputData *input, char *text) {
     while (text[new_text_length] != '\0') {
       new_text_length++;
     }
-    // Allocate memory for the text
-    char *new_text_data = arena_fill(input->text_arena, sizeof(char) * new_text_length + 1);
-    // Copy the new text
-    memcpy(new_text_data, text, new_text_length);
-    // Add null terminator
-    new_text_data[new_text_length] = '\0';
-    // Create a fixed string for the new text
-    FixedString new_text = {
-      .data = (u8 *)new_text_data,
-      .length = new_text_length
-    };
+    GrowingString new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
 
     // Insert the text
-    if (insert_fixed_string(&input->text, new_text, *start_index) == status.ERROR) return;
+    if (insert_into_string(&input->text, new_text, *start_index) == status.ERROR) return;
 
     // Create an edit action
     EditAction action = {
@@ -276,16 +246,10 @@ void delete_text(InputData *input) {
 
   // Store the deleted text
   u32 deleted_text_length = *end_index - *start_index;
-  char *deleted_text_data = arena_fill(input->text_arena, sizeof(char) * deleted_text_length + 1);
-  memcpy(deleted_text_data, input->text.data + *start_index, deleted_text_length);
-  deleted_text_data[deleted_text_length] = '\0';
-  FixedString deleted_text = {
-    .data = (u8 *)deleted_text_data,
-    .length = deleted_text_length
-  };
+  GrowingString deleted_text = string_from_substring(input->arena, input->text.data, *start_index, deleted_text_length);
 
   // Delete the text
-  delete_fixed_string(&input->text, *start_index, deleted_text_length);
+  delete_from_string(&input->text, *start_index, deleted_text_length);
 
   // Create an edit action
   EditAction action = {
@@ -316,23 +280,23 @@ void undo_action(InputData *input) {
   u32 *end_index = get_end_ref(&input->selection);
   if (action->type == edit_action_type.insert) {
     // Delete the inserted text
-    delete_fixed_string(&input->text, action->index, action->text.length);
+    delete_from_string(&input->text, action->index, action->text.length);
     // Set the selection to the start index
     *start_index = action->index;
     *end_index = action->index;
   } else if (action->type == edit_action_type.delete) {
     // Insert the deleted text
-    if (insert_fixed_string(&input->text, action->replaced_text, action->index) == status.ERROR) return;
+    if (insert_into_string(&input->text, action->replaced_text, action->index) == status.ERROR) return;
 
     // Set the selection to the end of the inserted text
     *start_index = action->index + action->replaced_text.length;
     *end_index = action->index + action->replaced_text.length;
   } else if (action->type == edit_action_type.replace) {
     // Replace the replaced text with the text by first removing the replaced text and then inserting the text
-    delete_fixed_string(&input->text, action->index, action->text.length);
-    if (insert_fixed_string(&input->text, action->replaced_text, action->index) == status.ERROR) {
+    delete_from_string(&input->text, action->index, action->text.length);
+    if (insert_into_string(&input->text, action->replaced_text, action->index) == status.ERROR) {
       // Clean up and abort if the insert fails
-      insert_fixed_string(&input->text, action->replaced_text, action->index);
+      insert_into_string(&input->text, action->replaced_text, action->index);
       return;
     }
     // Set the selection to the end of the inserted text
@@ -355,23 +319,23 @@ void redo_action(InputData *input) {
   u32 *end_index = get_end_ref(&input->selection);
   // Perform the redo action for next_index
   if (action->type == edit_action_type.insert) {
-    // Insert the inserted text
-    if (insert_fixed_string(&input->text, action->text, action->index) == status.ERROR) return;
+    // Add the inserted text
+    if (insert_into_string(&input->text, action->text, action->index) == status.ERROR) return;
     // Move the selection to the end of the inserted text
     *start_index = action->index + action->text.length;
     *end_index = action->index + action->text.length;
   } else if (action->type == edit_action_type.delete) {
     // Delete the deleted text
-    delete_fixed_string(&input->text, action->index, action->replaced_text.length);
+    delete_from_string(&input->text, action->index, action->replaced_text.length);
     // Set the selection to the start index
     *start_index = action->index;
     *end_index = action->index;
   } else if (action->type == edit_action_type.replace) {
     // Replace by first removing the replaced_text and then inserting the new text
-    delete_fixed_string(&input->text, action->index, action->replaced_text.length);
-    if (insert_fixed_string(&input->text, action->text, action->index) == status.ERROR) {
+    delete_from_string(&input->text, action->index, action->replaced_text.length);
+    if (insert_into_string(&input->text, action->text, action->index) == status.ERROR) {
       // Clean up and abort if the insert fails
-      insert_fixed_string(&input->text, action->replaced_text, action->index);
+      insert_into_string(&input->text, action->replaced_text, action->index);
       return;
     }
     // Set the selection to the end of the inserted text
@@ -461,7 +425,7 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
   i32 start_index = *get_start_ref(&input->selection);
   i32 end_index = *get_end_ref(&input->selection);
   Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
-  FixedString text = input->text;
+  GrowingString text = input->text;
 
   // Measure from text start to end of selection
   char *selection_end = arena_fill(temp_arena, end_index + 1); // +1 for null terminator
