@@ -174,9 +174,9 @@ void replace_text(InputData *input, char *text) {
 
   // Replace the text by removing the replaced text and then inserting the new text
   delete_from_string(&input->text, *start_index, replaced_text_length);
-  if (insert_into_string(&input->text, new_text, *start_index) == status.ERROR) {
+  if (insert_into_string(input->arena, &input->text, new_text, *start_index) == status.ERROR) {
     // Clean up and abort if the insert fails
-    insert_into_string(&input->text, replaced_text, *start_index);
+    insert_into_string(input->arena, &input->text, replaced_text, *start_index);
     return;
   }
 
@@ -210,7 +210,7 @@ void insert_text(InputData *input, char *text) {
     GrowingString new_text = string_from_substring(input->arena, (u8 *)text, 0, new_text_length);
 
     // Insert the text
-    if (insert_into_string(&input->text, new_text, *start_index) == status.ERROR) return;
+    if (insert_into_string(input->arena, &input->text, new_text, *start_index) == status.ERROR) return;
 
     // Create an edit action
     EditAction action = {
@@ -286,7 +286,7 @@ void undo_action(InputData *input) {
     *end_index = action->index;
   } else if (action->type == edit_action_type.delete) {
     // Insert the deleted text
-    if (insert_into_string(&input->text, action->replaced_text, action->index) == status.ERROR) return;
+    if (insert_into_string(input->arena, &input->text, action->replaced_text, action->index) == status.ERROR) return;
 
     // Set the selection to the end of the inserted text
     *start_index = action->index + action->replaced_text.length;
@@ -294,9 +294,9 @@ void undo_action(InputData *input) {
   } else if (action->type == edit_action_type.replace) {
     // Replace the replaced text with the text by first removing the replaced text and then inserting the text
     delete_from_string(&input->text, action->index, action->text.length);
-    if (insert_into_string(&input->text, action->replaced_text, action->index) == status.ERROR) {
+    if (insert_into_string(input->arena, &input->text, action->replaced_text, action->index) == status.ERROR) {
       // Clean up and abort if the insert fails
-      insert_into_string(&input->text, action->replaced_text, action->index);
+      insert_into_string(input->arena, &input->text, action->replaced_text, action->index);
       return;
     }
     // Set the selection to the end of the inserted text
@@ -320,7 +320,7 @@ void redo_action(InputData *input) {
   // Perform the redo action for next_index
   if (action->type == edit_action_type.insert) {
     // Add the inserted text
-    if (insert_into_string(&input->text, action->text, action->index) == status.ERROR) return;
+    if (insert_into_string(input->arena, &input->text, action->text, action->index) == status.ERROR) return;
     // Move the selection to the end of the inserted text
     *start_index = action->index + action->text.length;
     *end_index = action->index + action->text.length;
@@ -333,9 +333,9 @@ void redo_action(InputData *input) {
   } else if (action->type == edit_action_type.replace) {
     // Replace by first removing the replaced_text and then inserting the new text
     delete_from_string(&input->text, action->index, action->replaced_text.length);
-    if (insert_into_string(&input->text, action->text, action->index) == status.ERROR) {
+    if (insert_into_string(input->arena, &input->text, action->text, action->index) == status.ERROR) {
       // Clean up and abort if the insert fails
-      insert_into_string(&input->text, action->replaced_text, action->index);
+      insert_into_string(input->arena, &input->text, action->replaced_text, action->index);
       return;
     }
     // Set the selection to the end of the inserted text

@@ -9,7 +9,6 @@ typedef struct {
   u8 *data;
   u32 length; // Length of the string
   u32 capacity; // Current capacity of the string
-  Arena *arena;
 } GrowingString;
 
 // Get a growing string with initial space for 32 characters
@@ -20,7 +19,6 @@ GrowingString new_string(Arena *arena) {
     .data = data,
     .length = 0,
     .capacity = 32,
-    .arena = arena
   };
   return string;
 }
@@ -35,13 +33,12 @@ GrowingString string_from_substring(Arena *arena, u8 *string, u32 index, u32 len
     .data = data,
     .length = length,
     .capacity = length + 1,
-    .arena = arena
   };
   return result;
 }
 
 // Inserts a string into another string at a given index
-i32 insert_into_string(GrowingString *target, GrowingString substring, u32 index) {
+i32 insert_into_string(Arena *arena, GrowingString *target, GrowingString substring, u32 index) {
   if (index > target->length) return status.ERROR;
   // Grow the string if needed
   if (target->length + substring.length + 1 > target->capacity) {
@@ -50,7 +47,7 @@ i32 insert_into_string(GrowingString *target, GrowingString substring, u32 index
       target->capacity *= 2;
     }
     // New allocation for the data
-    u8 *new_data = arena_fill(target->arena, sizeof(u8) * target->capacity);
+    u8 *new_data = arena_fill(arena, sizeof(u8) * target->capacity);
     memcpy(new_data, target->data, target->length);
     new_data[target->length] = '\0';
     target->data = new_data;
