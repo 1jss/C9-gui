@@ -50,6 +50,10 @@ void click_content(ElementTree *tree, void *data) {
     bump_rerender(tree);
     tree->rerender_element = content_panel;
   }
+}
+
+void click_overlay_button(ElementTree *tree, void *data) {
+  (void)data;
   open_overlay(tree);
 }
 
@@ -78,16 +82,31 @@ void create_form_element(Arena *arena) {
     .background_color = gray_2,
     .corner_radius = 15,
     .padding = (Padding){10, 10, 10, 10},
+    .gutter = 10,
   };
 
-  Element *content_panel_top_content = add_new_element(arena, content_panel_bottom);
-  *content_panel_top_content = (Element){
+  Element *color_change_bar = add_new_element(arena, content_panel_bottom);
+  *color_change_bar = (Element){
     .width = 100,
     .height = 600,
     .background_type = background_type.color,
     .background_color = white,
     .corner_radius = 15,
     .on_click = &click_content,
+  };
+
+  Element *open_overlay_button = add_new_element(arena, content_panel_bottom);
+  *open_overlay_button = (Element){
+    .height = 30,
+    .text = to_s8("Open overlay"),
+    .text_color = text_color,
+    .padding = (Padding){5, 10, 5, 10},
+    .background_type = background_type.color,
+    .background_color = white,
+    .border_color = border_color,
+    .border = (Border){1, 1, 1, 1},
+    .corner_radius = 15,
+    .on_click = &click_overlay_button,
   };
 
   Element *text_input = add_new_element(arena, content_panel_top);
