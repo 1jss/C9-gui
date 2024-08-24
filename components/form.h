@@ -72,7 +72,7 @@ void create_form_element(Arena *arena) {
   *content_panel_top = (Element){
     .background_type = background_type.color,
     .background_color = gray_2,
-    .corner_radius = 15,
+    .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
   };
 
@@ -80,7 +80,7 @@ void create_form_element(Arena *arena) {
   *content_panel_bottom = (Element){
     .background_type = background_type.color,
     .background_color = gray_2,
-    .corner_radius = 15,
+    .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
   };

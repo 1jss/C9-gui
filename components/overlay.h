@@ -28,7 +28,7 @@ void create_overlay_element(Arena *arena) {
   *card_element = (Element){
     .background_type = background_type.color,
     .background_color = white,
-    .corner_radius = 25,
+    .corner_radius = 35,
     .padding = (Padding){20, 20, 20, 20},
     .gutter = 20,
     .layout_direction = layout_direction.vertical,
