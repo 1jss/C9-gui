@@ -16,5 +16,24 @@ const RGBA text_cursor_color = 0x888888FF;
 const RGBA selection_color = 0xC7E1FCFF;
 const RGBA scrollbar_color = 0xDEE2E6FF;
 
+const C9_Gradient white_shade = {
+  .start_color = white,
+  .end_color = white_2,
+  .start_at = 0.95,
+  .end_at = 1
+};
+
+const C9_Gradient gray_1_shade = {
+  .start_color = gray_1,
+  .end_color = gray_2,
+  .start_at = 0.95,
+  .end_at = 1
+};
+
+const C9_Gradient button_gradient = {
+  .start_color = 0x7281EDFF,
+  .end_color = 0x8998EFFF,
+};
+
 #define C9_COLOR_THEME
 #endif

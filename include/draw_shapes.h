@@ -422,13 +422,20 @@ void draw_vertical_gradient_rectangle(PixelData target, SDL_Rect rectangle, i32 
   }
 }
 
-i32 largest_border(Border border) {
-  i32 largest = 0;
-  if (border.top > largest) largest = border.top;
-  if (border.right > largest) largest = border.right;
-  if (border.bottom > largest) largest = border.bottom;
-  if (border.left > largest) largest = border.left;
-  return largest;
+bool has_border(Border border) {
+  if (border.top > 0 || border.right > 0 || border.bottom > 0 || border.left > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+i32 smallest_border(Border border) {
+  i32 smallest = border.top;
+  if (border.right < smallest) smallest = border.right;
+  if (border.bottom < smallest) smallest = border.bottom;
+  if (border.left < smallest) smallest = border.left;
+  return smallest;
 }
 
 void draw_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner_radius, Border border, RGBA border_color, RGBA background_color) {
@@ -439,7 +446,7 @@ void draw_rectangle_with_border(PixelData target, SDL_Rect rectangle, i32 corner
     .w = rectangle.w - border.left - border.right,
     .h = rectangle.h - border.top - border.bottom
   };
-  i32 inner_corner_radius = corner_radius - largest_border(border);
+  i32 inner_corner_radius = corner_radius - smallest_border(border);
   if (inner_corner_radius < 0) {
     inner_corner_radius = 0;
   }
@@ -454,7 +461,7 @@ void draw_horizontal_gradient_rectangle_with_border(PixelData target, SDL_Rect r
     .w = rectangle.w - border.left - border.right,
     .h = rectangle.h - border.top - border.bottom
   };
-  i32 inner_corner_radius = corner_radius - largest_border(border);
+  i32 inner_corner_radius = corner_radius - smallest_border(border);
   if (inner_corner_radius < 0) {
     inner_corner_radius = 0;
   }
@@ -469,7 +476,7 @@ void draw_vertical_gradient_rectangle_with_border(PixelData target, SDL_Rect rec
     .w = rectangle.w - border.left - border.right,
     .h = rectangle.h - border.top - border.bottom
   };
-  i32 inner_corner_radius = corner_radius - largest_border(border);
+  i32 inner_corner_radius = corner_radius - smallest_border(border);
   if (inner_corner_radius < 0) {
     inner_corner_radius = 0;
   }

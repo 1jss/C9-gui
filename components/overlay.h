@@ -26,7 +26,7 @@ void create_overlay_element(Arena *arena) {
   Element *card_element = add_new_element(arena, overlay_element);
   *card_element = (Element){
     .background_type = background_type.color,
-    .background_color = 0xF0F2F7FF,
+    .background_color = white,
     .corner_radius = 25,
     .padding = (Padding){20, 20, 20, 20},
     .gutter = 20,
@@ -37,8 +37,6 @@ void create_overlay_element(Arena *arena) {
   *title_element = (Element){
     .height = 40,
     .text = to_s8("Overlay Title"),
-    .background_type = background_type.color,
-    .background_color = 0xF0F2F7FF,
     .text_color = text_color,
     .border = (Border){0, 0, 1, 0},
     .border_color = border_color,
@@ -48,21 +46,17 @@ void create_overlay_element(Arena *arena) {
   *content_element = (Element){
     .text = to_s8("Some explaining text"),
     .text_color = text_color,
-    .background_type = background_type.color,
-    .background_color = 0xF0F2F7FF,
   };
 
   Element *close_button = add_new_element(arena, card_element);
   *close_button = (Element){
     .height = 30,
-    .background_type = background_type.color,
-    .background_color = white,
+    .background_type = background_type.horizontal_gradient,
+    .background_gradient = button_gradient,
     .padding = (Padding){5, 10, 5, 10},
     .corner_radius = 15,
-    .border_color = border_color,
-    .border = (Border){1, 1, 1, 1},
     .text = to_s8("Close overlay"),
-    .text_color = text_color,
+    .text_color = white,
     .on_click = &close_overlay,
   };
 }
@@ -70,8 +64,8 @@ void create_overlay_element(Arena *arena) {
 void open_overlay(ElementTree *tree) {
   if (overlay_element == 0) {
     create_overlay_element(tree->arena);
-    set_root_element_dimensions(overlay_element, tree->root->layout.max_width, tree->root->layout.max_height);
   }
+  set_root_element_dimensions(overlay_element, tree->root->layout.max_width, tree->root->layout.max_height);
   tree->overlay = overlay_element;
   tree->rerender = rerender_type.all;
 }

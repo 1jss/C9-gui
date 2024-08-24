@@ -4,7 +4,7 @@
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, largest_border
+#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, has_border
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
 #include "input.h" // InputData, measure_selection
@@ -133,19 +133,19 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     }
 
     if (element->background_type == background_type.color) {
-      if (largest_border(element->border) > 0) {
+      if (has_border(element->border)) {
         draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_color);
       } else {
         draw_filled_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_color);
       }
     } else if (element->background_type == background_type.horizontal_gradient) {
-      if (largest_border(element->border) > 0) {
+      if (has_border(element->border)) {
         draw_horizontal_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_gradient);
       } else {
         draw_horizontal_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
       }
     } else if (element->background_type == background_type.vertical_gradient) {
-      if (largest_border(element->border) > 0) {
+      if (has_border(element->border)) {
         draw_vertical_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_gradient);
       } else {
         draw_vertical_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
@@ -154,6 +154,8 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       if (element->background_image.length > 0) {
         draw_image(locked_element, to_char(element->background_image), element_texture_rect);
       }
+    } else if (element->background_type == background_type.none && has_border(element->border)) {
+      draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, 0);
     }
     if (element->text.length > 0) {
       TTF_Font *font = get_font();
@@ -166,7 +168,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
     } else if (element->input != 0) {
       TTF_Font *font = get_font();
-       SDL_Rect text_position = {
+      SDL_Rect text_position = {
         .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
         .y = element_texture_rect.y + element->padding.top,
         .w = element_texture_rect.w - element->padding.left - element->padding.right,
@@ -185,15 +187,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
         i32 text_limit_left = element_texture_rect.x + element->padding.left - 1;
         i32 text_limit_right = element_texture_rect.x + element_texture_rect.w - element->padding.right + 1;
         // Left bound
-        if(selection.x < text_limit_left) {
+        if (selection.x < text_limit_left) {
           selection.w = selection.w - (text_limit_left - selection.x);
           selection.x = text_limit_left;
         }
         // Right bound
-        if(selection.x + selection.w >= text_limit_right) {
+        if (selection.x + selection.w >= text_limit_right) {
           selection.w = text_limit_right - selection.x;
         }
-        if(selection.x < text_limit_right){
+        if (selection.x < text_limit_right) {
           if (selection_rect.w == 0) {
             draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
           } else {
@@ -274,7 +276,7 @@ void render_element_tree(SDL_Renderer *renderer, ElementTree *tree) {
   // Get the width and height of the target texture
   SDL_QueryTexture(tree->target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
   draw_elements(renderer, tree->root, target_rectangle, tree->active_element);
-  if(tree->overlay != 0) {
+  if (tree->overlay != 0) {
     draw_elements(renderer, tree->overlay, target_rectangle, tree->active_element);
   }
 }

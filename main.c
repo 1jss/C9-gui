@@ -20,20 +20,6 @@ i32 main() {
   i32 window_width = 640;
   i32 window_height = 640;
 
-  C9_Gradient white_shade = {
-    .start_color = white,
-    .end_color = white_2,
-    .start_at = 0.95,
-    .end_at = 1
-  };
-
-  C9_Gradient gray_1_shade = {
-    .start_color = gray_1,
-    .end_color = gray_2,
-    .start_at = 0.95,
-    .end_at = 1
-  };
-
   // Make sure we get multitouch events for scrolling
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 
@@ -78,8 +64,6 @@ i32 main() {
 
   // Initialize font
   if (init_font() < 0) return -1;
-
-  
 
   Arena *element_arena = arena_open(4096);
   // Root element
