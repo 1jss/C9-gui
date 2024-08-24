@@ -60,7 +60,7 @@ void create_home_element(Arena *arena) {
       .start_color = white,
       .end_color = white_2,
     },
-    .border = (Border){0, 4, 4, 0},
+    .border = (Border){2, 2, 2, 2},
     .corner_radius = 40,
     .border_color = border_color,
   };
@@ -73,7 +73,7 @@ void create_home_element(Arena *arena) {
       .start_color = white,
       .end_color = white_2,
     },
-    .border = (Border){0, 4, 4, 0},
+    .border = (Border){2, 2, 2, 2},
     .corner_radius = 40,
     .border_color = border_color,
   };

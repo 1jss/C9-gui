@@ -100,10 +100,12 @@ void create_form_element(Arena *arena) {
     .height = 30,
     .text = to_s8("Open overlay"),
     .text_color = white,
+    .text_align = text_align.center,
     .padding = (Padding){5, 10, 5, 10},
     .background_type = background_type.horizontal_gradient,
     .background_gradient = button_gradient,
     .corner_radius = 15,
+    .overflow = overflow_type.scroll_x,
     .on_click = &click_overlay_button,
   };
 

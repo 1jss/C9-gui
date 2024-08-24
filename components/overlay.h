@@ -19,6 +19,7 @@ void create_overlay_element(Arena *arena) {
     .background_type = background_type.color,
     .background_color = 0x00000080,
     .layout_direction = layout_direction.vertical,
+    .overflow = overflow_type.scroll,
     .padding = (Padding){20, 20, 20, 20},
     .gutter = 10,
   };
@@ -35,11 +36,15 @@ void create_overlay_element(Arena *arena) {
 
   Element *title_element = add_new_element(arena, card_element);
   *title_element = (Element){
-    .height = 40,
     .text = to_s8("Overlay Title"),
     .text_color = text_color,
-    .border = (Border){0, 0, 1, 0},
-    .border_color = border_color,
+  };
+
+  Element *hr_element = add_new_element(arena, card_element);
+  *hr_element = (Element){
+    .height = 1,
+    .background_type = background_type.color,
+    .background_color = border_color,
   };
 
   Element *content_element = add_new_element(arena, card_element);
@@ -57,6 +62,7 @@ void create_overlay_element(Arena *arena) {
     .corner_radius = 15,
     .text = to_s8("Close overlay"),
     .text_color = white,
+    .text_align = text_align.center,
     .on_click = &close_overlay,
   };
 }

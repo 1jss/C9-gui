@@ -22,19 +22,6 @@ const RerenderType rerender_type = {
   .selected = 2,
 };
 
-// Layout alignment
-typedef struct {
-  u8 start; // Starts at parent 0,0 or where sibling ends
-  u8 end; // Starts at x and y relative to parent 0,0
-  u8 spread; // Starts at x and y relative to global 0,0
-} LayoutAlign;
-
-const LayoutAlign layout_align = {
-  .start = 0,
-  .end = 1,
-  .spread = 2,
-};
-
 // Layout direction
 typedef struct {
   u8 horizontal;
@@ -76,6 +63,19 @@ const BackgroundType background_type = {
   .horizontal_gradient = 2,
   .vertical_gradient = 3,
   .image = 4,
+};
+
+// Text alignment
+typedef struct {
+  u8 start;
+  u8 center;
+  u8 end;
+} TextAlign;
+
+const TextAlign text_align = {
+  .start = 0,
+  .center = 1,
+  .end = 2,
 };
 
 // Forward declaration of ElementTree
@@ -150,6 +150,7 @@ typedef struct Element {
   u8 overflow;
   u8 element_tag; // Optional id or group id
   u8 background_type;
+  u8 text_align;
 } Element;
 
 Element empty_element = {
@@ -169,6 +170,7 @@ Element empty_element = {
   .min_height = 0,
   .gutter = 0,
   .text = {.data = 0, .length = 0},
+  .text_align = 0,
   .input = 0,
   .text_color = 0x000000FF,
   .on_click = 0,

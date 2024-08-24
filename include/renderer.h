@@ -160,11 +160,22 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     if (element->text.length > 0) {
       TTF_Font *font = get_font();
       SDL_Rect text_position = {
-        .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
-        .y = element_texture_rect.y + element->padding.top + element->layout.scroll_y,
+        .x = element->padding.left + element->layout.scroll_x,
+        .y = element->padding.top + element->layout.scroll_y,
         .w = element_texture_rect.w - element->padding.left - element->padding.right,
         .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
       };
+      // Apply text alignment
+      if (element->text_align != text_align.start) {
+        i32 text_width = 0;
+        TTF_SizeUTF8(font, to_char(element->text), &text_width, 0);
+        i32 extra_space = text_position.w - text_width;
+        if (extra_space > 0 && element->text_align == text_align.center) {
+          text_position.x += extra_space / 2;
+        } else if (extra_space > 0 && element->text_align == text_align.end) {
+          text_position.x += extra_space;
+        }
+      }
       draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
     } else if (element->input != 0) {
       TTF_Font *font = get_font();
