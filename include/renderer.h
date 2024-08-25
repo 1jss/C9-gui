@@ -134,25 +134,25 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
 
     if (element->background_type == background_type.color) {
       if (has_border(element->border)) {
-        draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_color);
+        draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background.color);
       } else {
-        draw_filled_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_color);
+        draw_filled_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background.color);
       }
     } else if (element->background_type == background_type.horizontal_gradient) {
       if (has_border(element->border)) {
-        draw_horizontal_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_gradient);
+        draw_horizontal_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background.gradient);
       } else {
-        draw_horizontal_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
+        draw_horizontal_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background.gradient);
       }
     } else if (element->background_type == background_type.vertical_gradient) {
       if (has_border(element->border)) {
-        draw_vertical_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background_gradient);
+        draw_vertical_gradient_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, element->background.gradient);
       } else {
-        draw_vertical_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background_gradient);
+        draw_vertical_gradient_rectangle(locked_element, element_texture_rect, element->corner_radius, element->background.gradient);
       }
     } else if (element->background_type == background_type.image) {
-      if (element->background_image.length > 0) {
-        draw_image(locked_element, to_char(element->background_image), element_texture_rect);
+      if (element->background.image.length > 0) {
+        draw_image(locked_element, to_char(element->background.image), element_texture_rect);
       }
     } else if (element->background_type == background_type.none && has_border(element->border)) {
       draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, 0);

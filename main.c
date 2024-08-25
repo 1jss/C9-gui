@@ -9,7 +9,7 @@
 #include "constants/element_tags.h" // content_panel_tag, search_panel_tag, side_panel_tag
 #include "include/arena.h" // Arena, arena_open, arena_close
 #include "include/color.h" // RGBA, C9_Gradient
-#include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, background_gradient, Border, Padding
+#include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, Border, Padding
 #include "include/event.h" // click_handler, blur_handler, input_handler, handle_events
 #include "include/font.h" // init_font, close_font
 #include "include/layout.h" //  get_min_width, get_min_height, set_dimensions, get_clickable_element_at, scroll_x, scroll_y
@@ -86,7 +86,7 @@ i32 main() {
   *top_left_panel = (Element){
     .width = 200,
     .background_type = background_type.horizontal_gradient,
-    .background_gradient = white_shade,
+    .background.gradient = white_shade,
     .border_color = border_color,
     .border = (Border){0, 1, 1, 0},
     .padding = (Padding){9, 9, 9, 9},
@@ -95,14 +95,14 @@ i32 main() {
   Element *top_left_logo = add_new_element(tree->arena, top_left_panel);
   *top_left_logo = (Element){
     .background_type = background_type.image,
-    .background_image = to_s8("C9_segment_small.png")
+    .background.image = to_s8("C9_segment_small.png")
   };
 
   Element *top_right_panel = add_new_element(tree->arena, top_panel);
   *top_right_panel = (Element){
     .element_tag = search_panel_tag,
     .background_type = background_type.color,
-    .background_color = white,
+    .background.color = white,
     .padding = (Padding){10, 10, 10, 10},
     .border_color = border_color,
     .border = (Border){0, 0, 1, 0},
@@ -113,7 +113,7 @@ i32 main() {
     .element_tag = side_panel_tag,
     .width = 200,
     .background_type = background_type.horizontal_gradient,
-    .background_gradient = gray_1_shade,
+    .background.gradient = gray_1_shade,
     .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
     .border_color = border_color,
@@ -126,7 +126,7 @@ i32 main() {
   *content_panel = (Element){
     .element_tag = content_panel_tag,
     .background_type = background_type.color,
-    .background_color = white,
+    .background.color = white,
   };
 
   // Fill content panel with home element
@@ -198,7 +198,8 @@ i32 main() {
     SDL_DestroyWindow(window);
   }
   SDL_StopTextInput();
-  // printf("Size of element_arena %zu\n", arena_size(element_arena));
+  // printf("Size of Element: %zu\n", sizeof(Element));
+  // printf("Size of element_arena %d\n", arena_size(element_arena));
   free_textures(tree->root);
   arena_close(element_arena);
   close_font();

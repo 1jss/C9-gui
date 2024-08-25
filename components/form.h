@@ -46,7 +46,7 @@ void click_content(ElementTree *tree, void *data) {
   Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   Element *panel_top_content = tree->active_element;
   if (panel_top_content != 0 && content_panel != 0) {
-    panel_top_content->background_color = gray_1;
+    panel_top_content->background.color = gray_1;
     bump_rerender(tree);
     tree->rerender_element = content_panel;
   }
@@ -61,7 +61,7 @@ void create_form_element(Arena *arena) {
   form_element = new_element(arena);
   *form_element = (Element){
     .background_type = background_type.color,
-    .background_color = white,
+    .background.color = white,
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
     .padding = (Padding){10, 10, 10, 10},
@@ -71,7 +71,7 @@ void create_form_element(Arena *arena) {
   Element *content_panel_top = add_new_element(arena, form_element);
   *content_panel_top = (Element){
     .background_type = background_type.color,
-    .background_color = gray_2,
+    .background.color = gray_2,
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
   };
@@ -79,7 +79,7 @@ void create_form_element(Arena *arena) {
   Element *content_panel_bottom = add_new_element(arena, form_element);
   *content_panel_bottom = (Element){
     .background_type = background_type.color,
-    .background_color = gray_2,
+    .background.color = gray_2,
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
@@ -90,7 +90,7 @@ void create_form_element(Arena *arena) {
     .width = 100,
     .height = 600,
     .background_type = background_type.color,
-    .background_color = white,
+    .background.color = white,
     .corner_radius = 15,
     .on_click = &click_content,
   };
@@ -103,7 +103,7 @@ void create_form_element(Arena *arena) {
     .text_align = text_align.center,
     .padding = (Padding){5, 10, 5, 10},
     .background_type = background_type.horizontal_gradient,
-    .background_gradient = button_gradient,
+    .background.gradient = button_gradient,
     .corner_radius = 15,
     .overflow = overflow_type.scroll_x,
     .on_click = &click_overlay_button,
@@ -113,7 +113,7 @@ void create_form_element(Arena *arena) {
   *text_input = (Element){
     .height = 30,
     .background_type = background_type.color,
-    .background_color = white,
+    .background.color = white,
     .padding = (Padding){5, 10, 5, 10},
     .corner_radius = 15,
     .border_color = border_color,

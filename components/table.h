@@ -46,17 +46,22 @@ void create_table_element(Arena *arena) {
   // background_type row
   add_cell(arena, type_column, "u8");
   add_cell(arena, name_column, "background_type");
-  add_cell(arena, description_column, "color, horizontal_gradient, vertical_gradient");
+  add_cell(arena, description_column, "none, color, gradient, image");
 
-  // background_color row
+  // background.color row
   add_cell(arena, type_column, "RGBA");
-  add_cell(arena, name_column, "background_color");
+  add_cell(arena, name_column, "background.color");
   add_cell(arena, description_column, "used if background_type is color");
 
-  // background_gradient row
+  // background.gradient row
   add_cell(arena, type_column, "C9_Gradient");
-  add_cell(arena, name_column, "background_gradient");
+  add_cell(arena, name_column, "background.gradient");
   add_cell(arena, description_column, "used if background_type is gradient");
+
+  // background.image row
+  add_cell(arena, type_column, "s8");
+  add_cell(arena, name_column, "background.image");
+  add_cell(arena, description_column, "used if background_type is image");
 
   // width row
   add_cell(arena, type_column, "i32");
@@ -87,6 +92,11 @@ void create_table_element(Arena *arena) {
   add_cell(arena, type_column, "s8");
   add_cell(arena, name_column, "text");
   add_cell(arena, description_column, "text label");
+
+  // text_align row
+  add_cell(arena, type_column, "u8");
+  add_cell(arena, name_column, "text_align");
+  add_cell(arena, description_column, "left, center, right");
 
   // input row
   add_cell(arena, type_column, "InputData*");
@@ -153,6 +163,11 @@ void create_table_element(Arena *arena) {
   add_cell(arena, name_column, "layout");
   add_cell(arena, description_column, "props set by the layout engine");
 
+  // render row
+  add_cell(arena, type_column, "RenderProps");
+  add_cell(arena, name_column, "render");
+  add_cell(arena, description_column, "cache for renderer");
+  
   set_table_style(table_element);
 }
 

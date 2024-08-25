@@ -17,7 +17,7 @@ void create_overlay_element(Arena *arena) {
   overlay_element = new_element(arena);
   *overlay_element = (Element){
     .background_type = background_type.color,
-    .background_color = 0x00000080,
+    .background.color = 0x00000080,
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll,
     .padding = (Padding){20, 20, 20, 20},
@@ -27,7 +27,7 @@ void create_overlay_element(Arena *arena) {
   Element *card_element = add_new_element(arena, overlay_element);
   *card_element = (Element){
     .background_type = background_type.color,
-    .background_color = white,
+    .background.color = white,
     .corner_radius = 35,
     .padding = (Padding){20, 20, 20, 20},
     .gutter = 20,
@@ -44,7 +44,7 @@ void create_overlay_element(Arena *arena) {
   *hr_element = (Element){
     .height = 1,
     .background_type = background_type.color,
-    .background_color = border_color,
+    .background.color = border_color,
   };
 
   Element *content_element = add_new_element(arena, card_element);
@@ -57,7 +57,7 @@ void create_overlay_element(Arena *arena) {
   *close_button = (Element){
     .height = 30,
     .background_type = background_type.horizontal_gradient,
-    .background_gradient = button_gradient,
+    .background.gradient = button_gradient,
     .padding = (Padding){5, 10, 5, 10},
     .corner_radius = 15,
     .text = to_s8("Close overlay"),

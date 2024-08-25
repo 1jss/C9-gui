@@ -46,18 +46,20 @@ An element is a struct that contains all the properties of a child. The structur
 | `u8`          | `overflow`            | contain or scroll children          |
 | `u8`          | `layout_direction`    | direction of flex layout            |
 | `u8`          | `background_type`     | none, color, gradient, image        |
-| `RGBA`        | `background_color`    | used if background_type is color    |
-| `C9_Gradient` | `background_gradient` | used if background_type is gradient |
-| `s8`          | `background_image`    | used if background_type is image    |
+| `RGBA`        | `background.color`    | used if background_type is color    |
+| `C9_Gradient` | `background.gradient` | used if background_type is gradient |
+| `s8`          | `background.image`    | used if background_type is image    |
 | `RGBA`        | `text_color`          | color of rendered text              |
 | `RGBA`        | `border_color`        | color of border                     |
 | `s8`          | `text`                | text label                          |
+| `u8`          | `text_align`          | horizontal text alignment           |
 | `InputData*`  | `input`               | text input object (new_input)       |
 | `Array*`      | `children`            | flexible array of child elements    |
 | `OnEvent`     | `on_click`            | function pointer called on click    |
 | `OnEvent`     | `on_blur`             | function pointer called on blur     |
 | `OnEvent`     | `on_key_press`        | function pointer called on input    |
 | `LayoutProps` | `layout`              | props set by the layout engine      |
+| `RenderProps` | `render`              | texture cache for the renderer      |
 
 New elements can be created in two ways. Either as children of an existing element(`add_new_element`) or as a standalone element(`new_element`). The standalone element can then dynamically be added to an element in the tree by calling `add_element`.
 

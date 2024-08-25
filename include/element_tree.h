@@ -86,6 +86,7 @@ typedef struct ElementTree ElementTree;
 // The function takes a pointer to the ElementTree and a void pointer to optional event data
 typedef void (*OnEvent)(ElementTree *, void *);
 
+// In most cases an i16 is enough, but for rendering very long documents an i32 is needed.
 typedef struct {
   i32 x;
   i32 y;
@@ -127,9 +128,12 @@ typedef struct {
 typedef struct Element {
   LayoutProps layout; // Props set by the layout engine
   RenderProps render; // Cache for renderer
-  C9_Gradient background_gradient;
+  union {
+    RGBA color;
+    C9_Gradient gradient;
+    s8 image;
+  } background;
   s8 text;
-  s8 background_image;
   Padding padding;
   Border border;
   InputData *input;
@@ -143,27 +147,19 @@ typedef struct Element {
   i32 min_height;
   i32 gutter;
   i32 corner_radius;
-  RGBA background_color;
   RGBA border_color;
   RGBA text_color;
   u8 layout_direction;
   u8 overflow;
   u8 element_tag; // Optional id or group id
-  u8 background_type;
+  u8 background_type; // Key for background union
   u8 text_align;
 } Element;
 
 Element empty_element = {
   .element_tag = 0,
   .background_type = 0, // No background color
-  .background_color = 0xFFFFFFFF,
-  .background_gradient = {
-    .start_color = 0xFFFFFFFF,
-    .end_color = 0xFFFFFFFF,
-    .start_at = 0,
-    .end_at = 1,
-  },
-  .background_image = {.data = 0, .length = 0},
+  .background.color = 0xFFFFFFFF,
   .width = 0,
   .height = 0,
   .min_width = 0,

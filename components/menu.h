@@ -95,7 +95,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
   Element *menu_item = add_new_element(arena, side_panel);
   *menu_item = (Element){
     .background_type = background_type.none,
-    .background_color = menu_active_color,
+    .background.color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .corner_radius = 15,
     .text = to_s8("Border"),
@@ -106,7 +106,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
   Element *menu_item_2 = add_new_element(arena, side_panel);
   *menu_item_2 = (Element){
     .background_type = background_type.none,
-    .background_color = menu_active_color,
+    .background.color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .corner_radius = 15,
     .text = to_s8("Input"),
@@ -117,7 +117,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
   Element *menu_item_3 = add_new_element(arena, side_panel);
   *menu_item_3 = (Element){
     .background_type = background_type.none,
-    .background_color = menu_active_color,
+    .background.color = menu_active_color,
     .padding = (Padding){5, 10, 5, 10},
     .corner_radius = 15,
     .text = to_s8("Table"),
