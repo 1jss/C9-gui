@@ -10,6 +10,7 @@ C9 gui is a performant and flexible GUI library built on SDL2. C9 gui primarily 
 - Image backgrounds (png, jpg, bmp)
 - Event handling (click, blur, key press)
 - Layout engine (flex or scroll children in any direction)
+- Lazy loading of elements outside of window
 - Text rendering (TTF)
 - Easy table layout (with automatic column sizing)
 - Text input (single line with selection and undo history)

@@ -165,14 +165,8 @@ i32 main() {
       tree->rerender = rerender_type.none;
       tree->rerender_element = 0;
     } else if (tree->rerender == rerender_type.selected && tree->rerender_element != 0) {
-      SDL_Rect target_rectangle = {
-        .x = tree->rerender_element->layout.x,
-        .y = tree->rerender_element->layout.y,
-        .w = tree->rerender_element->layout.max_width,
-        .h = tree->rerender_element->layout.max_height,
-      };
       SDL_SetRenderTarget(renderer, tree->target_texture);
-      draw_elements(renderer, tree->rerender_element, target_rectangle, tree->active_element);
+      render_selected_element(renderer, tree);
       // Draw target_texture to back buffer and present
       SDL_SetRenderTarget(renderer, NULL);
       SDL_RenderCopy(renderer, tree->target_texture, NULL, NULL);

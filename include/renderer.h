@@ -11,7 +11,7 @@
 #include "types.h" // i32
 
 // Recursively draws all elements
-void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element) {
+void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element, SDL_Rect window_rect) {
   // Rectangle that covers the entire element texture
   SDL_Rect element_texture_rect = {
     .x = 0,
@@ -27,6 +27,11 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     .w = element->layout.max_width,
     .h = element->layout.max_height,
   };
+
+  // Lazy load elements outside of the window
+  if (element->render.texture == 0 && (element_rect.x > window_rect.w || element_rect.y > window_rect.h)) {
+    return;
+  }
 
   // Target left edge (where to copy to)
   i32 target_left_edge = 0;
@@ -233,7 +238,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
 
   for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, child, element_cutout_rect, active_element);
+    draw_elements(renderer, child, element_cutout_rect, active_element, window_rect);
   }
 
   // Draw a scrollbar if the element has Y overflow
@@ -286,9 +291,26 @@ void render_element_tree(SDL_Renderer *renderer, ElementTree *tree) {
   SDL_Rect target_rectangle = {0, 0, 0, 0};
   // Get the width and height of the target texture
   SDL_QueryTexture(tree->target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
-  draw_elements(renderer, tree->root, target_rectangle, tree->active_element);
+  draw_elements(renderer, tree->root, target_rectangle, tree->active_element, target_rectangle);
   if (tree->overlay != 0) {
-    draw_elements(renderer, tree->overlay, target_rectangle, tree->active_element);
+    draw_elements(renderer, tree->overlay, target_rectangle, tree->active_element, target_rectangle);
+  }
+}
+
+void render_selected_element(SDL_Renderer *renderer, ElementTree *tree) {
+  if (tree->rerender_element != 0) {
+    SDL_Rect target_rectangle = {
+      .x = tree->rerender_element->layout.x,
+      .y = tree->rerender_element->layout.y,
+      .w = tree->rerender_element->layout.max_width,
+      .h = tree->rerender_element->layout.max_height,
+    };
+    // Skip lazy loading as element is intentionally rerendered
+    SDL_Rect window_rect = {
+      .w = target_rectangle.x + target_rectangle.w,
+      .h = target_rectangle.y + target_rectangle.h,
+    };
+    draw_elements(renderer, tree->rerender_element, target_rectangle, tree->active_element, window_rect);
   }
 }
 
