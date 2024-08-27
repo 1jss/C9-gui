@@ -154,6 +154,7 @@ typedef struct Element {
   u8 element_tag; // Optional id or group id
   u8 background_type; // Key for background union
   u8 text_align;
+  u8 font_variant;
 } Element;
 
 Element empty_element = {
@@ -167,6 +168,7 @@ Element empty_element = {
   .gutter = 0,
   .text = {.data = 0, .length = 0},
   .text_align = 0,
+  .font_variant = 0,
   .input = 0,
   .text_color = 0x000000FF,
   .on_click = 0,

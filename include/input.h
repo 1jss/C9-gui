@@ -7,7 +7,7 @@
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "string.h" // s8, new_string, insert_into_string, delete_from_string, string_from_substring
-#include "font.h" // get_font
+#include "font.h" // get_font, font_variant
 #include "status.h" // status
 #include "types.h" // u8, i32
 
@@ -486,7 +486,7 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 void set_selection(InputData *input, i32 relative_mouse_x_position) {
   i32 *start_index = &input->selection.start_index;
   i32 *end_index = &input->selection.end_index;
-  TTF_Font *font = get_font();
+  TTF_Font *font = get_font(font_variant.regular);
   if (relative_mouse_x_position <= 0) {
     *start_index = 0;
     *end_index = 0;
@@ -510,7 +510,7 @@ void set_selection(InputData *input, i32 relative_mouse_x_position) {
 // Set selection end based on mouse position
 void set_selection_end(InputData *input, i32 relative_mouse_x_position) {
   i32 *end_index = &input->selection.end_index;
-  TTF_Font *font = get_font();
+  TTF_Font *font = get_font(font_variant.regular);
   if (relative_mouse_x_position <= 0) {
     *end_index = 0;
   } else {
@@ -533,7 +533,7 @@ void select_word(InputData *input, i32 relative_mouse_x_position) {
   i32 *start_index = &input->selection.start_index;
   i32 *end_index = &input->selection.end_index;
   char *text_data = (char *)input->text.data;
-  TTF_Font *font = get_font();
+  TTF_Font *font = get_font(font_variant.regular);
   i32 character_count = 0;
   i32 character_width = 0;
   TTF_MeasureUTF8(font, text_data, relative_mouse_x_position, &character_width, &character_count);

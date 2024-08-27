@@ -3,6 +3,7 @@
 #include "../constants/color_theme.h" // white
 #include "../include/arena.h" // Arena
 #include "../include/element_tree.h" // Element, add_new_element, new_element, background_type, layout_direction, Padding, ElementTree
+#include "../include/font.h" // font_variant
 #include "../include/layout.h" // set_overlay_dimensions
 
 Element *overlay_element = 0;
@@ -21,7 +22,6 @@ void create_overlay_element(Arena *arena) {
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll,
     .padding = (Padding){20, 20, 20, 20},
-    .gutter = 10,
   };
 
   Element *card_element = add_new_element(arena, overlay_element);
@@ -30,32 +30,26 @@ void create_overlay_element(Arena *arena) {
     .background.color = white,
     .corner_radius = 35,
     .padding = (Padding){20, 20, 20, 20},
-    .gutter = 20,
     .layout_direction = layout_direction.vertical,
+    .overflow = overflow_type.scroll_y,
   };
 
   Element *title_element = add_new_element(arena, card_element);
   *title_element = (Element){
     .text = to_s8("Overlay Title"),
     .text_color = text_color,
-  };
-
-  Element *hr_element = add_new_element(arena, card_element);
-  *hr_element = (Element){
-    .height = 1,
-    .background_type = background_type.color,
-    .background.color = border_color,
+    .font_variant = font_variant.large,
   };
 
   Element *content_element = add_new_element(arena, card_element);
   *content_element = (Element){
     .text = to_s8("Some explaining text"),
     .text_color = text_color,
+    .padding = (Padding){10, 0, 20, 0},
   };
 
   Element *close_button = add_new_element(arena, card_element);
   *close_button = (Element){
-    .height = 30,
     .background_type = background_type.horizontal_gradient,
     .background.gradient = button_gradient,
     .padding = (Padding){5, 10, 5, 10},
@@ -64,6 +58,7 @@ void create_overlay_element(Arena *arena) {
     .text_color = white,
     .text_align = text_align.center,
     .on_click = &close_overlay,
+    .font_variant = font_variant.bold,
   };
 }
 

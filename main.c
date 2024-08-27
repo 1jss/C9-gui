@@ -12,8 +12,8 @@
 #include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, Border, Padding
 #include "include/event.h" // click_handler, blur_handler, input_handler, handle_events
 #include "include/font.h" // init_font, close_font
-#include "include/layout.h" //  get_min_width, get_min_height, set_dimensions, get_clickable_element_at, scroll_x, scroll_y
-#include "include/renderer.h" // render_element_tree
+#include "include/layout.h" // set_dimensions
+#include "include/renderer.h" // render_element_tree, render_selected_element
 #include "include/types.h" // i32
 
 i32 main() {
@@ -63,7 +63,7 @@ i32 main() {
   SDL_RenderPresent(renderer);
 
   // Initialize font
-  if (init_font() < 0) return -1;
+  if (init_font() == status.ERROR) return -1;
 
   Arena *element_arena = arena_open(4096);
   // Root element

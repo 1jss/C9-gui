@@ -163,7 +163,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, 0);
     }
     if (element->text.length > 0) {
-      TTF_Font *font = get_font();
+      TTF_Font *font = get_font(element->font_variant);
       SDL_Rect text_position = {
         .x = element->padding.left + element->layout.scroll_x,
         .y = element->padding.top + element->layout.scroll_y,
@@ -183,7 +183,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       }
       draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
     } else if (element->input != 0) {
-      TTF_Font *font = get_font();
+      TTF_Font *font = get_font(font_variant.regular);
       SDL_Rect text_position = {
         .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
         .y = element_texture_rect.y + element->padding.top,

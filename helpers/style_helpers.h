@@ -3,6 +3,7 @@
 #include "../constants/color_theme.h" // border_color, border_color_active, text_color, text_color_active
 #include "../include/element_tree.h" // Element
 #include "../include/types.h" // i32
+#include "../include/font.h" // font_variant
 
 void set_active_input_style(Element *element) {
   element->border_color = border_color_active;
@@ -18,6 +19,7 @@ void table_title_style(Element *element) {
   element->background_type = background_type.color;
   element->background.color = gray_1;
   element->corner_radius = 15;
+  element->font_variant = font_variant.bold;
   element->padding = (Padding){5, 10, 5, 10};
 }
 

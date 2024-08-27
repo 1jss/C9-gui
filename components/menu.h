@@ -22,6 +22,7 @@ void reset_menu_elements(Element *side_panel) {
     Element *child = array_get(children, i);
     child->background_type = background_type.none;
     child->text_color = text_color;
+    child->font_variant = font_variant.regular;
     child->render.changed = 1;
   }
 }
@@ -29,6 +30,7 @@ void reset_menu_elements(Element *side_panel) {
 void set_active_menu_element(Element *element) {
   element->background_type = background_type.color;
   element->text_color = text_color_active;
+  element->font_variant = font_variant.bold;
 }
 
 void set_menu(ElementTree *tree) {
@@ -101,6 +103,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
     .text = to_s8("Border"),
     .text_color = text_color,
     .on_click = &click_item_1,
+    .font_variant = font_variant.bold,
   };
 
   Element *menu_item_2 = add_new_element(arena, side_panel);

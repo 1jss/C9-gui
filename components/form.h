@@ -41,17 +41,6 @@ void on_text_input(ElementTree *tree, void *data) {
   }
 }
 
-void click_content(ElementTree *tree, void *data) {
-  (void)data;
-  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
-  Element *panel_top_content = tree->active_element;
-  if (panel_top_content != 0 && content_panel != 0) {
-    panel_top_content->background.color = gray_1;
-    bump_rerender(tree);
-    tree->rerender_element = content_panel;
-  }
-}
-
 void click_overlay_button(ElementTree *tree, void *data) {
   (void)data;
   open_overlay(tree);
@@ -76,45 +65,12 @@ void create_form_element(Arena *arena) {
     .padding = (Padding){10, 10, 10, 10},
   };
 
-  Element *content_panel_bottom = add_new_element(arena, form_element);
-  *content_panel_bottom = (Element){
-    .background_type = background_type.color,
-    .background.color = gray_2,
-    .corner_radius = 25,
-    .padding = (Padding){10, 10, 10, 10},
-    .gutter = 10,
-  };
-
-  Element *color_change_bar = add_new_element(arena, content_panel_bottom);
-  *color_change_bar = (Element){
-    .width = 100,
-    .height = 600,
-    .background_type = background_type.color,
-    .background.color = white,
-    .corner_radius = 15,
-    .on_click = &click_content,
-  };
-
-  Element *open_overlay_button = add_new_element(arena, content_panel_bottom);
-  *open_overlay_button = (Element){
-    .height = 30,
-    .text = to_s8("Open overlay"),
-    .text_color = white,
-    .text_align = text_align.center,
-    .padding = (Padding){5, 10, 5, 10},
-    .background_type = background_type.horizontal_gradient,
-    .background.gradient = button_gradient,
-    .corner_radius = 15,
-    .overflow = overflow_type.scroll_x,
-    .on_click = &click_overlay_button,
-  };
-
   Element *text_input = add_new_element(arena, content_panel_top);
   *text_input = (Element){
     .height = 30,
     .background_type = background_type.color,
     .background.color = white,
-    .padding = (Padding){5, 10, 5, 10},
+    .padding = (Padding){6, 10, 6, 10},
     .corner_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
@@ -124,6 +80,32 @@ void create_form_element(Arena *arena) {
     .on_blur = &blur_text_input,
     .on_key_press = &on_text_input,
   };
+
+  Element *content_panel_bottom = add_new_element(arena, form_element);
+  *content_panel_bottom = (Element){
+    .background_type = background_type.color,
+    .background.color = gray_2,
+    .corner_radius = 25,
+    .padding = (Padding){10, 10, 10, 10},
+    .gutter = 10,
+    .layout_direction = layout_direction.vertical,
+    .overflow = overflow_type.scroll_y,
+  };
+
+  Element *open_overlay_button = add_new_element(arena, content_panel_bottom);
+  *open_overlay_button = (Element){
+    .text = to_s8("Open overlay"),
+    .text_color = white,
+    .text_align = text_align.center,
+    .padding = (Padding){5, 10, 5, 10},
+    .background_type = background_type.horizontal_gradient,
+    .background.gradient = button_gradient,
+    .corner_radius = 15,
+    .overflow = overflow_type.scroll_x,
+    .on_click = &click_overlay_button,
+    .font_variant = font_variant.bold,
+  };
+
 }
 
 #define FORM_COMPONENT

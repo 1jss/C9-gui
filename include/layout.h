@@ -30,20 +30,20 @@ i32 fill_scroll_width(Element *element) {
       // Vertical layout uses largest width
       else {
         i32 current_child_width = fill_scroll_width(child);
-        if (child_width < current_child_width) {
+        if (current_child_width + element_padding > child_width) {
           child_width = current_child_width + element_padding;
         }
       }
     }
   } else if (element->text.length != 0) {
-    TTF_Font *font = get_font();
+    TTF_Font *text_font = get_font(element->font_variant);
     i32 text_w = 0;
-    TTF_SizeUTF8(font, (char *)element->text.data, &text_w, NULL);
+    TTF_SizeUTF8(text_font, (char *)element->text.data, &text_w, NULL);
     child_width += text_w;
   } else if (element->input != 0) {
-    TTF_Font *font = get_font();
+    TTF_Font *input_font = get_font(font_variant.regular);
     i32 text_w = 0;
-    TTF_SizeUTF8(font, (char *)element->input->text.data, &text_w, NULL);
+    TTF_SizeUTF8(input_font, (char *)element->input->text.data, &text_w, NULL);
     if (text_w > 0) {
       child_width += text_w + 1; // Add 1 for cursor
     } else {
@@ -55,12 +55,12 @@ i32 fill_scroll_width(Element *element) {
     }
     // Make sure scroll is decresed when text is subtracted
     else if (child_width > element->layout.max_width &&
-        child_width + element->layout.scroll_x < element->layout.max_width) {
+             child_width + element->layout.scroll_x < element->layout.max_width) {
       element->layout.scroll_x = element->layout.max_width - child_width;
     }
     // Scroll to end if cursor is at the end and outside of view
     else if (child_width + element->layout.scroll_x > element->layout.max_width &&
-        element->input->selection.end_index == element->input->text.length) {
+             element->input->selection.end_index == element->input->text.length) {
       element->layout.scroll_x = element->layout.max_width - child_width;
     }
   }
@@ -96,15 +96,13 @@ i32 fill_scroll_height(Element *element) {
       // Horizontal layout uses largest height
       else {
         i32 current_child_height = fill_scroll_height(child);
-        if (child_height < current_child_height) {
+        if (current_child_height + element_padding > child_height) {
           child_height = current_child_height + element_padding;
         }
       }
     }
   } else if (element->text.length != 0) {
-    TTF_Font *font = get_font();
-    i32 text_h;
-    TTF_SizeUTF8(font, (char *)element->text.data, NULL, &text_h);
+    i32 text_h = get_font_height(element->font_variant);
     child_height += text_h;
   }
   if (child_height > self_height) {
@@ -283,7 +281,7 @@ i32 set_y(Element *element, i32 y) {
 }
 
 // Sets dimensions for a root element
-void set_root_element_dimensions(Element *element, i32 window_width, i32 window_height){
+void set_root_element_dimensions(Element *element, i32 window_width, i32 window_height) {
   if (element != 0) {
     fill_scroll_width(element);
     fill_scroll_height(element);
@@ -297,7 +295,7 @@ void set_root_element_dimensions(Element *element, i32 window_width, i32 window_
 // Loop through element tree and set LayoutProp dimensions
 void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
   set_root_element_dimensions(tree->root, window_width, window_height);
-  if(tree->overlay != 0) {
+  if (tree->overlay != 0) {
     set_root_element_dimensions(tree->overlay, window_width, window_height);
   }
 }
