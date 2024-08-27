@@ -104,9 +104,6 @@ Running:
 
 ## Todo
 - Mac .app packaging
-- Popup layer
-- Text sizes
-- Bold font
 - To-Done example app
 - Multiline text input
   - Piece table?
