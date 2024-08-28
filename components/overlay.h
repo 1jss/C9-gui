@@ -26,12 +26,14 @@ void create_overlay_element(Arena *arena) {
 
   Element *card_element = add_new_element(arena, overlay_element);
   *card_element = (Element){
+    .width = 200,
     .background_type = background_type.color,
     .background.color = white,
     .corner_radius = 35,
     .padding = (Padding){20, 20, 20, 20},
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
+    .gutter = 10,
   };
 
   Element *title_element = add_new_element(arena, card_element);
@@ -43,9 +45,17 @@ void create_overlay_element(Arena *arena) {
 
   Element *content_element = add_new_element(arena, card_element);
   *content_element = (Element){
-    .text = to_s8("Some explaining text"),
+    .text = to_s8("Some bold statement"),
     .text_color = text_color,
-    .padding = (Padding){10, 0, 20, 0},
+    .font_variant = font_variant.bold,
+  };
+
+  Element *more_text = add_new_element(arena, card_element);
+  *more_text = (Element){
+    .text = to_s8("This is a multiline text that does not scroll horizontally but reflows to the next line."),
+    .text_color = text_color,
+    .padding = (Padding){.bottom = 10},
+    .overflow = overflow_type.contain,
   };
 
   Element *close_button = add_new_element(arena, card_element);

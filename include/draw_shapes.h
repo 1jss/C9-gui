@@ -12,6 +12,7 @@
 typedef struct {
   RGBA *pixels;
   i32 width;
+  i32 height;
 } PixelData;
 
 void renderer_draw_image(SDL_Renderer *renderer, char *image_url, SDL_Rect image_position) {
@@ -59,6 +60,34 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
           RGBA target_pixel = target.pixels[(text_position.y + y) * target.width + text_position.x + x];
           RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
           target.pixels[(text_position.y + y) * target.width + text_position.x + x] = blended_pixel;
+        }
+      }
+    }
+    SDL_UnlockSurface(surface);
+    SDL_FreeSurface(surface);
+  }
+}
+
+void draw_text_wrapped(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position, Padding padding) {
+  // Check if text has any content
+  if (text[0] != '\0') {
+    SDL_Color text_base_color = {red(color), green(color), blue(color), alpha(color)};
+    SDL_Surface *surface = TTF_RenderUTF8_Blended_Wrapped(font, text, text_base_color, text_position.w);
+    SDL_LockSurface(surface);
+    // Loop over text pixels
+    for (i32 x = 0; x < surface->w; x++) {
+      // Check if we're inside the target bounds
+      if (x < target.width && text_position.x + x >= padding.left && text_position.x + x < text_position.w + padding.left) {
+        for (i32 y = 0; y < surface->h; y++) {
+          // Check if we're inside the target bounds
+          if (y < target.height) {
+            // Get the pixel color from the text surface
+            u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
+            RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
+            RGBA target_pixel = target.pixels[(text_position.y + y) * target.width + text_position.x + x];
+            RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
+            target.pixels[(text_position.y + y) * target.width + text_position.x + x] = blended_pixel;
+          }
         }
       }
     }

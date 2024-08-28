@@ -5,9 +5,124 @@
 #include "array.h" // Array
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
+#include "string.h" // s8
 #include "types.h" // i32
 
-// Recursively sets width of an element
+// Recursively sets maximum width of an element
+void fill_max_width(Element *element, i32 max_width) {
+  if (element->width == 0) {
+    element->layout.max_width = max_width;
+  } else {
+    element->layout.max_width = element->width;
+    max_width = element->width;
+  }
+
+  Array *children = element->children;
+  if (children != 0) {
+    i32 element_padding = element->padding.left + element->padding.right;
+    i32 child_width = 0;
+
+    // Only enforce max on non scrolling children
+    if (element->overflow != overflow_type.scroll && element->overflow != overflow_type.scroll_x) {
+      child_width = max_width - element_padding;
+      // How many children have flexible width
+      if (element->layout_direction == layout_direction.horizontal) {
+        i32 split_count = 0;
+        for (i32 i = 0; i < array_length(children); i++) {
+          Element *child = array_get(children, i);
+          if (child->width == 0) {
+            split_count++;
+          } else {
+            child_width -= child->width;
+          }
+          if (i != 0) {
+            child_width -= element->gutter;
+          }
+        }
+        if (child_width < 0) {
+          child_width = 0;
+        }
+        // Split width between children
+        if (split_count > 0) {
+          child_width = child_width / split_count;
+        }
+      }
+      if (child_width < 0) {
+        child_width = 0;
+      }
+    }
+
+    // Set new width for children
+    for (i32 i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      fill_max_width(child, child_width);
+    }
+  }
+}
+
+// Recursively sets maximum height of an element
+void fill_max_height(Element *element, i32 max_height) {
+  if (element->height == 0) {
+    element->layout.max_height = max_height;
+  } else {
+    element->layout.max_height = element->height;
+    max_height = element->height;
+  }
+
+  Array *children = element->children;
+  if (children != 0) {
+    i32 element_padding = element->padding.top + element->padding.bottom;
+    i32 child_height = 0;
+
+    // Only enforce max on non scrolling children
+    if (element->overflow != overflow_type.scroll && element->overflow != overflow_type.scroll_y) {
+      child_height = max_height - element_padding;
+      // How many children have flexible height
+      if (element->layout_direction == layout_direction.vertical) {
+        i32 split_count = 0;
+        for (i32 i = 0; i < array_length(children); i++) {
+          Element *child = array_get(children, i);
+          if (child->height == 0) {
+            split_count++;
+          } else {
+            child_height -= child->height;
+          }
+          if (i != 0) {
+            child_height -= element->gutter;
+          }
+        }
+        if (child_height < 0) {
+          child_height = 0;
+        }
+        // Split height between children
+        if (split_count > 0) {
+          child_height = child_height / split_count;
+        }
+      }
+      if (child_height < 0) {
+        child_height = 0;
+      }
+    }
+
+    // Set new height for children
+    for (i32 i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      fill_max_height(child, child_height);
+    }
+  }
+}
+
+// Check if a string contains a newline character
+bool contains_newline(s8 text) {
+  for (i32 i = 0; i < text.length; i++) {
+    if (text.data[i] == '\n') {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Recursively sets scroll width of an element
 i32 fill_scroll_width(Element *element) {
   i32 self_width = element->width;
   if (self_width == 0) {
@@ -39,7 +154,20 @@ i32 fill_scroll_width(Element *element) {
     TTF_Font *text_font = get_font(element->font_variant);
     i32 text_w = 0;
     TTF_SizeUTF8(text_font, (char *)element->text.data, &text_w, NULL);
-    child_width += text_w;
+    if (element->layout.max_width > 0 &&
+        element->overflow != overflow_type.scroll &&
+        element->overflow != overflow_type.scroll_x &&
+        (text_w + element_padding > element->layout.max_width || contains_newline(element->text))) {
+      SDL_Color color = {0, 0, 0, 0};
+      SDL_Surface *test_render = TTF_RenderUTF8_Solid_Wrapped(text_font, (char *)element->text.data, color, element->layout.max_width - element_padding);
+      child_width = element->layout.max_width;
+      // This also affects the height of the element
+      element->layout.scroll_height = test_render->h + element->padding.top + element->padding.bottom;
+      SDL_FreeSurface(test_render);
+    } else {
+      child_width += text_w;
+      element->layout.scroll_height = 0;
+    }
   } else if (element->input != 0) {
     TTF_Font *input_font = get_font(font_variant.regular);
     i32 text_w = 0;
@@ -73,7 +201,7 @@ i32 fill_scroll_width(Element *element) {
   }
 }
 
-// Recursively sets height of an element
+// Recursively sets scroll height of an element
 i32 fill_scroll_height(Element *element) {
   i32 self_height = element->height;
   if (self_height == 0) {
@@ -104,6 +232,10 @@ i32 fill_scroll_height(Element *element) {
   } else if (element->text.length != 0) {
     i32 text_h = get_font_height(element->font_variant);
     child_height += text_h;
+    // This can already be set by fill_scroll_width if the text is multiline
+    if (element->layout.scroll_height > child_height) {
+      child_height = element->layout.scroll_height;
+    }
   }
   if (child_height > self_height) {
     element->layout.scroll_height = child_height;
@@ -114,122 +246,44 @@ i32 fill_scroll_height(Element *element) {
   }
 }
 
-// Increases width of an element and it's children to fill the parent
-void fill_max_width(Element *element, i32 max_width) {
-  if (element->width == 0) {
-    element->layout.max_width = max_width;
-  } else {
-    element->layout.max_width = element->width;
-    max_width = element->width;
+// Sets the max width and height of all scrolled elements
+void grow_scroll(Element *element) {
+  if (element->layout.max_height == 0) {
+    element->layout.max_height = element->layout.scroll_height;
   }
-
-  // Cap scroll if it's out of bounds
-  if (element->layout.scroll_x < 0 &&
-      element->layout.scroll_width + element->layout.scroll_x < max_width) {
-    element->layout.scroll_x = element->layout.max_width - element->layout.scroll_width;
+  if (element->layout.max_width == 0) {
+    element->layout.max_width = element->layout.scroll_width;
   }
-  if (element->layout.scroll_x > 0) {
-    element->layout.scroll_x = 0;
-  }
-
   Array *children = element->children;
   if (children != 0) {
-    i32 element_padding = element->padding.left + element->padding.right;
-    i32 child_width = max_width - element_padding;
-
-    if (element->layout_direction == layout_direction.horizontal) {
-      // How many children have flexible width
-      i32 split_count = 0;
-      for (i32 i = 0; i < array_length(children); i++) {
-        Element *child = array_get(children, i);
-        if (child->width == 0) {
-          split_count++;
-        } else {
-          child_width -= child->width;
-        }
-        if (i != 0) {
-          child_width -= element->gutter;
-        }
-      }
-      if (child_width < 0) {
-        child_width = 0;
-      }
-      // Split width between children
-      if (split_count > 0) {
-        child_width = child_width / split_count;
-      }
-    }
-
-    // Set new width for children
     for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      if (element->overflow == overflow_type.scroll ||
-          element->overflow == overflow_type.scroll_x) {
-        // scroll_width is either width of children or min_width
-        fill_max_width(child, child->layout.scroll_width);
-      } else {
-        fill_max_width(child, child_width);
-      }
+      grow_scroll(child);
     }
   }
 }
 
-// Increases height of an element and it's children to fill the parent
-void fill_max_height(Element *element, i32 max_height) {
-  if (element->height == 0) {
-    element->layout.max_height = max_height;
-  } else {
-    element->layout.max_height = element->height;
-    max_height = element->height;
+// Cap scroll if it's out of bounds
+void cap_scroll(Element *element) {
+  if (element->layout.scroll_x < 0 &&
+      element->layout.scroll_width + element->layout.scroll_x < element->layout.max_width) {
+    element->layout.scroll_x = element->layout.max_width - element->layout.scroll_width;
   }
-
-  // Cap scroll if it's out of bounds
+  else if (element->layout.scroll_x > 0) {
+    element->layout.scroll_x = 0;
+  }
   if (element->layout.scroll_y < 0 &&
-      element->layout.scroll_height + element->layout.scroll_y < max_height) {
+      element->layout.scroll_height + element->layout.scroll_y < element->layout.max_height) {
     element->layout.scroll_y = element->layout.max_height - element->layout.scroll_height;
   }
-  if (element->layout.scroll_y > 0) {
+  else if (element->layout.scroll_y > 0) {
     element->layout.scroll_y = 0;
   }
-
   Array *children = element->children;
   if (children != 0) {
-    i32 element_padding = element->padding.top + element->padding.bottom;
-    i32 child_height = max_height - element_padding;
-
-    if (element->layout_direction == layout_direction.vertical) {
-      // How many children have flexible height
-      i32 split_count = 0;
-      for (i32 i = 0; i < array_length(children); i++) {
-        Element *child = array_get(children, i);
-        if (child->height == 0) {
-          split_count++;
-        } else {
-          child_height -= child->height;
-        }
-        if (i != 0) {
-          child_height -= element->gutter;
-        }
-      }
-      if (child_height < 0) {
-        child_height = 0;
-      }
-      // Split height between children
-      if (split_count > 0) {
-        child_height = child_height / split_count;
-      }
-    }
-
-    // Set new height for children
     for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      if (element->overflow == overflow_type.scroll ||
-          element->overflow == overflow_type.scroll_y) {
-        // scroll_height is either height of children or min_height
-        fill_max_height(child, child->layout.scroll_height);
-      } else {
-        fill_max_height(child, child_height);
-      }
+      cap_scroll(child);
     }
   }
 }
@@ -283,10 +337,12 @@ i32 set_y(Element *element, i32 y) {
 // Sets dimensions for a root element
 void set_root_element_dimensions(Element *element, i32 window_width, i32 window_height) {
   if (element != 0) {
-    fill_scroll_width(element);
-    fill_scroll_height(element);
     fill_max_width(element, window_width);
     fill_max_height(element, window_height);
+    fill_scroll_width(element);
+    fill_scroll_height(element);
+    grow_scroll(element);
+    cap_scroll(element);
     set_x(element, 0);
     set_y(element, 0);
   }

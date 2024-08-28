@@ -129,6 +129,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     }
     locked_element.pixels = (RGBA *)void_pixels;
     locked_element.width = bytes_width / sizeof(RGBA); // Row width in pixels
+    locked_element.height = element_texture_rect.h;
 
     // Empty the element texture from any previous data
     for (i32 y = 0; y < element_texture_rect.h; y++) {
@@ -181,7 +182,11 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           text_position.x += extra_space;
         }
       }
-      draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
+      if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
+        draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
+      } else {
+        draw_text_wrapped(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
+      }
     } else if (element->input != 0) {
       TTF_Font *font = get_font(font_variant.regular);
       SDL_Rect text_position = {

@@ -106,6 +106,41 @@ void create_form_element(Arena *arena) {
     .font_variant = font_variant.bold,
   };
 
+  Element *scrolling_text = add_new_element(arena, content_panel_bottom);
+  *scrolling_text = (Element){
+    .text = to_s8("This is a scrolling text that overflows its parent. Scrolling horizontally on this line will reveal the rest of its content."),
+    .text_color = white,
+    .background_type = background_type.color,
+    .background.color = 0x555555FF,
+    .padding = (Padding){5, 10, 5, 10},
+    .corner_radius = 15,
+    .overflow = overflow_type.scroll_x,
+    .font_variant = font_variant.regular,
+  };
+
+  Element *multiline_text = add_new_element(arena, content_panel_bottom);
+  *multiline_text = (Element){
+    .text = to_s8("This is a long text that does not scroll horizontally. Instead it reflows to the next line."),
+    .text_color = white,
+    .background_type = background_type.color,
+    .background.color = 0x555555FF,
+    .padding = (Padding){5, 10, 5, 10},
+    .corner_radius = 15,
+    .overflow = overflow_type.contain,
+    .font_variant = font_variant.regular,
+  };
+
+  Element *linebreak_text = add_new_element(arena, content_panel_bottom);
+  *linebreak_text = (Element){
+    .text = to_s8("This is a long\nmanually broken\ntext that does not\nscroll horizontally.\nInstead it reflows\nto the next line."),
+    .text_color = white,
+    .background_type = background_type.color,
+    .background.color = 0x555555FF,
+    .padding = (Padding){5, 10, 5, 10},
+    .corner_radius = 15,
+    .overflow = overflow_type.contain,
+    .font_variant = font_variant.regular,
+  };
 }
 
 #define FORM_COMPONENT

@@ -46,6 +46,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
     while (main_loop && SDL_PollEvent(&event)) {
       if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+          // Cap to min width and height
           i32 min_width = get_min_width(tree->root);
           i32 min_height = get_min_height(tree->root);
           i32 width = event.window.data1;
@@ -56,9 +57,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           if (height < min_height) {
             height = min_height;
           }
-          // Cap to min width and height
           SDL_SetWindowSize(window, width, height);
-          set_dimensions(tree, width, height);
           // Recreate the target-texture with the new dimensions
           if (tree->target_texture) {
             SDL_DestroyTexture(tree->target_texture);
