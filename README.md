@@ -106,12 +106,8 @@ Running:
 - Mac .app packaging
 - To-Done example app
 - Multiline text input
-  - Piece table?
-  - Start from undo history
-  - Every edit is a diff
-  - Continously grow array of edits
-    - Position, length, text
-  - Render one element per line
-    - Only rerender edited lines
-    - Other lines are buffered and just copied
-  - Deleted rows are soft deleted
+  - Input is one continous string
+  - Reuse undo from single line
+  - Linebreak function return array of strings
+  - Find index from rendered position
+  - Selection returns start row, start col, end row, end col

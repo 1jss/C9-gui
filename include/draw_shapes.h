@@ -52,14 +52,16 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
     // Loop over text pixels
     for (i32 x = 0; x < surface->w; x++) {
       // Check if we're inside the target bounds
-      if (text_position.x + x >= padding.left && text_position.x + x < text_position.w + padding.left) {
+      if (text_position.x + x >= padding.left &&
+          text_position.x + x < text_position.w + padding.left) {
         for (i32 y = 0; y < surface->h; y++) {
+          i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
           // Get the pixel color from the text surface
           u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
           RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
-          RGBA target_pixel = target.pixels[(text_position.y + y) * target.width + text_position.x + x];
+          RGBA target_pixel = target.pixels[pixel_index];
           RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
-          target.pixels[(text_position.y + y) * target.width + text_position.x + x] = blended_pixel;
+          target.pixels[pixel_index] = blended_pixel;
         }
       }
     }
@@ -77,16 +79,19 @@ void draw_text_wrapped(PixelData target, TTF_Font *font, char *text, RGBA color,
     // Loop over text pixels
     for (i32 x = 0; x < surface->w; x++) {
       // Check if we're inside the target bounds
-      if (x < target.width && text_position.x + x >= padding.left && text_position.x + x < text_position.w + padding.left) {
+      if (x < target.width &&
+          text_position.x + x >= padding.left &&
+          text_position.x + x < text_position.w + padding.left) {
         for (i32 y = 0; y < surface->h; y++) {
           // Check if we're inside the target bounds
           if (y < target.height) {
+            i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
             // Get the pixel color from the text surface
             u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
             RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
-            RGBA target_pixel = target.pixels[(text_position.y + y) * target.width + text_position.x + x];
+            RGBA target_pixel = target.pixels[pixel_index];
             RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
-            target.pixels[(text_position.y + y) * target.width + text_position.x + x] = blended_pixel;
+            target.pixels[pixel_index] = blended_pixel;
           }
         }
       }

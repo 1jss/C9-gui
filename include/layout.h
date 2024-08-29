@@ -152,28 +152,28 @@ i32 fill_scroll_width(Element *element) {
     }
   } else if (element->text.length != 0) {
     TTF_Font *text_font = get_font(element->font_variant);
-    i32 text_w = 0;
-    TTF_SizeUTF8(text_font, (char *)element->text.data, &text_w, NULL);
+    i32 text_width = 0;
+    TTF_SizeUTF8(text_font, (char *)element->text.data, &text_width, NULL);
     if (element->layout.max_width > 0 &&
         element->overflow != overflow_type.scroll &&
         element->overflow != overflow_type.scroll_x &&
-        (text_w + element_padding > element->layout.max_width || contains_newline(element->text))) {
+        (text_width + element_padding > element->layout.max_width || contains_newline(element->text))) {
       SDL_Color color = {0, 0, 0, 0};
-      SDL_Surface *test_render = TTF_RenderUTF8_Solid_Wrapped(text_font, (char *)element->text.data, color, element->layout.max_width - element_padding);
+      SDL_Surface *layout_render = TTF_RenderUTF8_Solid_Wrapped(text_font, (char *)element->text.data, color, element->layout.max_width - element_padding);
       child_width = element->layout.max_width;
       // This also affects the height of the element
-      element->layout.scroll_height = test_render->h + element->padding.top + element->padding.bottom;
-      SDL_FreeSurface(test_render);
+      element->layout.scroll_height = layout_render->h + element->padding.top + element->padding.bottom;
+      SDL_FreeSurface(layout_render);
     } else {
-      child_width += text_w;
+      child_width += text_width;
       element->layout.scroll_height = 0;
     }
   } else if (element->input != 0) {
     TTF_Font *input_font = get_font(font_variant.regular);
-    i32 text_w = 0;
-    TTF_SizeUTF8(input_font, (char *)element->input->text.data, &text_w, NULL);
-    if (text_w > 0) {
-      child_width += text_w + 1; // Add 1 for cursor
+    i32 text_width = 0;
+    TTF_SizeUTF8(input_font, (char *)element->input->text.data, &text_width, NULL);
+    if (text_width > 0) {
+      child_width += text_width + 1; // Add 1 for cursor
     } else {
       child_width += 2; // Add 2 for cursor
     }
@@ -230,8 +230,8 @@ i32 fill_scroll_height(Element *element) {
       }
     }
   } else if (element->text.length != 0) {
-    i32 text_h = get_font_height(element->font_variant);
-    child_height += text_h;
+    i32 text_height = get_font_height(element->font_variant);
+    child_height += text_height;
     // This can already be set by fill_scroll_width if the text is multiline
     if (element->layout.scroll_height > child_height) {
       child_height = element->layout.scroll_height;
@@ -247,7 +247,7 @@ i32 fill_scroll_height(Element *element) {
 }
 
 // Sets the max width and height of all scrolled elements
-void grow_scroll(Element *element) {
+void set_max_on_scrolled(Element *element) {
   if (element->layout.max_height == 0) {
     element->layout.max_height = element->layout.scroll_height;
   }
@@ -258,7 +258,7 @@ void grow_scroll(Element *element) {
   if (children != 0) {
     for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
-      grow_scroll(child);
+      set_max_on_scrolled(child);
     }
   }
 }
@@ -341,7 +341,7 @@ void set_root_element_dimensions(Element *element, i32 window_width, i32 window_
     fill_max_height(element, window_height);
     fill_scroll_width(element);
     fill_scroll_height(element);
-    grow_scroll(element);
+    set_max_on_scrolled(element);
     cap_scroll(element);
     set_x(element, 0);
     set_y(element, 0);
