@@ -73,6 +73,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         SDL_Keymod mod = SDL_GetModState();
         // Get key press content
         SDL_Keysym keysym = event.key.keysym;
+        bool ctrl_cmd = mod & (KMOD_CTRL + KMOD_GUI);
         if (keysym.sym == SDLK_BACKSPACE) {
           input_handler(tree, "BACKSPACE");
         } else if (keysym.sym == SDLK_LEFT &&
@@ -91,32 +92,26 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           input_handler(tree, "MOVE_LEFT");
         } else if (keysym.sym == SDLK_RIGHT) {
           input_handler(tree, "MOVE_RIGHT");
-        } else if (keysym.sym == SDLK_a &&
-                   mod & KMOD_CTRL) {
+        } else if (keysym.sym == SDLK_a && ctrl_cmd) {
           input_handler(tree, "SELECT_ALL");
         } else if (keysym.sym == SDLK_RETURN) {
           printf("Return\n");
         } else if (keysym.sym == SDLK_ESCAPE) {
           input_handler(tree, "DESELECT");
-        } else if (keysym.sym == SDLK_z &&
-                   mod & KMOD_CTRL) {
+        } else if (keysym.sym == SDLK_z && ctrl_cmd) {
           input_handler(tree, "UNDO");
-        } else if (keysym.sym == SDLK_y &&
-                   mod & KMOD_CTRL) {
+        } else if (keysym.sym == SDLK_y && ctrl_cmd) {
           input_handler(tree, "REDO");
-        } else if (keysym.sym == SDLK_c &&
-                   mod & KMOD_CTRL) {
+        } else if (keysym.sym == SDLK_c && ctrl_cmd) {
           input_handler(tree, "COPY");
-        } else if (keysym.sym == SDLK_x &&
-                   mod & KMOD_CTRL) {
+        } else if (keysym.sym == SDLK_x && ctrl_cmd) {
           input_handler(tree, "CUT");
-        } else if (keysym.sym == SDLK_v &&
-                   mod & KMOD_CTRL) {
+        } else if (keysym.sym == SDLK_v && ctrl_cmd) {
           input_handler(tree, "PASTE");
         }
       } else if (event.type == SDL_TEXTINPUT) {
         // Get text input content
-        if (!(SDL_GetModState() & KMOD_CTRL)) {
+        if (!(SDL_GetModState() & (KMOD_CTRL + KMOD_GUI))) {
           char *text = (char *)event.text.text;
           input_handler(tree, text);
         }
