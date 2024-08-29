@@ -23,7 +23,8 @@ void fill_max_width(Element *element, i32 max_width) {
     i32 child_width = 0;
 
     // Only enforce max on non scrolling children
-    if (element->overflow != overflow_type.scroll && element->overflow != overflow_type.scroll_x) {
+    if (element->overflow != overflow_type.scroll &&
+        element->overflow != overflow_type.scroll_x) {
       child_width = max_width - element_padding;
       // How many children have flexible width
       if (element->layout_direction == layout_direction.horizontal) {
@@ -75,7 +76,8 @@ void fill_max_height(Element *element, i32 max_height) {
     i32 child_height = 0;
 
     // Only enforce max on non scrolling children
-    if (element->overflow != overflow_type.scroll && element->overflow != overflow_type.scroll_y) {
+    if (element->overflow != overflow_type.scroll &&
+        element->overflow != overflow_type.scroll_y) {
       child_height = max_height - element_padding;
       // How many children have flexible height
       if (element->layout_direction == layout_direction.vertical) {
@@ -268,15 +270,13 @@ void cap_scroll(Element *element) {
   if (element->layout.scroll_x < 0 &&
       element->layout.scroll_width + element->layout.scroll_x < element->layout.max_width) {
     element->layout.scroll_x = element->layout.max_width - element->layout.scroll_width;
-  }
-  else if (element->layout.scroll_x > 0) {
+  } else if (element->layout.scroll_x > 0) {
     element->layout.scroll_x = 0;
   }
   if (element->layout.scroll_y < 0 &&
       element->layout.scroll_height + element->layout.scroll_y < element->layout.max_height) {
     element->layout.scroll_y = element->layout.max_height - element->layout.scroll_height;
-  }
-  else if (element->layout.scroll_y > 0) {
+  } else if (element->layout.scroll_y > 0) {
     element->layout.scroll_y = 0;
   }
   Array *children = element->children;
