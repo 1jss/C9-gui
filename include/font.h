@@ -36,6 +36,7 @@ i32 init_font(void) {
       printf("inter_regular failed: %s\n", TTF_GetError());
       return status.ERROR;
     }
+    TTF_SetFontHinting(inter_regular, TTF_HINTING_LIGHT_SUBPIXEL);
   }
   if (inter_bold == 0) {
     inter_bold = TTF_OpenFont("Inter-Medium.ttf", 14);
@@ -43,6 +44,7 @@ i32 init_font(void) {
       printf("inter_bold failed: %s\n", TTF_GetError());
       return status.ERROR;
     }
+    TTF_SetFontHinting(inter_bold, TTF_HINTING_LIGHT_SUBPIXEL);
   }
   if (inter_small == 0) {
     inter_small = TTF_OpenFont("Inter-Medium.ttf", 12);
@@ -50,6 +52,7 @@ i32 init_font(void) {
       printf("inter_small failed: %s\n", TTF_GetError());
       return status.ERROR;
     }
+    TTF_SetFontHinting(inter_small, TTF_HINTING_LIGHT_SUBPIXEL);
   }
   if (inter_large == 0) {
     inter_large = TTF_OpenFont("Inter-Regular.ttf", 18);
@@ -57,6 +60,7 @@ i32 init_font(void) {
       printf("inter_large failed: %s\n", TTF_GetError());
       return status.ERROR;
     }
+    TTF_SetFontHinting(inter_large, TTF_HINTING_LIGHT_SUBPIXEL);
   }
   return status.OK;
 }
