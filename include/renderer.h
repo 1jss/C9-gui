@@ -185,7 +185,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
         draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
       } else {
-        draw_text_wrapped(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
+        draw_multiline_text(locked_element, element->font_variant, element->text, element->text_color, text_position, element->padding);
       }
     } else if (element->input != 0) {
       TTF_Font *font = get_font(font_variant.regular);

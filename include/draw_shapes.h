@@ -70,34 +70,20 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
   }
 }
 
-void draw_text_wrapped(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position, Padding padding) {
+void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
-  if (text[0] != '\0') {
-    SDL_Color text_base_color = {red(color), green(color), blue(color), alpha(color)};
-    SDL_Surface *surface = TTF_RenderUTF8_Blended_Wrapped(font, text, text_base_color, text_position.w);
-    SDL_LockSurface(surface);
-    // Loop over text pixels
-    for (i32 x = 0; x < surface->w; x++) {
-      // Check if we're inside the target bounds
-      if (x < target.width &&
-          text_position.x + x >= padding.left &&
-          text_position.x + x < text_position.w + padding.left) {
-        for (i32 y = 0; y < surface->h; y++) {
-          // Check if we're inside the target bounds
-          if (y < target.height) {
-            i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
-            // Get the pixel color from the text surface
-            u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
-            RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
-            RGBA target_pixel = target.pixels[pixel_index];
-            RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
-            target.pixels[pixel_index] = blended_pixel;
-          }
-        }
-      }
+  if (text.data[0] != '\0') {
+    TTF_Font *font = get_font(font_variant);
+    Arena *temp_arena = arena_open(512);
+    Array *lines = split_string_by_width(temp_arena, font_variant, text, text_position.w);
+    for (i32 i = 0; i < array_length(lines); i++) {
+      s8 *line = array_get(lines, i);
+      s8 trimmed_line = string_from_substring(temp_arena, line->data, 0, line->length);
+      // Add null terminator to the line at line length
+      draw_text(target, font, to_char(trimmed_line), color, text_position, padding);
+      text_position.y += get_text_line_height(font_variant);
     }
-    SDL_UnlockSurface(surface);
-    SDL_FreeSurface(surface);
+    arena_close(temp_arena);
   }
 }
 

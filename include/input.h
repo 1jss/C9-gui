@@ -7,7 +7,7 @@
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "string.h" // s8, new_string, insert_into_string, delete_from_string, string_from_substring
-#include "font.h" // get_font, font_variant
+#include "font.h" // get_font, font_variant, has_continuation_byte, get_next_character_width
 #include "status.h" // status
 #include "types.h" // u8, i32
 
@@ -78,10 +78,6 @@ void add_edit_action(EditHistory *history, EditAction action) {
 
   // Increment the current index
   history->current_index += 1;
-}
-
-bool has_continuation_byte(u8 byte) {
-  return (byte & 0b11000000) == 0b10000000;
 }
 
 // Returns a reference to start of the selection
@@ -453,33 +449,6 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
     .h = selection_h
   };
   return result;
-}
-
-i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_position) {
-  i32 character_index = 0;
-  // Step over previous characters to find the start of the character
-  for (i32 i = 0; i < next_character_position; i++) {
-    character_index++;
-    while (has_continuation_byte(text[character_index])) {
-      character_index++;
-    }
-  }
-  // Step over the next character and store its length
-  i32 character_length = 1;
-  while (has_continuation_byte(text[character_index + character_length])) {
-    character_length++;
-  }
-
-  // Temporarily null-terminate the next byte to measure the character
-  i32 next_byte_index = character_index + character_length;
-  char next_byte_backup = text[next_byte_index];
-  text[next_byte_index] = '\0';
-  i32 character_width = 0;
-  TTF_SizeUTF8(font, &text[character_index], &character_width, NULL);
-  // Restore the next byte
-  text[next_byte_index] = next_byte_backup;
-
-  return character_width;
 }
 
 // Set selection based on mouse position

@@ -114,16 +114,6 @@ void fill_max_height(Element *element, i32 max_height) {
   }
 }
 
-// Check if a string contains a newline character
-bool contains_newline(s8 text) {
-  for (i32 i = 0; i < text.length; i++) {
-    if (text.data[i] == '\n') {
-      return true;
-    }
-  }
-  return false;
-}
-
 // Recursively sets scroll width of an element
 i32 fill_scroll_width(Element *element) {
   i32 self_width = element->width;
@@ -153,20 +143,19 @@ i32 fill_scroll_width(Element *element) {
       }
     }
   } else if (element->text.length != 0) {
-    TTF_Font *text_font = get_font(element->font_variant);
-    i32 text_width = 0;
-    TTF_SizeUTF8(text_font, (char *)element->text.data, &text_width, NULL);
     if (element->layout.max_width > 0 &&
         element->overflow != overflow_type.scroll &&
-        element->overflow != overflow_type.scroll_x &&
-        (text_width + element_padding > element->layout.max_width || contains_newline(element->text))) {
-      SDL_Color color = {0, 0, 0, 0};
-      SDL_Surface *layout_render = TTF_RenderUTF8_Solid_Wrapped(text_font, (char *)element->text.data, color, element->layout.max_width - element_padding);
+        element->overflow != overflow_type.scroll_x) {
       child_width = element->layout.max_width;
-      // This also affects the height of the element
-      element->layout.scroll_height = layout_render->h + element->padding.top + element->padding.bottom;
-      SDL_FreeSurface(layout_render);
+      i32 text_max_width = element->layout.max_width - element_padding;
+      Arena *temp_arena = arena_open(512);
+      Array *lines = split_string_by_width(temp_arena, element->font_variant, element->text, text_max_width);
+      element->layout.scroll_height = get_text_block_height(element->font_variant, array_length(lines)) + element->padding.top + element->padding.bottom;
+      arena_close(temp_arena);
     } else {
+      TTF_Font *text_font = get_font(element->font_variant);
+      i32 text_width = 0;
+      TTF_SizeUTF8(text_font, (char *)element->text.data, &text_width, NULL);
       child_width += text_width;
       element->layout.scroll_height = 0;
     }
