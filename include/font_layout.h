@@ -49,49 +49,49 @@ Array *split_string_by_width(Arena *arena, u8 variant, s8 text, i32 max_width) {
   }
 
   // Loop through the text
-  i32 start_position = 0;
-  while (start_position < text.length) {
+  i32 start_index = 0;
+  while (start_index < text.length) {
     s8 current_line = {
-      .data = text.data + start_position,
+      .data = text.data + start_index,
     };
     i32 character_count = 0; // How many characters fit in the width
     i32 character_width = 0; // Width of the characters in pixels
-    TTF_MeasureUTF8(font, (char *)text.data + start_position, max_width, &character_width, &character_count);
+    TTF_MeasureUTF8(font, (char *)text.data + start_index, max_width, &character_width, &character_count);
 
     // Step through the characters to break at the last space
     i32 last_space = -1;
     i32 newline_position = -1;
-    i32 next_index = start_position;
+    i32 read_index = start_index;
     for (i32 i = 0; i < character_count; i++) {
-      if (text.data[next_index] == '\n') {
-        newline_position = next_index;
+      if (text.data[read_index] == '\n') {
+        newline_position = read_index;
         i = character_count; // Break the loop
-      } else if (text.data[next_index] == ' ') {
-        last_space = next_index;
+      } else if (text.data[read_index] == ' ') {
+        last_space = read_index;
       }
       // Step index by full utf-8 characters
-      next_index += 1;
-      while (has_continuation_byte(text.data[next_index])) {
-        next_index += 1;
+      read_index += 1;
+      while (has_continuation_byte(text.data[read_index])) {
+        read_index += 1;
       }
     }
     // Break at the first newline
     if (newline_position != -1) {
-      current_line.length = newline_position - start_position;
+      current_line.length = newline_position - start_index;
       array_push(lines, &current_line);
-      start_position = newline_position + 1;
+      start_index = newline_position + 1;
     }
     // Break at the last space if we are not at string end
-    else if (last_space != -1 && next_index < text.length) {
-      current_line.length = last_space - start_position;
+    else if (last_space != -1 && read_index < text.length) {
+      current_line.length = last_space - start_index;
       array_push(lines, &current_line);
-      start_position = last_space + 1;
+      start_index = last_space + 1;
     }
     // No space found, break at the last character
     else {
-      current_line.length = next_index - start_position;
+      current_line.length = read_index - start_index;
       array_push(lines, &current_line);
-      start_position = next_index;
+      start_index = read_index;
     }
   }
   return lines;
@@ -115,41 +115,41 @@ i32 get_text_block_height(u8 variant, s8 text, i32 max_width) {
 
   // Loop through the text
   TTF_Font *font = get_font(variant);
-  i32 read_position = 0;
+  i32 start_index = 0;
   i32 rows = 0;
-  while (read_position < text.length) {
+  while (start_index < text.length) {
     i32 character_count = 0;
     i32 character_width = 0;
-    TTF_MeasureUTF8(font, (char *)text.data + read_position, max_width, &character_width, &character_count);
+    TTF_MeasureUTF8(font, (char *)text.data + start_index, max_width, &character_width, &character_count);
 
     // Step through the characters to break at the last space
     i32 last_space = -1;
     i32 newline_position = -1;
-    i32 next_index = read_position;
+    i32 read_index = start_index;
     for (i32 i = 0; i < character_count; i++) {
-      if (text.data[next_index] == '\n') {
-        newline_position = next_index;
+      if (text.data[read_index] == '\n') {
+        newline_position = read_index;
         i = character_count; // Break the loop
-      } else if (text.data[next_index] == ' ') {
-        last_space = next_index;
+      } else if (text.data[read_index] == ' ') {
+        last_space = read_index;
       }
       // Step index by full utf-8 characters
-      next_index += 1;
-      while (has_continuation_byte(text.data[next_index])) {
-        next_index += 1;
+      read_index += 1;
+      while (has_continuation_byte(text.data[read_index])) {
+        read_index += 1;
       }
     }
     // Break at the first newline
     if (newline_position != -1) {
-      read_position = newline_position + 1;
+      start_index = newline_position + 1;
     }
     // Break at the last space if we are not at string end
-    else if (last_space != -1 && next_index < text.length) {
-      read_position = last_space + 1;
+    else if (last_space != -1 && read_index < text.length) {
+      start_index = last_space + 1;
     }
     // No space found, break at the last character
     else {
-      read_position = next_index;
+      start_index = read_index;
     }
     rows += 1;
   }

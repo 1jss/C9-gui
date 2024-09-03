@@ -397,12 +397,12 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
 }
 
 // Set the selection start index
-void set_selection_start_index(InputData *input, i32 index){
+void set_selection_start_index(InputData *input, i32 index) {
   input->selection.start_index = index;
 }
 
 // Set the selection end index
-void set_selection_end_index(InputData *input, i32 index){
+void set_selection_end_index(InputData *input, i32 index) {
   input->selection.end_index = index;
 }
 
@@ -417,12 +417,14 @@ void select_word_at_index(InputData *input, i32 selection_index) {
   *end_index = selection_index;
   // Move cursor to the left until we reach a space character
   while (*start_index > 0 &&
-         text_data[*start_index - 1] != (char)32) {
+         text_data[*start_index - 1] != (char)32 &&
+         text_data[*start_index - 1] != (char)10) {
     move_cursor_left(input);
   }
   // Select to the right until we reach a space character
   while (*end_index < input->text.length &&
-         text_data[*end_index] != (char)32) {
+         text_data[*end_index] != (char)32 &&
+         text_data[*end_index] != (char)10) {
     select_right(input);
   }
 }
