@@ -7,7 +7,9 @@
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, has_border
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
-#include "input.h" // InputData, measure_selection
+#include "font_layout.h" // get_text_line_height, split_string_by_width
+#include "input.h" // InputData
+#include "input_actions.h" // measure_selection
 #include "types.h" // i32
 
 // Recursively draws all elements
@@ -197,36 +199,113 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       };
       // If the element is the active element we should also draw the cursor
       if (element == active_element) {
-        SDL_Rect selection_rect = measure_selection(font, element->input);
-        SDL_Rect selection = {
-          .x = text_position.x + selection_rect.x - 1, // Subtract 1 pixel for the cursor
-          .y = text_position.y + selection_rect.y,
-          .w = selection_rect.w + 2, // Add 2 pixels for the cursor
-          .h = text_position.h,
-        };
-        // Make sure selection is not drawn outside text bounds
-        i32 text_limit_left = element_texture_rect.x + element->padding.left - 1;
-        i32 text_limit_right = element_texture_rect.x + element_texture_rect.w - element->padding.right + 1;
-        // Left bound
-        if (selection.x < text_limit_left) {
-          selection.w = selection.w - (text_limit_left - selection.x);
-          selection.x = text_limit_left;
-        }
-        // Right bound
-        if (selection.x + selection.w >= text_limit_right) {
-          selection.w = text_limit_right - selection.x;
-        }
-        if (selection.x < text_limit_right) {
-          if (selection_rect.w == 0) {
-            draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
-          } else {
-            draw_filled_rectangle(locked_element, selection, 0, selection_color);
+        // Text is scrolling horizontally
+        if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
+          SDL_Rect selection_rect = measure_selection(font, element->input);
+          SDL_Rect selection = {
+            .x = text_position.x + selection_rect.x - 1, // Subtract 1 pixel for the cursor
+            .y = text_position.y + selection_rect.y,
+            .w = selection_rect.w + 2, // Add 2 pixels for the cursor
+            .h = get_font_height(element->font_variant),
+          };
+          // Make sure selection is not drawn outside text bounds
+          i32 text_limit_left = element_texture_rect.x + element->padding.left - 1;
+          i32 text_limit_right = element_texture_rect.x + element_texture_rect.w - element->padding.right + 1;
+          // Left bound
+          if (selection.x < text_limit_left) {
+            selection.w = selection.w - (text_limit_left - selection.x);
+            selection.x = text_limit_left;
           }
+          // Right bound
+          if (selection.x + selection.w >= text_limit_right) {
+            selection.w = text_limit_right - selection.x;
+          }
+          if (selection.x < text_limit_right) {
+            if (selection_rect.w == 0) {
+              draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
+            } else {
+              draw_filled_rectangle(locked_element, selection, 0, selection_color);
+            }
+          }
+        }
+        // Text is wrapping and growing vertically
+        else {
+          Arena *temp_arena = arena_open(512);
+          // TODO: Pass by value?
+          i32 start_index = *get_start_ref(&element->input->selection);
+          i32 end_index = *get_end_ref(&element->input->selection);
+          Array *text = split_string_by_width(temp_arena, element->font_variant, element->input->text, text_position.w);
+          i32 index = 0;
+          i32 line_height = get_text_line_height(element->font_variant);
+          // Step over rows and draw a rectangle between selected indexes
+          for (i32 i = 0; i < array_length(text); i++) {
+            s8 *line = array_get(text, i);
+            if (start_index <= index + line->length && end_index >= index) {
+              if (start_index <= index && end_index >= index + line->length) {
+                // Create a new string from line to add null terminator
+                s8 full_string = string_from_substring(temp_arena, line->data, 0, line->length);
+                i32 text_width = 0;
+                // Measure text width
+                TTF_SizeUTF8(font, to_char(full_string), &text_width, 0);
+
+                SDL_Rect selection = {
+                  .x = text_position.x - 1, // Subtract 1 pixel for the cursor
+                  .y = text_position.y + line_height * i,
+                  .w = text_width + 2,
+                  .h = get_font_height(element->font_variant),
+                };
+                if (start_index == end_index) {
+                  draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
+                } else {
+                  draw_filled_rectangle(locked_element, selection, 0, selection_color);
+                }
+              } else {
+                i32 relative_start = start_index - index;
+                // Selection spans only part of the line
+                if (start_index < index) {
+                  relative_start = 0;
+                };
+                i32 relative_end = end_index - index;
+                if (end_index > index + line->length) {
+                  relative_end = line->length;
+                }
+
+                // Measure text from 0 to relative_end
+                i32 selection_end_width = 0;
+                s8 selection_end = string_from_substring(temp_arena, line->data, 0, relative_end);
+                TTF_SizeUTF8(font, to_char(selection_end), &selection_end_width, 0);
+                // Meassure text from 0 to relative_start
+                i32 selection_start_width = 0;
+                if (relative_start > 0) {
+                  s8 selection_start = string_from_substring(temp_arena, line->data, 0, relative_start);
+                  TTF_SizeUTF8(font, to_char(selection_start), &selection_start_width, 0);
+                }
+
+                SDL_Rect selection = {
+                  .x = text_position.x + selection_start_width - 1, // Subtract 1 pixel for the cursor
+                  .y = text_position.y + line_height * i,
+                  .w = selection_end_width - selection_start_width + 2, // Add 2 pixels for the cursor
+                  .h = get_font_height(element->font_variant),
+                };
+                if (start_index == end_index) {
+                  draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
+                } else {
+                  draw_filled_rectangle(locked_element, selection, 0, selection_color);
+                }
+              }
+            }
+            index += line->length + 1;
+          }
+          arena_close(temp_arena);
         }
       }
       InputData input = *element->input;
-      char *text_data = (char *)input.text.data;
-      draw_text(locked_element, font, text_data, element->text_color, text_position, element->padding);
+      if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
+        char *text_data = (char *)input.text.data;
+        draw_text(locked_element, font, text_data, element->text_color, text_position, element->padding);
+      } else {
+        draw_multiline_text(locked_element, element->font_variant, input.text, element->text_color, text_position, element->padding);
+      }
     }
 
     // Unlock element texture to make it readable again

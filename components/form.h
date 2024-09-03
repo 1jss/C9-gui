@@ -5,7 +5,8 @@
 #include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
 #include "../include/arena.h" // Arena
 #include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree, get_element_by_tag
-#include "../include/input.h"
+#include "../include/font.h" // font_variant
+#include "../include/input.h" // new_input
 #include "../include/renderer.h" // bump_rerender
 #include "overlay.h" // open_overlay
 
@@ -32,8 +33,7 @@ void blur_text_input(ElementTree *tree, void *data) {
 }
 
 void on_text_input(ElementTree *tree, void *data) {
-  char *text = (char *)data;
-  handle_text_input(tree->active_element->input, text);
+  (void)data;
   Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   if (content_panel != 0) {
     bump_rerender(tree);
@@ -67,7 +67,6 @@ void create_form_element(Arena *arena) {
 
   Element *text_input = add_new_element(arena, content_panel_top);
   *text_input = (Element){
-    .height = 30,
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){6, 10, 6, 10},

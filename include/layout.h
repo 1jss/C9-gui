@@ -5,6 +5,7 @@
 #include "array.h" // Array
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
+#include "font_layout.h" // get_text_block_height
 #include "string.h" // s8
 #include "types.h" // i32
 
@@ -148,10 +149,8 @@ i32 fill_scroll_width(Element *element) {
         element->overflow != overflow_type.scroll_x) {
       child_width = element->layout.max_width;
       i32 text_max_width = element->layout.max_width - element_padding;
-      Arena *temp_arena = arena_open(512);
-      Array *lines = split_string_by_width(temp_arena, element->font_variant, element->text, text_max_width);
-      element->layout.scroll_height = get_text_block_height(element->font_variant, array_length(lines)) + element->padding.top + element->padding.bottom;
-      arena_close(temp_arena);
+      i32 text_height = get_text_block_height(element->font_variant, element->text, text_max_width);
+      element->layout.scroll_height = text_height + element->padding.top + element->padding.bottom;
     } else {
       TTF_Font *text_font = get_font(element->font_variant);
       i32 text_width = 0;
@@ -160,14 +159,24 @@ i32 fill_scroll_width(Element *element) {
       element->layout.scroll_height = 0;
     }
   } else if (element->input != 0) {
-    TTF_Font *input_font = get_font(font_variant.regular);
-    i32 text_width = 0;
-    TTF_SizeUTF8(input_font, (char *)element->input->text.data, &text_width, NULL);
-    if (text_width > 0) {
-      child_width += text_width + 1; // Add 1 for cursor
+    if (element->layout.max_width > 0 &&
+        element->overflow != overflow_type.scroll &&
+        element->overflow != overflow_type.scroll_x) {
+      child_width = element->layout.max_width; // child width will later be used to set scroll width
+      i32 text_max_width = element->layout.max_width - element_padding;
+      i32 text_height = get_text_block_height(element->font_variant, element->input->text, text_max_width);
+      element->layout.scroll_height = text_height + element->padding.top + element->padding.bottom;
     } else {
-      child_width += 2; // Add 2 for cursor
+      TTF_Font *input_font = get_font(font_variant.regular);
+      i32 text_width = 0;
+      TTF_SizeUTF8(input_font, (char *)element->input->text.data, &text_width, NULL);
+      if (text_width > 0) {
+        child_width += text_width + 1; // Add 1 for cursor
+      } else {
+        child_width += 2; // Add 2 for cursor
+      }
     }
+
     // Reset scroll if input is smaller than parent
     if (child_width < element->layout.max_width) {
       element->layout.scroll_x = 0;
@@ -220,7 +229,7 @@ i32 fill_scroll_height(Element *element) {
         }
       }
     }
-  } else if (element->text.length != 0) {
+  } else if (element->text.length != 0 || element->input != 0) {
     i32 text_height = get_font_height(element->font_variant);
     child_height += text_height;
     // This can already be set by fill_scroll_width if the text is multiline

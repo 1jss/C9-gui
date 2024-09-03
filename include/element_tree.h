@@ -117,11 +117,23 @@ typedef struct {
   u8 changed;
 } RenderProps;
 
+typedef struct {
+  u8 available;
+  u8 active;
+  u8 blocked;
+} ScrollState;
+
+ScrollState scroll_state = {
+  .available = 0,
+  .active = 1,
+  .blocked = 2,
+};
+
 // Scroll handling state
 typedef struct {
-  bool is_active; // If the user is scrolling
   f32 last_x; // Last horizontal scroll position
   f32 last_y; // Last vertical scroll position
+  u8 state; // If the user is scrolling
 } ScrollProps;
 
 // element tree nodes
@@ -232,9 +244,9 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->rerender = rerender_type.all;
   tree->target_texture = 0;
   tree->scroll = (ScrollProps){
-    .is_active = false,
     .last_x = 0,
     .last_y = 0,
+    .state = 0,
   };
   return tree;
 }

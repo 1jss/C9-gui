@@ -7,6 +7,7 @@
 #include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
 #include "types.h" // u8, f32, i32
 #include "types_draw.h" // Border, Padding
+#include "font_layout.h" // split_string_by_width, get_text_line_height
 
 // Locked texture as pixel data
 typedef struct {
@@ -74,14 +75,15 @@ void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color,
   // Check if text has any content
   if (text.data[0] != '\0') {
     TTF_Font *font = get_font(font_variant);
+    i32 line_height = get_text_line_height(font_variant);
     Arena *temp_arena = arena_open(512);
     Array *lines = split_string_by_width(temp_arena, font_variant, text, text_position.w);
     for (i32 i = 0; i < array_length(lines); i++) {
       s8 *line = array_get(lines, i);
+      // Adds null terminator to the line at line length
       s8 trimmed_line = string_from_substring(temp_arena, line->data, 0, line->length);
-      // Add null terminator to the line at line length
       draw_text(target, font, to_char(trimmed_line), color, text_position, padding);
-      text_position.y += get_text_line_height(font_variant);
+      text_position.y += line_height;
     }
     arena_close(temp_arena);
   }

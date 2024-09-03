@@ -106,8 +106,6 @@ Running:
 - Mac .app packaging
 - To-Done example app
 - Multiline text input
-  - Input is one continous string
-  - Reuse undo from single line
-  - Linebreak function return array of strings
-  - Find index from rendered position
-  - Selection returns start row, start col, end row, end col
+  - Clean up when new s8 is created when measuring text
+  - Linebreaks without space or newline corrupts selection
+- Break out multiline selection events into functions

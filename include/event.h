@@ -2,9 +2,12 @@
 
 #include <SDL2/SDL.h> // SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT, SDL_Event, SDL_Window, SDL_Renderer
 #include <stdbool.h> // bool
+#include <stdio.h> // printf
 #include "element_tree.h" // ElementTree, Element
-#include "layout.h" // fill_scroll_width
+#include "input_actions.h" // select_word, set_selection, set_selection_end
+#include "layout.h" // fill_scroll_width, get_clickable_element_at
 #include "types.h" // i32
+#include "types_draw.h" // Position
 
 void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
@@ -24,10 +27,17 @@ void blur_handler(ElementTree *tree, void *data) {
 
 void input_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
+  // Automatically handle text input
+  if (element != 0 && element->input != 0) {
+    char *text = (char *)data;
+    handle_text_input(element->input, text);
+    element->render.changed = 1;
+    set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
+  }
+  // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
     element->on_key_press(tree, data);
     element->render.changed = 1;
-    fill_scroll_width(element);
   }
 }
 
@@ -84,14 +94,68 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           input_handler(tree, "SELECT_RIGHT");
         } else if (keysym.sym == SDLK_DOWN &&
                    mod & KMOD_SHIFT) {
-          input_handler(tree, "SELECT_END");
+          Element *element = tree->active_element;
+          if (element != 0 && element->input != 0) {
+            i32 end_index = element->input->selection.end_index;
+            Position position = position_from_index(end_index, element);
+            position.y += get_text_line_height(element->font_variant);
+            end_index = index_from_position(position, element);
+            set_selection_end_index(element->input, end_index);
+            element->render.changed = 1;
+            tree->rerender_element = get_parent(tree, element);
+            bump_rerender(tree);
+          } else {
+            input_handler(tree, "SELECT_END");
+          }
         } else if (keysym.sym == SDLK_UP &&
                    mod & KMOD_SHIFT) {
-          input_handler(tree, "SELECT_START");
+          Element *element = tree->active_element;
+          if (element != 0 && element->input != 0) {
+            i32 end_index = element->input->selection.end_index;
+            Position position = position_from_index(end_index, element);
+            position.y -= get_text_line_height(element->font_variant);
+            end_index = index_from_position(position, element);
+            set_selection_end_index(element->input, end_index);
+            element->render.changed = 1;
+            tree->rerender_element = get_parent(tree, element);
+            bump_rerender(tree);
+          } else {
+            input_handler(tree, "SELECT_START");
+          }
         } else if (keysym.sym == SDLK_LEFT) {
           input_handler(tree, "MOVE_LEFT");
         } else if (keysym.sym == SDLK_RIGHT) {
           input_handler(tree, "MOVE_RIGHT");
+        } else if (keysym.sym == SDLK_UP) {
+          Element *element = tree->active_element;
+          if (element != 0 && element->input != 0) {
+            i32 index = element->input->selection.end_index;
+            Position position = position_from_index(index, element);
+            position.y -= get_text_line_height(element->font_variant);
+            index = index_from_position(position, element);
+            set_selection_start_index(element->input, index);
+            set_selection_end_index(element->input, index);
+            element->render.changed = 1;
+            tree->rerender_element = get_parent(tree, element);
+            bump_rerender(tree);
+          } else {
+            input_handler(tree, "MOVE_UP");
+          }
+        } else if (keysym.sym == SDLK_DOWN) {
+          Element *element = tree->active_element;
+          if (element != 0 && element->input != 0) {
+            i32 index = element->input->selection.end_index;
+            Position position = position_from_index(index, element);
+            position.y += get_text_line_height(element->font_variant);
+            index = index_from_position(position, element);
+            set_selection_start_index(element->input, index);
+            set_selection_end_index(element->input, index);
+            element->render.changed = 1;
+            tree->rerender_element = get_parent(tree, element);
+            bump_rerender(tree);
+          } else {
+            input_handler(tree, "MOVE_DOWN");
+          }
         } else if (keysym.sym == SDLK_a && ctrl_cmd) {
           input_handler(tree, "SELECT_ALL");
         } else if (keysym.sym == SDLK_RETURN) {
@@ -117,11 +181,11 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         }
       } else if (event.type == SDL_MULTIGESTURE) {
         if (event.mgesture.numFingers == 2) {
-          if (!tree->scroll.is_active) {
-            tree->scroll.is_active = true;
+          if (tree->scroll.state == scroll_state.available) {
+            tree->scroll.state = scroll_state.active;
             tree->scroll.last_x = event.mgesture.x;
             tree->scroll.last_y = event.mgesture.y;
-          } else {
+          } else if (tree->scroll.state == scroll_state.active) {
             scroll_distance_x += (event.mgesture.x - tree->scroll.last_x) * 800;
             scroll_distance_y += (event.mgesture.y - tree->scroll.last_y) * 800;
             tree->scroll.last_x = event.mgesture.x;
@@ -130,37 +194,47 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         }
         // We do not flush the SDL_MULTIGESTURE event here as we want to add up the scroll distance for each frame
       } else if (event.type == SDL_FINGERDOWN) {
-        tree->scroll.is_active = false;
+        if (tree->scroll.state != scroll_state.blocked) {
+          tree->scroll.state = scroll_state.available;
+        }
       } else if (event.type == SDL_MOUSEBUTTONDOWN) {
         // Blur former active element
         blur_handler(tree, 0);
         Element *click_root = tree->overlay != 0 ? tree->overlay : tree->root;
         // Set new active element
         tree->active_element = get_clickable_element_at(click_root, mouse_x, mouse_y);
+        Position mouse = {mouse_x, mouse_y};
+        // Run on_click function
+        click_handler(tree, &mouse);
         // Set selection if active element has input
         if (tree->active_element != 0 &&
             tree->active_element->input != 0) {
           // Doubble click selects word
           if (event.button.clicks == 2) {
-            i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
-            select_word(tree->active_element->input, relative_x_position);
+            i32 click_index = index_from_position(mouse, tree->active_element);
+            select_word_at_index(tree->active_element->input, click_index);
           }
           // Triple click selects all
           else if (event.button.clicks == 3) {
             input_handler(tree, "SELECT_ALL");
           } else {
-            i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
-            set_selection(tree->active_element->input, relative_x_position);
+            i32 start_index = index_from_position(mouse, tree->active_element);
+            set_selection_start_index(tree->active_element->input, start_index);
+            set_selection_end_index(tree->active_element->input, start_index);
           }
         }
-        click_handler(tree, 0);
         SDL_FlushEvent(SDL_MOUSEBUTTONDOWN);
+      } else if (event.type == SDL_MOUSEBUTTONUP) {
+        tree->scroll.state = scroll_state.available;
+        SDL_FlushEvent(SDL_MOUSEBUTTONUP);
       } else if (event.type == SDL_MOUSEMOTION) {
         if (mouse_button_down & SDL_BUTTON_LMASK &&
             tree->active_element != 0 &&
             tree->active_element->input != 0) {
-          i32 relative_x_position = mouse_x - tree->active_element->layout.x - tree->active_element->padding.left - tree->active_element->layout.scroll_x;
-          set_selection_end(tree->active_element->input, relative_x_position);
+          tree->scroll.state = scroll_state.blocked;
+          Position mouse = {mouse_x, mouse_y};
+          i32 end_index = index_from_position(mouse, tree->active_element);
+          set_selection_end_index(tree->active_element->input, end_index);
           // Set input to rerender
           tree->active_element->render.changed = 1;
           // Redraw parent to prevent bleeding corners
@@ -172,7 +246,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         main_loop = false;
       }
     }
-    if (tree->scroll.is_active) {
+    if (tree->scroll.state == scroll_state.active) {
       Element *scroll_root = tree->overlay != 0 ? tree->overlay : tree->root;
       // Scroll left or right
       if (scroll_distance_x != 0) {

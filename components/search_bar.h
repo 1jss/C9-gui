@@ -31,8 +31,7 @@ void blur_search_bar(ElementTree *tree, void *data) {
 }
 
 void on_search_bar_input(ElementTree *tree, void *data) {
-  char *text = (char *)data;
-  handle_text_input(tree->active_element->input, text);
+  (void)data;
   Element *panel = get_element_by_tag(tree->root, search_panel_tag);
   if (panel != 0) {
     bump_rerender(tree);

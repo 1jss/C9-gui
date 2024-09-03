@@ -18,5 +18,10 @@ typedef struct {
   i16 left;
 } Border;
 
+typedef struct {
+  i32 x;
+  i32 y;
+} Position;
+
 #define C9_TYPES_DRAW
 #endif
