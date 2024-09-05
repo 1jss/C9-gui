@@ -41,6 +41,10 @@ void input_handler(ElementTree *tree, void *data) {
   }
 }
 
+i32 absolute(i32 value) {
+  return value < 0 ? -value : value;
+}
+
 bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer) {
   bool main_loop = true;
   SDL_Event event;
@@ -254,7 +258,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
     if (tree->scroll.state == scroll_state.active) {
       Element *scroll_root = tree->overlay != 0 ? tree->overlay : tree->root;
       // Scroll left or right
-      if (scroll_distance_x != 0) {
+      if (scroll_distance_x != 0 && absolute(scroll_distance_x) > absolute(scroll_distance_y)) {
         i32 remaining_scroll = scroll_x(scroll_root, mouse_x, mouse_y, scroll_distance_x);
         if (remaining_scroll != scroll_distance_x) {
           set_x(scroll_root, 0);
@@ -262,7 +266,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         }
       }
       // Scroll up or down
-      if (scroll_distance_y != 0) {
+      else if (scroll_distance_y != 0) {
         i32 remaining_scroll = scroll_y(scroll_root, mouse_x, mouse_y, scroll_distance_y);
         if (remaining_scroll != scroll_distance_y) {
           set_y(scroll_root, 0);
