@@ -240,13 +240,24 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           // Step over rows and draw a rectangle between selected indexes
           for (i32 i = 0; i < array_length(text); i++) {
             s8 *line = array_get(text, i);
-            if (start_index <= index + line->length && end_index >= index) {
+            // If the selection has started at the end of the line and the line ends on or after the start index
+            // Or if the selection starts on the end of the line and this is the last line
+            if ((start_index < index + line->length && end_index >= index) ||
+                (start_index == index + line->length && i == array_length(text) - 1)) {
+              // Selection spans the entire line
               if (start_index <= index && end_index >= index + line->length) {
-                // Create a new string from line to add null terminator
-                s8 full_string = string_from_substring(temp_arena, line->data, 0, line->length);
+                i32 line_length = line->length;
                 i32 text_width = 0;
-                // Measure text width
-                TTF_SizeUTF8(font, to_char(full_string), &text_width, 0);
+                if (line_length > 0) {          
+                  if (line->data[line_length - 1] == '\n') {
+                    line_length--;
+                  }
+
+                  // Create a new string from line to add null terminator
+                  s8 full_string = string_from_substring(temp_arena, line->data, 0, line_length);
+                  // Measure text width
+                  TTF_SizeUTF8(font, to_char(full_string), &text_width, 0);
+                }
 
                 SDL_Rect selection = {
                   .x = text_position.x - 1, // Subtract 1 pixel for the cursor
@@ -259,15 +270,19 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                 } else {
                   draw_filled_rectangle(locked_element, selection, 0, selection_color);
                 }
-              } else {
+              }
+              // Selection spans only part of the line
+              else {
                 i32 relative_start = start_index - index;
-                // Selection spans only part of the line
                 if (start_index < index) {
                   relative_start = 0;
                 };
                 i32 relative_end = end_index - index;
-                if (end_index > index + line->length) {
+                if (end_index >= index + line->length) {
                   relative_end = line->length;
+                }
+                if (line->length > 0 && relative_end > relative_start && line->data[relative_end - 1 ] == '\n') {
+                  relative_end--;
                 }
 
                 // Measure text from 0 to relative_end
@@ -294,7 +309,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                 }
               }
             }
-            index += line->length + 1;
+            index += line->length;
           }
           arena_close(temp_arena);
         }

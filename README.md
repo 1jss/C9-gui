@@ -11,9 +11,9 @@ C9 gui is a performant and flexible GUI library built on SDL2. C9 gui primarily 
 - Event handling (click, blur, key press)
 - Layout engine (flex or scroll children in any direction)
 - Lazy loading of elements outside of window
-- Text rendering (TTF)
+- Text rendering (single line with alignment or multiline)
 - Easy table layout (with automatic column sizing)
-- Text input (single line with selection and undo history)
+- Text input (single and multi line with selection and undo history)
 - Partial rendering (only rerender elements that have changed)
 - Buffered rendering (all elements are cached as textures)
 - Element tags for easy element selection
@@ -107,5 +107,4 @@ Running:
 - To-Done example app
 - Multiline text input
   - Clean up when new s8 is created when measuring text
-  - Linebreaks without space or newline corrupts selection
 - Break out multiline selection events into functions

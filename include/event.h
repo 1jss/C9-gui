@@ -159,7 +159,12 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         } else if (keysym.sym == SDLK_a && ctrl_cmd) {
           input_handler(tree, "SELECT_ALL");
         } else if (keysym.sym == SDLK_RETURN) {
-          printf("Return\n");
+          Element *element = tree->active_element;
+          if (element != 0 && element->input != 0 &&
+              element->overflow != overflow_type.scroll &&
+              element->overflow != overflow_type.scroll_x) {
+            input_handler(tree, "\n");
+          }
         } else if (keysym.sym == SDLK_ESCAPE) {
           input_handler(tree, "DESELECT");
         } else if (keysym.sym == SDLK_z && ctrl_cmd) {

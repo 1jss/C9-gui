@@ -31,13 +31,14 @@ Array *split_string_by_width(Arena *arena, u8 variant, s8 text, i32 max_width) {
   TTF_Font *font = get_font(variant);
   Array *lines = array_create(arena, sizeof(s8));
 
-  // Check for manual linebreaks
-  if (!contains_newline(text)) {
-    // The text has no width limit
-    if (max_width == 0) {
-      array_push(lines, &text);
-      return lines;
-    };
+  // The text has no width limit
+  if (max_width == 0) {
+    array_push(lines, &text);
+    return lines;
+  }
+
+  // The text has no linebreaks
+  else if (!contains_newline(text)) {
     i32 text_width = 0;
     i32 text_height = 0;
     TTF_SizeUTF8(font, (char *)text.data, &text_width, &text_height);
@@ -77,13 +78,13 @@ Array *split_string_by_width(Arena *arena, u8 variant, s8 text, i32 max_width) {
     }
     // Break at the first newline
     if (newline_position != -1) {
-      current_line.length = newline_position - start_index;
+      current_line.length = newline_position - start_index + 1; // Include the newline
       array_push(lines, &current_line);
       start_index = newline_position + 1;
     }
     // Break at the last space if we are not at string end
     else if (last_space != -1 && read_index < text.length) {
-      current_line.length = last_space - start_index;
+      current_line.length = last_space - start_index + 1; // Include the space
       array_push(lines, &current_line);
       start_index = last_space + 1;
     }
@@ -93,6 +94,14 @@ Array *split_string_by_width(Arena *arena, u8 variant, s8 text, i32 max_width) {
       array_push(lines, &current_line);
       start_index = read_index;
     }
+  }
+  // If the last character is a newline, add an empty line
+  if (text.data[text.length - 1] == '\n') {
+    s8 empty_line = {
+      .data = 0,
+      .length = 0,
+    };
+    array_push(lines, &empty_line);
   }
   return lines;
 }
@@ -107,10 +116,19 @@ i32 get_text_line_height(u8 variant) {
 // Returns the height of a text block based on a maximum width
 i32 get_text_block_height(u8 variant, s8 text, i32 max_width) {
   i32 font_height = get_font_height(variant);
-  // Check for manual linebreaks
-  if (max_width == 0 && !contains_newline(text)) {
-    printf("Warning: Text has no width limit and no manual linebreaks\n");
+  // The text has no width limit
+  if (max_width == 0) {
     return font_height;
+  }
+  // The text has no linebreaks
+  else if (!contains_newline(text)) {
+    i32 text_width = 0;
+    i32 text_height = 0;
+    TTF_Font *font = get_font(variant);
+    TTF_SizeUTF8(font, (char *)text.data, &text_width, &text_height);
+    if (text_width <= max_width) {
+      return font_height;
+    }
   }
 
   // Loop through the text
@@ -153,6 +171,10 @@ i32 get_text_block_height(u8 variant, s8 text, i32 max_width) {
     }
     rows += 1;
   }
+  // If the last character is a newline add one extra row
+  if (text.data[text.length - 1] == '\n') {
+    rows += 1;
+  }
   return font_height * rows + line_spacing * (rows - 1);
 }
 
@@ -185,7 +207,8 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 
 i32 index_from_x(u8 variant, s8 *text, i32 position) {
   TTF_Font *font = get_font(variant);
-  if (position <= 0) return 0;
+  // Make sure the position and text is valid
+  if (position <= 0 || text->length == 0) return 0;
 
   i32 character_index = 0;
   i32 character_width = 0; // Width of characters in pixels
@@ -205,27 +228,33 @@ i32 index_from_x(u8 variant, s8 *text, i32 position) {
     }
   }
   if (character_index > text->length) {
-    return text->length;
+    character_index = text->length;
+  }
+  // If the last character is a newline, step back one character
+  if (character_index > 0 && text->data[character_index - 1] == '\n') {
+    character_index -= 1;
+  }
+  // If the character is the last character and it's a space, step back one character
+  if (character_index == text->length &&
+      text->data[character_index - 1] == ' ') {
+    character_index -= 1;
   }
   return character_index;
 }
 
 // Returns a character index from a global position
-i32 index_from_position(Position mouse_position, Element *element) {
-  // Relative mouse position
+i32 index_from_position(Position cursor, Element *element) {
+  // Relative position
   Position position = {
-    .x = mouse_position.x - element->layout.x - element->padding.left - element->layout.scroll_x,
-    .y = mouse_position.y - element->layout.y - element->padding.top - element->layout.scroll_y,
+    .x = cursor.x - element->layout.x - element->padding.left - element->layout.scroll_x,
+    .y = cursor.y - element->layout.y - element->padding.top - element->layout.scroll_y,
   };
   if (position.y <= 0) return 0;
 
-  Arena *temp_arena = arena_open(512);
-
   i32 line_height = get_text_line_height(element->font_variant);
-
   i32 row = position.y / line_height;
-  if (row < 0) return 0;
 
+  Arena *temp_arena = arena_open(512);
   // Copy element text to a new string to avoid modifying the original string
   s8 text = string_from_substring(temp_arena, element->input->text.data, 0, element->input->text.length);
 
@@ -245,8 +274,7 @@ i32 index_from_position(Position mouse_position, Element *element) {
   for (i32 i = 0; i < row; i++) {
     s8 *line = array_get(lines, i);
     if (row < number_of_lines) {
-      // TODO: This is not correct when word is broken
-      string_index += line->length + 1; // + 1 for newline or space
+      string_index += line->length;
     }
   }
   // Find the index of the character in the clicked line
@@ -263,8 +291,9 @@ i32 index_from_position(Position mouse_position, Element *element) {
 Position position_from_index(i32 index, Element *element) {
   Arena *temp_arena = arena_open(512);
   Position position = {0, 0};
+  s8 element_text = element->input->text;
   // Copy element text to a new string to avoid modifying the original string
-  s8 text = string_from_substring(temp_arena, element->input->text.data, 0, element->input->text.length);
+  s8 text = string_from_substring(temp_arena, element_text.data, 0, element_text.length);
   // Text is only one line
   if (element->overflow == overflow_type.scroll ||
       element->overflow == overflow_type.scroll_x) {
@@ -283,21 +312,24 @@ Position position_from_index(i32 index, Element *element) {
     Array *lines = split_string_by_width(temp_arena, element->font_variant, text, max_width);
     i32 number_of_lines = array_length(lines);
     i32 counting_index = 0;
-    for (i32 i = 0; i < number_of_lines; i++) {
-      s8 *line = array_get(lines, i);
-      if (index >= counting_index && index <= counting_index + line->length) {
+    i32 row = 0;
+    while (row < number_of_lines) {
+      s8 *line = array_get(lines, row);
+      // Last index of the line is on the next line except for the last line
+      if ((index >= counting_index && index < counting_index + line->length) ||
+          (index == counting_index + line->length && row == number_of_lines - 1)) {
         s8 substring = string_from_substring(temp_arena, line->data, 0, index - counting_index);
         i32 width = 0;
         TTF_SizeUTF8(get_font(element->font_variant), to_char(substring), &width, 0);
         i32 line_height = get_text_line_height(element->font_variant);
         position = (Position){
           .x = element->layout.x + element->padding.left + width,
-          .y = element->layout.y + element->padding.top + i * line_height + 1,
+          .y = element->layout.y + element->padding.top + row * line_height + line_height / 2,
         };
-        i = number_of_lines; // Break the loop
+        row = number_of_lines; // Break the loop
       }
-      // TODO: This is not correct when word is broken
-      counting_index += line->length + 1; // + 1 for newline or space
+      counting_index += line->length;
+      row += 1;
     }
   }
   arena_close(temp_arena);

@@ -398,11 +398,25 @@ SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
 
 // Set the selection start index
 void set_selection_start_index(InputData *input, i32 index) {
+  if (index < 0) {
+    printf("Index too small! %d\n", index);
+    index = 0;
+  } else if (index > input->text.length) {
+    printf("Index too large! %d\n", index);
+    index = input->text.length;
+  }
   input->selection.start_index = index;
 }
 
 // Set the selection end index
 void set_selection_end_index(InputData *input, i32 index) {
+  if (index < 0) {
+    printf("Index too small! %d\n", index);
+    index = 0;
+  } else if (index > input->text.length) {
+    printf("Index too large! %d\n", index);
+    index = input->text.length;
+  }
   input->selection.end_index = index;
 }
 

@@ -5,9 +5,9 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h" // TTF_RenderUTF8_Blended
 #include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
+#include "font_layout.h" // split_string_by_width, get_text_line_height
 #include "types.h" // u8, f32, i32
 #include "types_draw.h" // Border, Padding
-#include "font_layout.h" // split_string_by_width, get_text_line_height
 
 // Locked texture as pixel data
 typedef struct {
@@ -73,16 +73,23 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
 
 void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
-  if (text.data[0] != '\0') {
+  if (text.data != 0 && text.data[0] != '\0') {
     TTF_Font *font = get_font(font_variant);
     i32 line_height = get_text_line_height(font_variant);
     Arena *temp_arena = arena_open(512);
     Array *lines = split_string_by_width(temp_arena, font_variant, text, text_position.w);
     for (i32 i = 0; i < array_length(lines); i++) {
       s8 *line = array_get(lines, i);
-      // Adds null terminator to the line at line length
-      s8 trimmed_line = string_from_substring(temp_arena, line->data, 0, line->length);
-      draw_text(target, font, to_char(trimmed_line), color, text_position, padding);
+      i32 line_length = line->length;
+      if (line_length > 0){
+        // Don't draw newline characters
+        if (line->data[line_length - 1] == '\n') {
+          line_length--;
+        }
+        // Trims and adds null terminator
+        s8 trimmed_line = string_from_substring(temp_arena, line->data, 0, line_length);
+        draw_text(target, font, to_char(trimmed_line), color, text_position, padding);
+      }
       text_position.y += line_height;
     }
     arena_close(temp_arena);
