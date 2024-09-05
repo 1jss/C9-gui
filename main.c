@@ -2,7 +2,7 @@
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
 #include <time.h> // clock
-#include "components/home.h" // home_element, create_home_element
+#include "components/border.h" // border_element, create_border_element
 #include "components/menu.h" // add_menu_items
 #include "components/search_bar.h" // search_bar, create_search_bar_element
 #include "constants/color_theme.h" // white, white_2, gray_1, gray_2, border_color, text_color
@@ -129,9 +129,9 @@ i32 main() {
     .background.color = white,
   };
 
-  // Fill content panel with home element
-  create_home_element(tree->arena);
-  add_element(tree->arena, content_panel, home_element);
+  // Fill content panel with border element
+  create_border_element(tree->arena);
+  add_element(tree->arena, content_panel, border_element);
 
   // Fill side panel with menu items
   add_menu_items(tree->arena, side_panel);

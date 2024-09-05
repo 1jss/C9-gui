@@ -1,8 +1,10 @@
 #ifndef MENU_COMPONENT
 
-#include "../components/form.h" // form_element, create_form_element
-#include "../components/home.h" // home_element, create_home_element
+#include "../components/border.h" // border_element, create_border_element
+#include "../components/layers.h" // layers_element, create_layers_element
+#include "../components/surface.h" // surface_element, create_surface_element
 #include "../components/table.h" // table_element, create_table_element
+#include "../components/text.h" // text_element, create_text_element
 #include "../constants/color_theme.h" // text_color, text_color_active, menu_active_color
 #include "../constants/element_tags.h" // side_panel_tag, content_panel_tag
 #include "../include/arena.h" // Arena
@@ -68,22 +70,31 @@ void set_content_panel(ElementTree *tree, Element *element) {
 void click_item_1(ElementTree *tree, void *data) {
   (void)data;
   set_menu(tree);
-  if (home_element == 0) {
-    create_home_element(tree->arena);
+  if (border_element == 0) {
+    create_border_element(tree->arena);
   }
-  set_content_panel(tree, home_element);
+  set_content_panel(tree, border_element);
 }
 
 void click_item_2(ElementTree *tree, void *data) {
   (void)data;
   set_menu(tree);
-  if (form_element == 0) {
-    create_form_element(tree->arena);
+  if (surface_element == 0) {
+    create_surface_element(tree->arena);
   }
-  set_content_panel(tree, form_element);
+  set_content_panel(tree, surface_element);
 }
 
 void click_item_3(ElementTree *tree, void *data) {
+  (void)data;
+  set_menu(tree);
+  if (text_element == 0) {
+    create_text_element(tree->arena);
+  }
+  set_content_panel(tree, text_element);
+}
+
+void click_item_4(ElementTree *tree, void *data) {
   (void)data;
   set_menu(tree);
   if (table_element == 0) {
@@ -92,13 +103,22 @@ void click_item_3(ElementTree *tree, void *data) {
   set_content_panel(tree, table_element);
 }
 
+void click_item_5(ElementTree *tree, void *data) {
+  (void)data;
+  set_menu(tree);
+  if (layers_element == 0) {
+    create_layers_element(tree->arena);
+  }
+  set_content_panel(tree, layers_element);
+}
+
 // Fill side panel with menu items
 void add_menu_items(Arena *arena, Element *side_panel) {
-  Element *menu_item = add_new_element(arena, side_panel);
-  *menu_item = (Element){
-    .background_type = background_type.none,
+  Element *menu_item_1 = add_new_element(arena, side_panel);
+  *menu_item_1 = (Element){
+    .background_type = background_type.color,
     .background.color = menu_active_color,
-    .padding = (Padding){5, 10, 5, 10},
+    .padding = (Padding){6, 10, 6, 10},
     .corner_radius = 15,
     .text = to_s8("Border"),
     .text_color = text_color,
@@ -110,9 +130,9 @@ void add_menu_items(Arena *arena, Element *side_panel) {
   *menu_item_2 = (Element){
     .background_type = background_type.none,
     .background.color = menu_active_color,
-    .padding = (Padding){5, 10, 5, 10},
+    .padding = (Padding){6, 10, 6, 10},
     .corner_radius = 15,
-    .text = to_s8("Input"),
+    .text = to_s8("Surface"),
     .text_color = text_color,
     .on_click = &click_item_2,
   };
@@ -121,11 +141,33 @@ void add_menu_items(Arena *arena, Element *side_panel) {
   *menu_item_3 = (Element){
     .background_type = background_type.none,
     .background.color = menu_active_color,
-    .padding = (Padding){5, 10, 5, 10},
+    .padding = (Padding){6, 10, 6, 10},
+    .corner_radius = 15,
+    .text = to_s8("Text"),
+    .text_color = text_color,
+    .on_click = &click_item_3,
+  };
+
+  Element *menu_item_4 = add_new_element(arena, side_panel);
+  *menu_item_4 = (Element){
+    .background_type = background_type.none,
+    .background.color = menu_active_color,
+    .padding = (Padding){6, 10, 6, 10},
     .corner_radius = 15,
     .text = to_s8("Table"),
     .text_color = text_color,
-    .on_click = &click_item_3,
+    .on_click = &click_item_4,
+  };
+
+  Element *menu_item_5 = add_new_element(arena, side_panel);
+  *menu_item_5 = (Element){
+    .background_type = background_type.none,
+    .background.color = menu_active_color,
+    .padding = (Padding){6, 10, 6, 10},
+    .corner_radius = 15,
+    .text = to_s8("Layers"),
+    .text_color = text_color,
+    .on_click = &click_item_5,
   };
 }
 

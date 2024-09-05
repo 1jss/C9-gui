@@ -47,7 +47,12 @@ void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
 void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
   if (text[0] != '\0') {
-    SDL_Color text_base_color = {red(color), green(color), blue(color), alpha(color)};
+    SDL_Color text_base_color = {
+      .r = red(color),
+      .g = green(color),
+      .b = blue(color),
+      .a = alpha(color),
+    };
     SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, text_base_color);
     SDL_LockSurface(surface);
     // Loop over text pixels
@@ -59,7 +64,7 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
           i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
           // Get the pixel color from the text surface
           u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
-          RGBA text_pixel = RGBA_from_u8(pixel[0], pixel[1], pixel[2], pixel[3]);
+          RGBA text_pixel = RGBA_from_u8(pixel[2], pixel[1], pixel[0], pixel[3]);
           RGBA target_pixel = target.pixels[pixel_index];
           RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
           target.pixels[pixel_index] = blended_pixel;
@@ -81,7 +86,7 @@ void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color,
     for (i32 i = 0; i < array_length(lines); i++) {
       s8 *line = array_get(lines, i);
       i32 line_length = line->length;
-      if (line_length > 0){
+      if (line_length > 0) {
         // Don't draw newline characters
         if (line->data[line_length - 1] == '\n') {
           line_length--;

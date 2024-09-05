@@ -17,7 +17,7 @@ void set_passive_input_style(Element *element) {
 
 void table_title_style(Element *element) {
   element->font_variant = font_variant.bold;
-  element->padding = (Padding){5, 10, 5, 10};
+  element->padding = (Padding){6, 10, 6, 10};
   element->border = (Border){0, 0, 1, 0};
   element->border_color = border_color;
 }
@@ -25,7 +25,7 @@ void table_title_style(Element *element) {
 void table_content_style(Element *element) {
   element->background_type = background_type.color;
   element->background.color = white;
-  element->padding = (Padding){5, 10, 5, 10};
+  element->padding = (Padding){6, 10, 6, 10};
 }
 
 void set_table_style(Element *element) {

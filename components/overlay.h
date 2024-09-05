@@ -62,7 +62,7 @@ void create_overlay_element(Arena *arena) {
   *close_button = (Element){
     .background_type = background_type.horizontal_gradient,
     .background.gradient = button_gradient,
-    .padding = (Padding){5, 10, 5, 10},
+    .padding = (Padding){6, 10, 6, 10},
     .corner_radius = 15,
     .text = to_s8("Close overlay"),
     .text_color = white,
