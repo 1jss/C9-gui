@@ -2,7 +2,7 @@
 
 #include "../components/border.h" // border_element, create_border_element
 #include "../components/layers.h" // layers_element, create_layers_element
-#include "../components/surface.h" // surface_element, create_surface_element
+#include "../components/background.h" // background_element, create_background_element
 #include "../components/table.h" // table_element, create_table_element
 #include "../components/text.h" // text_element, create_text_element
 #include "../constants/color_theme.h" // text_color, text_color_active, menu_active_color
@@ -79,10 +79,10 @@ void click_item_1(ElementTree *tree, void *data) {
 void click_item_2(ElementTree *tree, void *data) {
   (void)data;
   set_menu(tree);
-  if (surface_element == 0) {
-    create_surface_element(tree->arena);
+  if (background_element == 0) {
+    create_background_element(tree->arena);
   }
-  set_content_panel(tree, surface_element);
+  set_content_panel(tree, background_element);
 }
 
 void click_item_3(ElementTree *tree, void *data) {
@@ -132,7 +132,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
     .background.color = menu_active_color,
     .padding = (Padding){6, 10, 6, 10},
     .corner_radius = 15,
-    .text = to_s8("Surface"),
+    .text = to_s8("Background"),
     .text_color = text_color,
     .on_click = &click_item_2,
   };

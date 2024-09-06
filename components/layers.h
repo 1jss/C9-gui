@@ -1,6 +1,6 @@
 #ifndef LAYERS_COMPONENT
 
-#include "../constants/color_theme.h" // gray_2, white
+#include "../constants/color_theme.h" // gray_1, white
 #include "../include/arena.h" // Arena
 #include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree
 #include "../include/font.h" // font_variant
@@ -27,7 +27,7 @@ void create_layers_element(Arena *arena) {
   Element *content_panel = add_new_element(arena, layers_element);
   *content_panel = (Element){
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
@@ -43,7 +43,7 @@ void create_layers_element(Arena *arena) {
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-    .gutter = 10,
+   .gutter = 6,
   };
 
   Element *layers_title = add_new_element(arena, text_panel);

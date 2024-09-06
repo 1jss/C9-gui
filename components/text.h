@@ -1,6 +1,6 @@
 #ifndef TEXT_COMPONENT
 
-#include "../constants/color_theme.h" // gray_2, white
+#include "../constants/color_theme.h" // gray_1, white
 #include "../constants/element_tags.h" // content_panel_tag
 #include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
 #include "../include/arena.h" // Arena
@@ -54,7 +54,7 @@ void create_text_element(Arena *arena) {
   Element *font_variant_panel = add_new_element(arena, text_element);
   *font_variant_panel = (Element){
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
@@ -69,7 +69,7 @@ void create_text_element(Arena *arena) {
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-    .gutter = 10,
+   .gutter = 6,
   };
 
   Element *font_variant_title = add_new_element(arena, font_variant_text_panel);
@@ -98,7 +98,7 @@ void create_text_element(Arena *arena) {
     .text = to_s8("Regular text"),
     .font_variant = font_variant.regular,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
   };
 
   Element *bold_text = add_new_element(arena, font_variant_example_panel);
@@ -106,7 +106,7 @@ void create_text_element(Arena *arena) {
     .text = to_s8("Bold text"),
     .font_variant = font_variant.bold,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
   };
 
   Element *large_text = add_new_element(arena, font_variant_example_panel);
@@ -114,7 +114,7 @@ void create_text_element(Arena *arena) {
     .text = to_s8("Large text"),
     .font_variant = font_variant.large,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
   };
 
   Element *small_text = add_new_element(arena, font_variant_example_panel);
@@ -122,13 +122,13 @@ void create_text_element(Arena *arena) {
     .text = to_s8("Small text"),
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
   };
 
   Element *input_panel = add_new_element(arena, text_element);
   *input_panel = (Element){
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
@@ -141,7 +141,7 @@ void create_text_element(Arena *arena) {
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-    .gutter = 10,
+   .gutter = 6,
   };
 
   Element *input_text_title = add_new_element(arena, input_text_panel);
@@ -170,7 +170,7 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .padding = (Padding){10, 0, 6, 10},
   };
 
@@ -196,7 +196,7 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .padding = (Padding){10, 0, 6, 10},
   };
 
@@ -221,7 +221,7 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .padding = (Padding){10, 0, 6, 10},
   };
 
@@ -244,7 +244,7 @@ void create_text_element(Arena *arena) {
   Element *text_box_panel = add_new_element(arena, text_element);
   *text_box_panel = (Element){
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
@@ -258,7 +258,7 @@ void create_text_element(Arena *arena) {
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-    .gutter = 10,
+   .gutter = 6,
   };
 
   Element *text_box_text_title = add_new_element(arena, text_box_text_panel);
@@ -281,7 +281,7 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .padding = (Padding){10, 0, 6, 10},
   };
   Element *scrolling_text = add_new_element(arena, text_box_panel);
@@ -302,7 +302,7 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .padding = (Padding){10, 0, 6, 10},
   };
   Element *multiline_text = add_new_element(arena, text_box_panel);
@@ -323,7 +323,7 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .font_variant = font_variant.small,
     .background_type = background_type.color,
-    .background.color = gray_2,
+    .background.color = gray_1,
     .padding = (Padding){10, 0, 6, 10},
   };
 
