@@ -4,7 +4,7 @@
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
 #include "element_tree.h" // ElementTree, Element
-#include "input_actions.h" // select_word, set_selection, set_selection_end
+#include "input_actions.h" // select_word, set_selection_start_index, set_selection_end_index
 #include "layout.h" // fill_scroll_width, get_clickable_element_at
 #include "types.h" // i32
 #include "types_draw.h" // Position
@@ -33,6 +33,8 @@ void input_handler(ElementTree *tree, void *data) {
     handle_text_input(element->input, text);
     element->render.changed = 1;
     set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
+    tree->rerender_element = get_parent(get_root(tree), element);
+    bump_rerender(tree);
   }
   // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
@@ -106,7 +108,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
             end_index = index_from_position(position, element);
             set_selection_end_index(element->input, end_index);
             element->render.changed = 1;
-            tree->rerender_element = get_parent(tree, element);
+            tree->rerender_element = get_parent(get_root(tree), element);
             bump_rerender(tree);
           } else {
             input_handler(tree, "SELECT_END");
@@ -121,7 +123,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
             end_index = index_from_position(position, element);
             set_selection_end_index(element->input, end_index);
             element->render.changed = 1;
-            tree->rerender_element = get_parent(tree, element);
+            tree->rerender_element = get_parent(get_root(tree), element);
             bump_rerender(tree);
           } else {
             input_handler(tree, "SELECT_START");
@@ -140,7 +142,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
             set_selection_start_index(element->input, index);
             set_selection_end_index(element->input, index);
             element->render.changed = 1;
-            tree->rerender_element = get_parent(tree, element);
+            tree->rerender_element = get_parent(get_root(tree), element);
             bump_rerender(tree);
           } else {
             input_handler(tree, "MOVE_UP");
@@ -155,7 +157,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
             set_selection_start_index(element->input, index);
             set_selection_end_index(element->input, index);
             element->render.changed = 1;
-            tree->rerender_element = get_parent(tree, element);
+            tree->rerender_element = get_parent(get_root(tree), element);
             bump_rerender(tree);
           } else {
             input_handler(tree, "MOVE_DOWN");
@@ -170,7 +172,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
             input_handler(tree, "\n");
           }
         } else if (keysym.sym == SDLK_ESCAPE) {
-          input_handler(tree, "DESELECT");
+          input_handler(tree, "ESCAPE");
         } else if (keysym.sym == SDLK_z && ctrl_cmd) {
           input_handler(tree, "UNDO");
         } else if (keysym.sym == SDLK_y && ctrl_cmd) {
@@ -247,7 +249,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           // Set input to rerender
           tree->active_element->render.changed = 1;
           // Redraw parent to prevent bleeding corners
-          tree->rerender_element = get_parent(tree, tree->active_element);
+          tree->rerender_element = get_parent(get_root(tree), tree->active_element);
           bump_rerender(tree);
         }
         SDL_FlushEvent(SDL_MOUSEMOTION);

@@ -5,7 +5,7 @@
 // Element tags
 const u8 content_panel_tag = 3;
 const u8 side_panel_tag = 4;
-const u8 search_panel_tag = 5;
+const u8 search_panel_input_tag = 6;
 
 #define C9_ELEMENT_TAGS
 #endif

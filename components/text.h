@@ -31,15 +31,6 @@ void blur_text_input(ElementTree *tree, void *data) {
   }
 }
 
-void on_text_input(ElementTree *tree, void *data) {
-  (void)data;
-  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
-  if (content_panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = content_panel;
-  }
-}
-
 void create_text_element(Arena *arena) {
   text_element = new_element(arena);
   *text_element = (Element){
@@ -186,7 +177,6 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .on_click = &click_text_input,
     .on_blur = &blur_text_input,
-    .on_key_press = &on_text_input,
     .overflow = overflow_type.scroll_x,
   };
 
@@ -212,7 +202,6 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .on_click = &click_text_input,
     .on_blur = &blur_text_input,
-    .on_key_press = &on_text_input,
   };
 
   Element *multi_line_input_title_2 = add_new_element(arena, input_panel);
@@ -238,7 +227,6 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
     .on_click = &click_text_input,
     .on_blur = &blur_text_input,
-    .on_key_press = &on_text_input,
   };
 
   Element *text_box_panel = add_new_element(arena, text_element);

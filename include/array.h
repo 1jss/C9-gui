@@ -242,5 +242,10 @@ i32 array_last(Array *array) {
   return array->length - 1;
 }
 
+void array_clear(Array *array) {
+  array->length = 0;
+  array->index = index_create(array->arena);
+}
+
 #define C9_ARRAY
 #endif

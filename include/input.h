@@ -1,7 +1,7 @@
 #ifndef C9_INPUT
 
 #include "arena.h" // Arena
-#include "array.h" // Array
+#include "array.h" // Array, array_create, array_clear
 #include "string.h" // s8, new_string
 #include "types.h" // u8, i32
 
@@ -59,6 +59,14 @@ InputData *new_input(Arena *arena) {
     .arena = arena
   };
   return input;
+}
+
+void clear_input(InputData *input){
+  input->text.length = 0;
+  input->text.data[0] = '\0';
+  input->selection = (Selection){0, 0};
+  input->history->current_index = 0;
+  array_clear(input->history->actions);
 }
 
 #define C9_INPUT

@@ -6,7 +6,7 @@
 #include "components/menu.h" // add_menu_items
 #include "components/search_bar.h" // search_bar, create_search_bar_element
 #include "constants/color_theme.h" // white, white_2, gray_1, gray_2, border_color, text_color
-#include "constants/element_tags.h" // content_panel_tag, search_panel_tag, side_panel_tag
+#include "constants/element_tags.h" // content_panel_tag, side_panel_tag
 #include "include/arena.h" // Arena, arena_open, arena_close
 #include "include/color.h" // RGBA, C9_Gradient
 #include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, Border, Padding
@@ -100,7 +100,6 @@ i32 main() {
 
   Element *top_right_panel = add_new_element(tree->arena, top_panel);
   *top_right_panel = (Element){
-    .element_tag = search_panel_tag,
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){10, 10, 10, 10},

@@ -341,7 +341,7 @@ void handle_text_input(InputData *input, char *text) {
     select_end(input);
   } else if (strcmp(text, "SELECT_ALL") == 0) {
     select_all(input);
-  } else if (strcmp(text, "DESELECT") == 0) {
+  } else if (strcmp(text, "ESCAPE") == 0) {
     deselect(input);
   } else if (strcmp(text, "MOVE_LEFT") == 0) {
     move_cursor_left(input);

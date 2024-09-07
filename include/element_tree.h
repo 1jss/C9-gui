@@ -305,22 +305,29 @@ Element *get_element_by_tag(Element *element, u8 tag) {
   return 0;
 }
 
-// Returns a reference to the parent element of the given element
-Element *get_parent(ElementTree *tree, Element *element) {
-  if (element == tree->root) {
-    return 0;
+// Returns which root layer is currently active
+Element *get_root(ElementTree *tree) {
+  if (tree->overlay != 0) {
+    return tree->overlay;
   }
-  Element *parent = tree->root;
+  return tree->root;
+}
+
+// Returns a reference to the direct parent element of the given element. Searches recursively starting from the given root parent.
+Element *get_parent(Element *parent, Element *element) {
   Array *children = parent->children;
   if (children == 0) {
     return 0;
   }
+  // Loop through the children
   for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
+    // If child is the element, return the parent
     if (child == element) {
       return parent;
     }
-    Element *selected = get_parent(tree, child);
+    // Otherwise search for the element in the child
+    Element *selected = get_parent(child, element);
     if (selected != 0) {
       return selected;
     }

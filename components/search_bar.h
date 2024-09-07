@@ -1,42 +1,16 @@
 #ifndef SEARCH_BAR_COMPONENT
 
-#include "../constants/color_theme.h" // gray_2, white
-#include "../constants/element_tags.h" // search_panel_tag
-#include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
+#include "../constants/color_theme.h" // white, border_color
 #include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, ElementTree, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, get_element_by_tag
-#include "../include/renderer.h" // bump_rerender
+#include "../include/element_tree.h" // Element, ElementTree, new_element, overflow_type, background_type, Padding
 #include "../include/string.h" // to_s8
+#include "search_overlay.h" // open_serach_overlay
 
 Element *search_bar = 0;
 
-void click_search_bar(ElementTree *tree, void *data) {
+void click_open_overlay(ElementTree *tree, void *data) {
   (void)data;
-  set_active_input_style(tree->active_element);
-  Element *search_panel = get_element_by_tag(tree->root, search_panel_tag);
-  if (search_panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = search_panel;
-  }
-}
-
-void blur_search_bar(ElementTree *tree, void *data) {
-  (void)data;
-  set_passive_input_style(tree->active_element);
-  Element *panel = get_element_by_tag(tree->root, search_panel_tag);
-  if (panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = panel;
-  }
-}
-
-void on_search_bar_input(ElementTree *tree, void *data) {
-  (void)data;
-  Element *panel = get_element_by_tag(tree->root, search_panel_tag);
-  if (panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = panel;
-  }
+  open_search_overlay(tree);
 }
 
 void create_search_bar_element(Arena *arena) {
@@ -49,11 +23,9 @@ void create_search_bar_element(Arena *arena) {
     .corner_radius = 15,
     .border_color = border_color,
     .border = (Border){1, 1, 1, 1},
-    .input = new_input(arena),
-    .text_color = text_color,
-    .on_click = &click_search_bar,
-    .on_blur = &blur_search_bar,
-    .on_key_press = &on_search_bar_input,
+    .text = to_s8("Search..."),
+    .text_color = text_color_muted,
+    .on_click = &click_open_overlay,
     .overflow = overflow_type.scroll_x
   };
 }
