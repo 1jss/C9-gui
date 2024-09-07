@@ -34,6 +34,15 @@ i32 *get_end_ref(Selection *selection) {
   return selection->start_index < selection->end_index ? &selection->end_index : &selection->start_index;
 }
 
+// Returns the start value of the selection
+i32 get_start_value(Selection selection) {
+  return selection.start_index < selection.end_index ? selection.start_index : selection.end_index;
+}
+// Returns the end value of the selection
+i32 get_end_value(Selection selection) {
+  return selection.start_index < selection.end_index ? selection.end_index : selection.start_index;
+}
+
 // Cursor movement
 void move_cursor_left(InputData *input) {
   i32 *start_index = get_start_ref(&input->selection);

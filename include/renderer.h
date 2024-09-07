@@ -231,9 +231,8 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
         // Text is wrapping and growing vertically
         else {
           Arena *temp_arena = arena_open(512);
-          // TODO: Pass by value?
-          i32 start_index = *get_start_ref(&element->input->selection);
-          i32 end_index = *get_end_ref(&element->input->selection);
+          i32 start_index = get_start_value(element->input->selection);
+          i32 end_index = get_end_value(element->input->selection);
           Array *text = split_string_by_width(temp_arena, element->font_variant, element->input->text, text_position.w);
           i32 index = 0;
           i32 line_height = get_text_line_height(element->font_variant);
