@@ -26,16 +26,20 @@ void create_border_element(Arena *arena) {
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
     .gutter = 10,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
-Element *border_width_text_panel = add_new_element(arena, border_width_panel);
+  Element *border_width_text_panel = add_new_element(arena, border_width_panel);
   *border_width_text_panel = (Element){
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-   .gutter = 6,
+    .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *border_width_title = add_new_element(arena, border_width_text_panel);
@@ -78,7 +82,7 @@ Element *border_width_text_panel = add_new_element(arena, border_width_panel);
     .border = (Border){0, 6, 6, 0},
     .border_color = border_color,
   };
- 
+
   Element *border_3 = add_new_element(arena, border_width_example_panel);
   *border_3 = (Element){
     .width = 100,
@@ -97,6 +101,8 @@ Element *border_width_text_panel = add_new_element(arena, border_width_panel);
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
     .gutter = 10,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *corner_radius_text_panel = add_new_element(arena, corner_radius_panel);
@@ -106,7 +112,9 @@ Element *border_width_text_panel = add_new_element(arena, border_width_panel);
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-   .gutter = 6,
+    .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *corner_radius_title = add_new_element(arena, corner_radius_text_panel);

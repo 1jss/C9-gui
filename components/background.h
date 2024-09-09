@@ -26,6 +26,8 @@ void create_background_element(Arena *arena) {
     .padding = (Padding){10, 10, 5, 10},
     .layout_direction = layout_direction.vertical,
     .gutter = 10,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *background_type_text_panel = add_new_element(arena, background_type_panel);
@@ -36,6 +38,8 @@ void create_background_element(Arena *arena) {
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
     .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *background_type_title = add_new_element(arena, background_type_text_panel);

@@ -6,8 +6,8 @@
 #include "../include/arena.h" // Arena
 #include "../include/element_tree.h" // Element, add_new_element, new_element, background_type, layout_direction, Padding, ElementTree
 #include "../include/font.h" // font_variant
-#include "../include/layout.h" // set_overlay_dimensions
 #include "../include/input.h" // clear_input
+#include "../include/layout.h" // set_overlay_dimensions
 
 Element *search_overlay_element = 0;
 
@@ -94,20 +94,42 @@ void create_search_overlay_element(Arena *arena) {
   Element *result_panel = add_new_element(arena, content_panel);
   *result_panel = (Element){
     .background_type = background_type.color,
-    .background.color = white,
+    .background.color = gray_1,
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
     .padding = (Padding){10, 10, 10, 10},
     .gutter = 10,
   };
 
-  Element *search_result_item = add_new_element(arena, result_panel);
-  *search_result_item = (Element){
+  Element *search_result_list = add_new_element(arena, result_panel);
+  *search_result_list = (Element){
     .background_type = background_type.color,
-    .background.color = gray_1,
-    .padding = (Padding){6, 10, 6, 10},
+    .background.color = white,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
     .corner_radius = 15,
+    .padding = (Padding){2, 0, 2, 0},
+    .layout_direction = layout_direction.vertical,
+  };
+
+  Element *search_result_item = add_new_element(arena, search_result_list);
+  *search_result_item = (Element){
+    .padding = (Padding){8, 10, 8, 10},
     .text = to_s8("Search result item"),
+    .text_color = text_color,
+  };
+
+  Element *search_result_separator = add_new_element(arena, search_result_list);
+  *search_result_separator = (Element){
+    .height = 1,
+    .background_type = background_type.color,
+    .background.color = gray_2,
+  };
+
+  Element *search_result_item_2 = add_new_element(arena, search_result_list);
+  *search_result_item_2 = (Element){
+    .padding = (Padding){8, 10, 8, 10},
+    .text = to_s8("Search result item 2"),
     .text_color = text_color,
   };
 }

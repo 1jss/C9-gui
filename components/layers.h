@@ -33,8 +33,9 @@ void create_layers_element(Arena *arena) {
     .gutter = 10,
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
-
 
   Element *text_panel = add_new_element(arena, content_panel);
   *text_panel = (Element){
@@ -43,7 +44,9 @@ void create_layers_element(Arena *arena) {
     .padding = (Padding){6, 10, 6, 10},
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
-   .gutter = 6,
+    .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *layers_title = add_new_element(arena, text_panel);

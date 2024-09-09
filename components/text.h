@@ -51,6 +51,8 @@ void create_text_element(Arena *arena) {
     .gutter = 10,
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *font_variant_text_panel = add_new_element(arena, font_variant_panel);
@@ -61,6 +63,8 @@ void create_text_element(Arena *arena) {
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
     .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *font_variant_title = add_new_element(arena, font_variant_text_panel);
@@ -115,6 +119,8 @@ void create_text_element(Arena *arena) {
     .corner_radius = 25,
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *input_text_panel = add_new_element(arena, input_panel);
@@ -125,6 +131,8 @@ void create_text_element(Arena *arena) {
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
     .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *input_text_title = add_new_element(arena, input_text_panel);
@@ -223,6 +231,8 @@ void create_text_element(Arena *arena) {
     .padding = (Padding){10, 10, 10, 10},
     .layout_direction = layout_direction.vertical,
     .overflow = overflow_type.scroll_y,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *text_box_text_panel = add_new_element(arena, text_box_panel);
@@ -233,6 +243,8 @@ void create_text_element(Arena *arena) {
     .layout_direction = layout_direction.vertical,
     .corner_radius = 15,
     .gutter = 6,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *text_box_text_title = add_new_element(arena, text_box_text_panel);
@@ -266,6 +278,8 @@ void create_text_element(Arena *arena) {
     .corner_radius = 15,
     .overflow = overflow_type.scroll_x,
     .font_variant = font_variant.regular,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *multiline_text_title = add_new_element(arena, text_box_panel);
@@ -285,6 +299,8 @@ void create_text_element(Arena *arena) {
     .corner_radius = 15,
     .overflow = overflow_type.contain,
     .font_variant = font_variant.regular,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 
   Element *linebreak_text_title = add_new_element(arena, text_box_panel);
@@ -305,6 +321,8 @@ void create_text_element(Arena *arena) {
     .corner_radius = 15,
     .overflow = overflow_type.contain,
     .font_variant = font_variant.regular,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = gray_2,
   };
 }
 
