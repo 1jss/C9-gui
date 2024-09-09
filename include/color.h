@@ -23,6 +23,8 @@ RGBA set_alpha(RGBA color, u8 alpha) {
 }
 
 RGBA blend_colors(RGBA color_1, RGBA color_2) {
+  if(alpha(color_1) == 0) return color_2;
+  if(alpha(color_2) == 0) return color_1;
   u8 r_1 = (color_1 & 0xFF000000) >> 24;
   u8 g_1 = (color_1 & 0x00FF0000) >> 16;
   u8 b_1 = (color_1 & 0x0000FF00) >> 8;
