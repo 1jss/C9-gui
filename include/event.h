@@ -9,6 +9,11 @@
 #include "types.h" // i32
 #include "types_draw.h" // Position
 
+void rerender_element(ElementTree *tree, Element *element) {
+  element->render.changed = 1;
+  tree->rerender = rerender_type.all;
+}
+
 void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
@@ -31,10 +36,8 @@ void input_handler(ElementTree *tree, void *data) {
   if (element != 0 && element->input != 0) {
     char *text = (char *)data;
     handle_text_input(element->input, text);
-    element->render.changed = 1;
     set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
-    tree->rerender_element = get_parent(get_root(tree), element);
-    bump_rerender(tree);
+    rerender_element(tree, element);
   }
   // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
@@ -45,6 +48,40 @@ void input_handler(ElementTree *tree, void *data) {
 
 i32 absolute(i32 value) {
   return value < 0 ? -value : value;
+}
+
+void select_up(Element *element) {
+  i32 end_index = element->input->selection.end_index;
+  Position position = position_from_index(end_index, element);
+  position.y -= get_text_line_height(element->font_variant);
+  end_index = index_from_position(position, element);
+  set_selection_end_index(element->input, end_index);
+}
+
+void select_down(Element *element) {
+  i32 end_index = element->input->selection.end_index;
+  Position position = position_from_index(end_index, element);
+  position.y += get_text_line_height(element->font_variant);
+  end_index = index_from_position(position, element);
+  set_selection_end_index(element->input, end_index);
+}
+
+void move_up(Element *element) {
+  i32 index = element->input->selection.end_index;
+  Position position = position_from_index(index, element);
+  position.y -= get_text_line_height(element->font_variant);
+  index = index_from_position(position, element);
+  set_selection_start_index(element->input, index);
+  set_selection_end_index(element->input, index);
+}
+
+void move_down(Element *element) {
+  i32 index = element->input->selection.end_index;
+  Position position = position_from_index(index, element);
+  position.y += get_text_line_height(element->font_variant);
+  index = index_from_position(position, element);
+  set_selection_start_index(element->input, index);
+  set_selection_end_index(element->input, index);
 }
 
 bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer) {
@@ -98,35 +135,23 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         } else if (keysym.sym == SDLK_RIGHT &&
                    mod & KMOD_SHIFT) {
           input_handler(tree, "SELECT_RIGHT");
-        } else if (keysym.sym == SDLK_DOWN &&
-                   mod & KMOD_SHIFT) {
-          Element *element = tree->active_element;
-          if (element != 0 && element->input != 0) {
-            i32 end_index = element->input->selection.end_index;
-            Position position = position_from_index(end_index, element);
-            position.y += get_text_line_height(element->font_variant);
-            end_index = index_from_position(position, element);
-            set_selection_end_index(element->input, end_index);
-            element->render.changed = 1;
-            tree->rerender_element = get_parent(get_root(tree), element);
-            bump_rerender(tree);
-          } else {
-            input_handler(tree, "SELECT_END");
-          }
         } else if (keysym.sym == SDLK_UP &&
                    mod & KMOD_SHIFT) {
           Element *element = tree->active_element;
           if (element != 0 && element->input != 0) {
-            i32 end_index = element->input->selection.end_index;
-            Position position = position_from_index(end_index, element);
-            position.y -= get_text_line_height(element->font_variant);
-            end_index = index_from_position(position, element);
-            set_selection_end_index(element->input, end_index);
-            element->render.changed = 1;
-            tree->rerender_element = get_parent(get_root(tree), element);
-            bump_rerender(tree);
+            select_up(element);
+            rerender_element(tree, element);
           } else {
             input_handler(tree, "SELECT_START");
+          }
+        } else if (keysym.sym == SDLK_DOWN &&
+                   mod & KMOD_SHIFT) {
+          Element *element = tree->active_element;
+          if (element != 0 && element->input != 0) {
+            select_down(element);
+            rerender_element(tree, element);
+          } else {
+            input_handler(tree, "SELECT_END");
           }
         } else if (keysym.sym == SDLK_LEFT) {
           input_handler(tree, "MOVE_LEFT");
@@ -135,30 +160,16 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         } else if (keysym.sym == SDLK_UP) {
           Element *element = tree->active_element;
           if (element != 0 && element->input != 0) {
-            i32 index = element->input->selection.end_index;
-            Position position = position_from_index(index, element);
-            position.y -= get_text_line_height(element->font_variant);
-            index = index_from_position(position, element);
-            set_selection_start_index(element->input, index);
-            set_selection_end_index(element->input, index);
-            element->render.changed = 1;
-            tree->rerender_element = get_parent(get_root(tree), element);
-            bump_rerender(tree);
+            move_up(element);
+            rerender_element(tree, element);
           } else {
             input_handler(tree, "MOVE_UP");
           }
         } else if (keysym.sym == SDLK_DOWN) {
           Element *element = tree->active_element;
           if (element != 0 && element->input != 0) {
-            i32 index = element->input->selection.end_index;
-            Position position = position_from_index(index, element);
-            position.y += get_text_line_height(element->font_variant);
-            index = index_from_position(position, element);
-            set_selection_start_index(element->input, index);
-            set_selection_end_index(element->input, index);
-            element->render.changed = 1;
-            tree->rerender_element = get_parent(get_root(tree), element);
-            bump_rerender(tree);
+            move_down(element);
+            rerender_element(tree, element);
           } else {
             input_handler(tree, "MOVE_DOWN");
           }
@@ -246,11 +257,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           Position mouse = {mouse_x, mouse_y};
           i32 end_index = index_from_position(mouse, tree->active_element);
           set_selection_end_index(tree->active_element->input, end_index);
-          // Set input to rerender
-          tree->active_element->render.changed = 1;
-          // Redraw parent to prevent bleeding corners
-          tree->rerender_element = get_parent(get_root(tree), tree->active_element);
-          bump_rerender(tree);
+          rerender_element(tree, tree->active_element);
         }
         SDL_FlushEvent(SDL_MOUSEMOTION);
       } else if (event.type == SDL_QUIT) {

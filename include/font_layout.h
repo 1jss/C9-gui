@@ -26,9 +26,9 @@ bool has_continuation_byte(u8 byte) {
   return (byte & 0b11000000) == 0b10000000;
 }
 
-// Splits a string into lines based on a maximum width
-Array *split_string_by_width(Arena *arena, u8 variant, s8 text, i32 max_width) {
-  TTF_Font *font = get_font(variant);
+// Splits a string into lines based on a maximum width. Returns an array of strings but does not allocate memory for the new strings but only points to places in the original string.
+Array *split_string_by_width(Arena *arena, u8 font_variant, s8 text, i32 max_width) {
+  TTF_Font *font = get_font(font_variant);
   Array *lines = array_create(arena, sizeof(s8));
 
   // The text has no width limit
@@ -109,13 +109,13 @@ Array *split_string_by_width(Arena *arena, u8 variant, s8 text, i32 max_width) {
 const i32 line_spacing = 2;
 
 // Returns the height of a single text line
-i32 get_text_line_height(u8 variant) {
-  return get_font_height(variant) + line_spacing;
+i32 get_text_line_height(u8 font_variant) {
+  return get_font_height(font_variant) + line_spacing;
 }
 
 // Returns the height of a text block based on a maximum width
-i32 get_text_block_height(u8 variant, s8 text, i32 max_width) {
-  i32 font_height = get_font_height(variant);
+i32 get_text_block_height(u8 font_variant, s8 text, i32 max_width) {
+  i32 font_height = get_font_height(font_variant);
   // The text has no width limit
   if (max_width == 0) {
     return font_height;
@@ -124,7 +124,7 @@ i32 get_text_block_height(u8 variant, s8 text, i32 max_width) {
   else if (!contains_newline(text)) {
     i32 text_width = 0;
     i32 text_height = 0;
-    TTF_Font *font = get_font(variant);
+    TTF_Font *font = get_font(font_variant);
     TTF_SizeUTF8(font, (char *)text.data, &text_width, &text_height);
     if (text_width <= max_width) {
       return font_height;
@@ -132,7 +132,7 @@ i32 get_text_block_height(u8 variant, s8 text, i32 max_width) {
   }
 
   // Loop through the text
-  TTF_Font *font = get_font(variant);
+  TTF_Font *font = get_font(font_variant);
   i32 start_index = 0;
   i32 rows = 0;
   while (start_index < text.length) {
@@ -205,8 +205,8 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
   return character_width;
 }
 
-i32 index_from_x(u8 variant, s8 *text, i32 position) {
-  TTF_Font *font = get_font(variant);
+i32 index_from_x(u8 font_variant, s8 *text, i32 position) {
+  TTF_Font *font = get_font(font_variant);
   // Make sure the position and text is valid
   if (position <= 0 || text->length == 0) return 0;
 

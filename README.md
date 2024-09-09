@@ -105,7 +105,4 @@ Running:
 ## Todo
 - Mac .app packaging
 - To-Done example app
-- Multiline text input
-  - Clean up when new s8 is created when measuring text
-- Break out multiline selection events into functions
 - Empty background color when rendering text

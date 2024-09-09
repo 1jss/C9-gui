@@ -247,15 +247,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
               if (start_index <= index && end_index >= index + line->length) {
                 i32 line_length = line->length;
                 i32 text_width = 0;
-                if (line_length > 0) {          
+                if (line_length > 0) {    
+                  // Remove newline character from the end of the line      
                   if (line->data[line_length - 1] == '\n') {
                     line_length--;
                   }
-
                   // Create a new string from line to add null terminator
-                  s8 full_string = string_from_substring(temp_arena, line->data, 0, line_length);
+                  s8 trimmed_string = string_from_substring(temp_arena, line->data, 0, line_length);
                   // Measure text width
-                  TTF_SizeUTF8(font, to_char(full_string), &text_width, 0);
+                  TTF_SizeUTF8(font, to_char(trimmed_string), &text_width, 0);
                 }
 
                 SDL_Rect selection = {
