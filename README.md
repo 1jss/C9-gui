@@ -10,24 +10,25 @@ C9 gui is a performant and flexible GUI library built on SDL2. C9 gui primarily 
 - Image backgrounds (png, jpg, bmp)
 - Event handling (click, blur, key press)
 - Layout engine (flex or scroll children in any direction)
-- Lazy loading of elements outside of window
+- Lazy loading of elements (if outside of window bounds)
 - Text rendering (single line with alignment or multiline)
-- Easy table layout (with automatic column sizing)
+- Easy table layout (automatic column sizing)
 - Text input (single and multi line with selection and undo history)
+- Event driven rendering (only rerender on user input)
 - Partial rendering (only rerender elements that have changed)
 - Buffered rendering (all elements are cached as textures)
 - Element tags for easy element selection
 
 ## Screenshots
-![image_1](/screenshots/Screenshot_240812_1.png?raw=true)
-![image_2](/screenshots/Screenshot_240812_2.png?raw=true)
+![image_1](/screenshots/Screenshot_240911_1.png?raw=true)
+![image_1](/screenshots/Screenshot_240911_2.png?raw=true)
+![image_1](/screenshots/Screenshot_240911_3.png?raw=true)
+![image_1](/screenshots/Screenshot_240911_4.png?raw=true)
 
 ## Architecture
 
 ### Element tree
-C9 gui uses a tree structure to store the "document model". The model contains references (pointers) to the root element, the currently selected element, the next element to rerender (if any), the rerender type and the arena where all allocations for the tree are made.
-
-Every node in the tree is an element that can have their own children. The list of children is a flexible array, so the number of children (and thus the tree itself), can be changed at runtime.
+C9 gui uses a tree structure to store the retained "document model". Every node in the tree is an `element` that can have their own children. The list of children is a flexible C9 array, so the number of children (and thus the tree itself), can be changed at runtime.
 
 ### Element
 
@@ -64,17 +65,45 @@ An element is a struct that contains all the properties of a child. The structur
 
 New elements can be created in two ways. Either as children of an existing element(`add_new_element`) or as a standalone element(`new_element`). The standalone element can then dynamically be added to an element in the tree by calling `add_element`.
 
+Example of creating a standalone card element with text:
+
+```c
+  Element *card_element = new_element(arena);
+  *card_element = (Element){
+    .background_type = background_type.color,
+    .background.color = 0xFFFFFFFF,
+    .border = (Border){1, 1, 1, 1},
+    .border_color = 0xF2F3F4FF,
+    .corner_radius = 15,
+    .padding = (Padding){10, 10, 10, 10},
+    .layout_direction = layout_direction.vertical,
+  };
+
+  Element *title_element = add_new_element(arena, card_element);
+  *title_element = (Element){
+    .text = to_s8("Card title"),
+    .text_color = 0x555555FF,
+    .font_variant = font_variant.large,
+  };
+
+  Element *text_element = add_new_element(arena, card_element);
+  *text_element = (Element){
+    .text = to_s8("Some text in the card"),
+    .text_color = 0x555555FF,
+  };
+  ```
+
 ### Event handling
-Events are handled in the main loop and if an element has an event handler set for the event type, it will be called.
+Events are handled in the main loop and if an element has an event handler function set for the event type (on_click, on_blur, on_key_press), it will be called.
 
-If the event is a mouse down event, the element that is both under the pointer and has a on_click function will be set as active element and the on_click function will be called. The formerly active element will have it's on_blur function called. If the element has an input object, the cursor will be set at the position of the mouse pointer.
+If the event is a mouse down event, the element that is both under the pointer and has a on_click function will be set as active element and the on_click function will be called. The formerly active element will have its on_blur function called. If the element has a text input object, the text cursor will be set at the position of the mouse pointer.
 
-If the event is a key press event, the active element will have its on_key_press function called, if it has one.
+If the event is a key press event, the active element will have its on_key_press function called, if it has one. On element with input objects the key press is automatically handled.
 
 If the event is a scroll event, the entire tree will be searched for scrollable elements under the pointer and the scroll event will be applied to them, starting with the outermost element, so that children get scrolled before parents. The active element is not changed on scroll.
 
 ### Rendering
-The interface is only rendered when the `rerender` member of the element tree is set to either all or selected. The render function will then traverse the tree and redraw all child elements of either the root element or the selected element. All element are cached as textures, so only the elements that have new dimensions or are marked as changed will be rerendered from scratch. This means that scrolling and moving elements around is very efficient.
+The interface is only rendered when the `rerender` member of the element tree root is set to either all or selected. The render function will then traverse the tree and redraw all child elements of either the root element or the selected element. All element are cached as textures, so only the elements that have new dimensions or are marked as changed will be rerendered from scratch. This means that scrolling and moving elements around is very efficient.
 
 ### Components
 Components are reusable standalone elements that can dynamically be added and removed from the tree. They are implemented as global Element references (pointers) that get initalized on their first use. This way no more memory is used than needed and the already initalized component can be removed and readded to the tree without loosing its state and rendering cache.
@@ -104,5 +133,4 @@ Running:
 
 ## Todo
 - Mac .app packaging
-- To-Done example app
-- Empty background color when rendering text
+- To-Do example app
