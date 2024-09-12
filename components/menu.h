@@ -1,8 +1,8 @@
 #ifndef MENU_COMPONENT
 
+#include "../components/background.h" // background_element, create_background_element
 #include "../components/border.h" // border_element, create_border_element
 #include "../components/layers.h" // layers_element, create_layers_element
-#include "../components/background.h" // background_element, create_background_element
 #include "../components/table.h" // table_element, create_table_element
 #include "../components/text.h" // text_element, create_text_element
 #include "../constants/color_theme.h" // text_color, text_color_active, menu_active_color
@@ -36,11 +36,13 @@ void set_active_menu_element(Element *element) {
 }
 
 void set_menu(ElementTree *tree) {
-  Element *active_element = tree->active_element;
+  // The clicked element should have the same tag as the side panel menu item
+  Element *clicked_element = tree->active_element;
   Element *side_panel = get_element_by_tag(tree->root, side_panel_tag);
-  if (active_element != 0 && side_panel != 0) {
+  Element *active_menu_item = get_element_by_tag(side_panel, clicked_element->element_tag);
+  if (clicked_element != 0 && side_panel != 0) {
     reset_menu_elements(side_panel);
-    set_active_menu_element(active_element);
+    set_active_menu_element(active_menu_item);
     bump_rerender(tree);
     tree->rerender_element = side_panel;
   }
@@ -50,8 +52,13 @@ void set_menu(ElementTree *tree) {
 void set_content_panel(ElementTree *tree, Element *element) {
   Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
   if (content_panel != 0) {
-    // Clear children and add new element
-    content_panel->children = array_create(tree->arena, sizeof(Element));
+    // Clear children
+    if (content_panel->children == 0) {
+      content_panel->children = array_create(tree->arena, sizeof(Element));
+    } else {
+      array_clear(content_panel->children);
+    }
+    // Add new element
     array_push(content_panel->children, element);
 
     // Reset scroll position
@@ -116,6 +123,7 @@ void click_item_5(ElementTree *tree, void *data) {
 void add_menu_items(Arena *arena, Element *side_panel) {
   Element *menu_item_1 = add_new_element(arena, side_panel);
   *menu_item_1 = (Element){
+    .element_tag = border_menu_item,
     .background_type = background_type.color,
     .background.color = menu_active_color,
     .padding = (Padding){6, 10, 6, 10},
@@ -128,6 +136,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
 
   Element *menu_item_2 = add_new_element(arena, side_panel);
   *menu_item_2 = (Element){
+    .element_tag = background_menu_item,
     .background_type = background_type.none,
     .background.color = menu_active_color,
     .padding = (Padding){6, 10, 6, 10},
@@ -139,6 +148,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
 
   Element *menu_item_3 = add_new_element(arena, side_panel);
   *menu_item_3 = (Element){
+    .element_tag = text_menu_item,
     .background_type = background_type.none,
     .background.color = menu_active_color,
     .padding = (Padding){6, 10, 6, 10},
@@ -150,6 +160,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
 
   Element *menu_item_4 = add_new_element(arena, side_panel);
   *menu_item_4 = (Element){
+    .element_tag = table_menu_item,
     .background_type = background_type.none,
     .background.color = menu_active_color,
     .padding = (Padding){6, 10, 6, 10},
@@ -161,6 +172,7 @@ void add_menu_items(Arena *arena, Element *side_panel) {
 
   Element *menu_item_5 = add_new_element(arena, side_panel);
   *menu_item_5 = (Element){
+    .element_tag = layers_menu_item,
     .background_type = background_type.none,
     .background.color = menu_active_color,
     .padding = (Padding){6, 10, 6, 10},

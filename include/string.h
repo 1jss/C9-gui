@@ -108,7 +108,7 @@ i32 insert_into_string(Arena *arena, s8 *target, s8 substring, i32 index) {
 
 // Deletes a string from another string at a given index
 void delete_from_string(s8 *target, i32 index, i32 length) {
-  if(target->capacity == 0) return;
+  if (target->capacity == 0) return;
   // Shift the characters to the right of the deleted text to the left
   for (i32 i = index + length; i < target->length; i++) {
     target->data[i - length] = target->data[i];
@@ -136,13 +136,10 @@ bool equal_s8(s8 a, s8 b) {
 // Find the start index of a substring in a string
 i32 indexof_s8(s8 target, s8 substring) {
   if (target.length < substring.length) return INVALID_STRING_INDEX;
-  for (i32 i = 0; i < target.length - substring.length; i++) {
+  for (i32 i = 0; i <= target.length - substring.length; i++) {
     bool found = true;
-    for (i32 j = 0; j < substring.length; j++) {
-      if (target.data[i + j] != substring.data[j]) {
-        found = false;
-        break;
-      }
+    for (i32 j = 0; j < substring.length && found; j++) {
+      found = (target.data[i + j] == substring.data[j]);
     }
     if (found) return i;
   }
