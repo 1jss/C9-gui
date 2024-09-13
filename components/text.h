@@ -14,21 +14,13 @@ Element *text_element = 0;
 void click_text_input(ElementTree *tree, void *data) {
   (void)data;
   set_active_input_style(tree->active_element);
-  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
-  if (content_panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = content_panel;
-  }
+  bump_rerender(tree);
 }
 
 void blur_text_input(ElementTree *tree, void *data) {
   (void)data;
   set_passive_input_style(tree->active_element);
-  Element *content_panel = get_element_by_tag(tree->root, content_panel_tag);
-  if (content_panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = content_panel;
-  }
+  bump_rerender(tree);
 }
 
 void create_text_element(Arena *arena) {

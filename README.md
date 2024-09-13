@@ -134,3 +134,7 @@ Running:
 ## Todo
 - Mac .app packaging
 - To-Do example app
+- Remove partial redraw
+  - Check tree for rerender flag
+  - Draw from root every time
+  - Only rerender changed elements

@@ -247,8 +247,8 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
               if (start_index <= index && end_index >= index + line->length) {
                 i32 line_length = line->length;
                 i32 text_width = 0;
-                if (line_length > 0) {    
-                  // Remove newline character from the end of the line      
+                if (line_length > 0) {
+                  // Remove newline character from the end of the line
                   if (line->data[line_length - 1] == '\n') {
                     line_length--;
                   }
@@ -280,7 +280,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                 if (end_index >= index + line->length) {
                   relative_end = line->length;
                 }
-                if (line->length > 0 && relative_end > relative_start && line->data[relative_end - 1 ] == '\n') {
+                if (line->length > 0 && relative_end > relative_start && line->data[relative_end - 1] == '\n') {
                   relative_end--;
                 }
 
@@ -389,36 +389,17 @@ void render_element_tree(SDL_Renderer *renderer, ElementTree *tree) {
   SDL_Rect target_rectangle = {0, 0, 0, 0};
   // Get the width and height of the target texture
   SDL_QueryTexture(tree->target_texture, NULL, NULL, &target_rectangle.w, &target_rectangle.h);
+  // Draw the root element
   draw_elements(renderer, tree->root, target_rectangle, tree->active_element, target_rectangle);
   if (tree->overlay != 0) {
+    // Draw the overlay element
     draw_elements(renderer, tree->overlay, target_rectangle, tree->active_element, target_rectangle);
-  }
-}
-
-void render_selected_element(SDL_Renderer *renderer, ElementTree *tree) {
-  if (tree->rerender_element != 0) {
-    SDL_Rect target_rectangle = {
-      .x = tree->rerender_element->layout.x,
-      .y = tree->rerender_element->layout.y,
-      .w = tree->rerender_element->layout.max_width,
-      .h = tree->rerender_element->layout.max_height,
-    };
-    // Skip lazy loading as element is intentionally rerendered
-    SDL_Rect window_rect = {
-      .w = target_rectangle.x + target_rectangle.w,
-      .h = target_rectangle.y + target_rectangle.h,
-    };
-    draw_elements(renderer, tree->rerender_element, target_rectangle, tree->active_element, window_rect);
   }
 }
 
 // Sets selective rerendering if no rendering is set and all if selective is set
 void bump_rerender(ElementTree *tree) {
-  if (tree->rerender == rerender_type.none) {
-    tree->rerender = rerender_type.selected;
-  } else {
-    tree->rerender = rerender_type.all;
-  }
+  tree->rerender = rerender_type.all;
 }
 
 #define C9_RENDERER

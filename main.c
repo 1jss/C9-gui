@@ -13,7 +13,7 @@
 #include "include/event.h" // click_handler, blur_handler, input_handler, handle_events
 #include "include/font.h" // init_font, close_font
 #include "include/layout.h" // set_dimensions
-#include "include/renderer.h" // render_element_tree, render_selected_element
+#include "include/renderer.h" // render_element_tree
 #include "include/types.h" // i32
 
 i32 main() {
@@ -162,16 +162,6 @@ i32 main() {
       SDL_RenderCopy(renderer, tree->target_texture, NULL, NULL);
       SDL_RenderPresent(renderer);
       tree->rerender = rerender_type.none;
-      tree->rerender_element = 0;
-    } else if (tree->rerender == rerender_type.selected && tree->rerender_element != 0) {
-      SDL_SetRenderTarget(renderer, tree->target_texture);
-      render_selected_element(renderer, tree);
-      // Draw target_texture to back buffer and present
-      SDL_SetRenderTarget(renderer, NULL);
-      SDL_RenderCopy(renderer, tree->target_texture, NULL, NULL);
-      SDL_RenderPresent(renderer);
-      tree->rerender = rerender_type.none;
-      tree->rerender_element = 0;
     }
 
     clock_t main_loop_end = clock();

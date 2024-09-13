@@ -44,7 +44,6 @@ void set_menu(ElementTree *tree) {
     reset_menu_elements(side_panel);
     set_active_menu_element(active_menu_item);
     bump_rerender(tree);
-    tree->rerender_element = side_panel;
   }
 }
 
@@ -70,7 +69,6 @@ void set_content_panel(ElementTree *tree, Element *element) {
 
     // Set rerendering
     bump_rerender(tree);
-    tree->rerender_element = content_panel;
   }
 }
 

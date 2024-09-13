@@ -22,21 +22,13 @@ void close_search_overlay(ElementTree *tree, void *data) {
 void click_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_active_input_style(tree->active_element);
-  Element *input_panel = get_parent(tree->overlay, tree->active_element);
-  if (input_panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = input_panel;
-  }
+  bump_rerender(tree);
 }
 
 void blur_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_passive_input_style(tree->active_element);
-  Element *input_panel = get_parent(tree->overlay, tree->active_element);
-  if (input_panel != 0) {
-    bump_rerender(tree);
-    tree->rerender_element = input_panel;
-  }
+  bump_rerender(tree);
 }
 
 void add_separator(Arena *arena, Element *parent) {

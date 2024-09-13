@@ -223,7 +223,6 @@ struct ElementTree {
   Element *root;
   Element *overlay;
   Element *active_element;
-  Element *rerender_element;
   SDL_Texture *target_texture;
   ScrollProps scroll;
   u8 rerender;
@@ -240,7 +239,6 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->root = root;
   tree->overlay = 0;
   tree->active_element = 0;
-  tree->rerender_element = 0;
   tree->rerender = rerender_type.all;
   tree->target_texture = 0;
   tree->scroll = (ScrollProps){
