@@ -103,7 +103,7 @@ If the event is a key press event, the active element will have its on_key_press
 If the event is a scroll event, the entire tree will be searched for scrollable elements under the pointer and the scroll event will be applied to them, starting with the outermost element, so that children get scrolled before parents. The active element is not changed on scroll.
 
 ### Rendering
-The interface is only rendered when the `rerender` member of the element tree root is set to either all or selected. The render function will then traverse the tree and redraw all child elements of either the root element or the selected element. All element are cached as textures, so only the elements that have new dimensions or are marked as changed will be rerendered from scratch. This means that scrolling and moving elements around is very efficient.
+The interface is only rendered when the `rerender` flag of the element tree is set to true. The render function will then traverse the tree and redraw all child elements. All element are cached as textures, so only the elements that have new dimensions or are marked as changed will be redrawn from scratch. This means that scrolling and moving elements around is very efficient.
 
 ### Components
 Components are reusable standalone elements that can dynamically be added and removed from the tree. They are implemented as global Element references (pointers) that get initalized on their first use. This way no more memory is used than needed and the already initalized component can be removed and readded to the tree without loosing its state and rendering cache.
