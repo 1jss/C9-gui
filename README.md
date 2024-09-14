@@ -94,9 +94,9 @@ Example of creating a standalone card element with text:
   ```
 
 ### Event handling
-Events are handled in the main loop and if an element has an event handler function set for the event type (on_click, on_blur, on_key_press), it will be called.
+Events are handled in the main loop and if an element has an event handler function set for the event type (`on_click`, `on_blur`, `on_key_press`), it will be called.
 
-If the event is a mouse down event, the element that is both under the pointer and has a on_click function will be set as active element and the on_click function will be called. The formerly active element will have its on_blur function called. If the element has a text input object, the text cursor will be set at the position of the mouse pointer.
+If the event is a mouse down event, the element that is both under the pointer and has an on_click function will be set as active element and the on_click function will be called. The formerly active element will have its on_blur function called. If the element has a text input object, the text cursor will be set at the position of the mouse pointer.
 
 If the event is a key press event, the active element will have its on_key_press function called, if it has one. On element with input objects the key press is automatically handled.
 
@@ -134,7 +134,3 @@ Running:
 ## Todo
 - Mac .app packaging
 - To-Do example app
-- Remove partial redraw
-  - Check tree for rerender flag
-  - Draw from root every time
-  - Only rerender changed elements
