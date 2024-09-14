@@ -16,19 +16,19 @@ void close_search_overlay(ElementTree *tree, void *data) {
   (void)data;
   tree->overlay = 0;
   tree->active_element = 0;
-  tree->rerender = rerender_type.all;
+  tree->rerender = true;
 }
 
 void click_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_active_input_style(tree->active_element);
-  bump_rerender(tree);
+  tree->rerender = true;
 }
 
 void blur_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_passive_input_style(tree->active_element);
-  bump_rerender(tree);
+  tree->rerender = true;
 }
 
 void add_separator(Arena *arena, Element *parent) {
@@ -162,8 +162,8 @@ void on_search_bar_input(ElementTree *tree, void *data) {
       array_clear(search_result_list->children);
       fill_search_results(tree->arena, search_result_list, input->text);
       // Add new search result items
-      search_result_list->render.changed = 1;
-      bump_rerender(tree);
+      search_result_list->render.changed = true;
+      tree->rerender = true;
       set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
     }
   }
@@ -248,15 +248,14 @@ void open_search_overlay(ElementTree *tree) {
   Element *search_input = get_element_by_tag(search_overlay_element, search_panel_input_tag);
   tree->active_element = search_input;
   // Clear input value
-  clear_input(tree->active_element->input);
-  set_active_input_style(tree->active_element);
+  clear_input(search_input->input);
+  set_active_input_style(search_input);
   Element *search_result_list = get_element_by_tag(search_overlay_element, search_result_list_tag);
   fill_search_results(tree->arena, search_result_list, search_input->input->text);
-
-  tree->active_element->render.changed = 1;
+  search_input->render.changed = true;
   set_root_element_dimensions(search_overlay_element, tree->root->layout.max_width, tree->root->layout.max_height);
   tree->overlay = search_overlay_element;
-  tree->rerender = rerender_type.all;
+  tree->rerender = true;
 }
 
 #define SEARCH_OVERLAY_COMPONENT

@@ -10,15 +10,15 @@
 #include "types_draw.h" // Position
 
 void rerender_element(ElementTree *tree, Element *element) {
-  element->render.changed = 1;
-  tree->rerender = rerender_type.all;
+  element->render.changed = true;
+  tree->rerender = true;
 }
 
 void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
     element->on_click(tree, data);
-    element->render.changed = 1;
+    element->render.changed = true;
   }
 }
 
@@ -26,7 +26,7 @@ void blur_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_blur != 0) {
     element->on_blur(tree, data);
-    element->render.changed = 1;
+    element->render.changed = true;
   }
 }
 
@@ -42,7 +42,7 @@ void input_handler(ElementTree *tree, void *data) {
   // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
     element->on_key_press(tree, data);
-    element->render.changed = 1;
+    element->render.changed = true;
   }
 }
 
@@ -120,7 +120,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
             }
           }
           set_dimensions(tree, width, height);
-          tree->rerender = rerender_type.all;
+          tree->rerender = true;
         }
       } else if (event.type == SDL_KEYDOWN) {
         SDL_Keymod mod = SDL_GetModState();
@@ -271,7 +271,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         i32 remaining_scroll = scroll_x(scroll_root, mouse_x, mouse_y, scroll_distance_x);
         if (remaining_scroll != scroll_distance_x) {
           set_x(scroll_root, 0);
-          tree->rerender = rerender_type.all;
+          tree->rerender = true;
         }
       }
       // Scroll up or down
@@ -279,7 +279,7 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         i32 remaining_scroll = scroll_y(scroll_root, mouse_x, mouse_y, scroll_distance_y);
         if (remaining_scroll != scroll_distance_y) {
           set_y(scroll_root, 0);
-          tree->rerender = rerender_type.all;
+          tree->rerender = true;
         }
       }
     }

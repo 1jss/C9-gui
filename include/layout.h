@@ -465,15 +465,15 @@ i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
         if (new_scroll_x < max_scroll_x) {
           scroll_delta = new_scroll_x + max_scroll_x;
           element->layout.scroll_x = max_scroll_x;
-          element->render.changed = 1;
+          element->render.changed = true;
         } else if (new_scroll_x > 0) {
           scroll_delta = new_scroll_x;
           element->layout.scroll_x = 0;
-          element->render.changed = 1;
+          element->render.changed = true;
         } else {
           scroll_delta = 0;
           element->layout.scroll_x = new_scroll_x;
-          element->render.changed = 1;
+          element->render.changed = true;
         }
       }
     }
@@ -503,16 +503,16 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
         // Scroll the element up or down to the min or max
         if (new_scroll_y < max_scroll_y) {
           scroll_delta = new_scroll_y + max_scroll_y;
-          element->render.changed = 1;
+          element->render.changed = true;
           element->layout.scroll_y = max_scroll_y;
         } else if (new_scroll_y > 0) {
           scroll_delta = new_scroll_y;
           element->layout.scroll_y = 0;
-          element->render.changed = 1;
+          element->render.changed = true;
         } else {
           scroll_delta = 0;
           element->layout.scroll_y = new_scroll_y;
-          element->render.changed = 1;
+          element->render.changed = true;
         }
       }
     }

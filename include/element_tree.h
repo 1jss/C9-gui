@@ -8,19 +8,7 @@
 #include "string.h" // s8
 #include "types.h" // u8, i32
 #include "types_draw.h" // Border, Padding
-
-// Type of rerender
-typedef struct {
-  u8 none;
-  u8 all;
-  u8 selected;
-} RerenderType;
-
-const RerenderType rerender_type = {
-  .none = 0,
-  .all = 1,
-  .selected = 2,
-};
+#include <stdbool.h> // bool
 
 // Layout direction
 typedef struct {
@@ -114,7 +102,7 @@ typedef struct {
   SDL_Texture *texture;
   i32 width;
   i32 height;
-  u8 changed;
+  bool changed;
 } RenderProps;
 
 typedef struct {
@@ -225,7 +213,7 @@ struct ElementTree {
   Element *active_element;
   SDL_Texture *target_texture;
   ScrollProps scroll;
-  u8 rerender;
+  bool rerender;
 };
 
 // Create a new element tree and return a pointer to it
@@ -234,12 +222,13 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->arena = arena;
   Element *root = new_element(arena);
   root->layout_direction = layout_direction.vertical;
+  root->render.changed = true;
 
   // Assign the root element to the tree
   tree->root = root;
   tree->overlay = 0;
   tree->active_element = 0;
-  tree->rerender = rerender_type.all;
+  tree->rerender = true;
   tree->target_texture = 0;
   tree->scroll = (ScrollProps){
     .last_x = 0,

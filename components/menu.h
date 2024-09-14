@@ -15,17 +15,17 @@
 #include "../include/types.h" // i32
 
 void reset_menu_elements(Element *side_panel) {
-  // Loop through all children and set background color to none
   Array *children = side_panel->children;
-  if (children == 0) {
-    return;
-  }
+  if (children == 0) return;
+  // Loop through all children and set background color to none
   for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
+    if(child->background_type == background_type.color){
+      child->render.changed = true;
+    }
     child->background_type = background_type.none;
     child->text_color = text_color;
     child->font_variant = font_variant.regular;
-    child->render.changed = 1;
   }
 }
 
@@ -43,7 +43,7 @@ void set_menu(ElementTree *tree) {
   if (clicked_element != 0 && side_panel != 0) {
     reset_menu_elements(side_panel);
     set_active_menu_element(active_menu_item);
-    bump_rerender(tree);
+    tree->rerender = true;
   }
 }
 
@@ -68,7 +68,7 @@ void set_content_panel(ElementTree *tree, Element *element) {
     set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
 
     // Set rerendering
-    bump_rerender(tree);
+    tree->rerender = true;
   }
 }
 

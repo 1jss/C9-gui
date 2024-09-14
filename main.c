@@ -154,14 +154,14 @@ i32 main() {
     clock_t main_loop_start = clock();
     main_loop = handle_events(tree, window, renderer);
 
-    if (tree->rerender == rerender_type.all) {
+    if (tree->rerender) {
       SDL_SetRenderTarget(renderer, tree->target_texture);
       render_element_tree(renderer, tree);
       // Draw target_texture to back buffer and present
       SDL_SetRenderTarget(renderer, NULL);
       SDL_RenderCopy(renderer, tree->target_texture, NULL, NULL);
       SDL_RenderPresent(renderer);
-      tree->rerender = rerender_type.none;
+      tree->rerender = false;
     }
 
     clock_t main_loop_end = clock();
