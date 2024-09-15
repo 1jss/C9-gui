@@ -16,19 +16,16 @@ void close_search_overlay(ElementTree *tree, void *data) {
   (void)data;
   tree->overlay = 0;
   tree->active_element = 0;
-  tree->rerender = true;
 }
 
 void click_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_active_input_style(tree->active_element);
-  tree->rerender = true;
 }
 
 void blur_search_bar(ElementTree *tree, void *data) {
   (void)data;
   set_passive_input_style(tree->active_element);
-  tree->rerender = true;
 }
 
 void add_separator(Arena *arena, Element *parent) {
@@ -163,7 +160,6 @@ void on_search_bar_input(ElementTree *tree, void *data) {
       fill_search_results(tree->arena, search_result_list, input->text);
       // Add new search result items
       search_result_list->render.changed = true;
-      tree->rerender = true;
       set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
     }
   }
@@ -255,7 +251,6 @@ void open_search_overlay(ElementTree *tree) {
   search_input->render.changed = true;
   set_root_element_dimensions(search_overlay_element, tree->root->layout.max_width, tree->root->layout.max_height);
   tree->overlay = search_overlay_element;
-  tree->rerender = true;
 }
 
 #define SEARCH_OVERLAY_COMPONENT

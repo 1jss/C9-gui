@@ -11,7 +11,6 @@ Element *overlay_element = 0;
 void close_overlay(ElementTree *tree, void *data) {
   (void)data;
   tree->overlay = 0;
-  tree->rerender = true;
 }
 
 void create_overlay_element(Arena *arena) {
@@ -78,7 +77,6 @@ void open_overlay(ElementTree *tree) {
   }
   set_root_element_dimensions(overlay_element, tree->root->layout.max_width, tree->root->layout.max_height);
   tree->overlay = overlay_element;
-  tree->rerender = true;
 }
 
 #define OVERLAY_COMPONENT

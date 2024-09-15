@@ -18,7 +18,7 @@ void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
     element->on_click(tree, data);
-    element->render.changed = true;
+    rerender_element(tree, element);
   }
 }
 
@@ -26,7 +26,7 @@ void blur_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_blur != 0) {
     element->on_blur(tree, data);
-    element->render.changed = true;
+    rerender_element(tree, element);
   }
 }
 
@@ -42,7 +42,7 @@ void input_handler(ElementTree *tree, void *data) {
   // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
     element->on_key_press(tree, data);
-    element->render.changed = true;
+    rerender_element(tree, element);
   }
 }
 
@@ -265,20 +265,20 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
       }
     }
     if (tree->scroll.state == scroll_state.active) {
-      Element *scroll_root = tree->overlay != 0 ? tree->overlay : tree->root;
+      Element *scroll_layer = get_root(tree);
       // Scroll left or right
       if (scroll_distance_x != 0 && absolute(scroll_distance_x) > absolute(scroll_distance_y)) {
-        i32 remaining_scroll = scroll_x(scroll_root, mouse_x, mouse_y, scroll_distance_x);
+        i32 remaining_scroll = scroll_x(scroll_layer, mouse_x, mouse_y, scroll_distance_x);
         if (remaining_scroll != scroll_distance_x) {
-          set_x(scroll_root, 0);
+          set_x(scroll_layer, 0);
           tree->rerender = true;
         }
       }
       // Scroll up or down
       else if (scroll_distance_y != 0) {
-        i32 remaining_scroll = scroll_y(scroll_root, mouse_x, mouse_y, scroll_distance_y);
+        i32 remaining_scroll = scroll_y(scroll_layer, mouse_x, mouse_y, scroll_distance_y);
         if (remaining_scroll != scroll_distance_y) {
-          set_y(scroll_root, 0);
+          set_y(scroll_layer, 0);
           tree->rerender = true;
         }
       }

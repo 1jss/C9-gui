@@ -14,13 +14,11 @@ Element *text_element = 0;
 void click_text_input(ElementTree *tree, void *data) {
   (void)data;
   set_active_input_style(tree->active_element);
-  tree->rerender = true;
 }
 
 void blur_text_input(ElementTree *tree, void *data) {
   (void)data;
   set_passive_input_style(tree->active_element);
-  tree->rerender = true;
 }
 
 void create_text_element(Arena *arena) {

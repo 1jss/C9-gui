@@ -20,12 +20,13 @@ void reset_menu_elements(Element *side_panel) {
   // Loop through all children and set background color to none
   for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    if(child->background_type == background_type.color){
+    // Rerender only the element that has changed
+    if (child->background_type == background_type.color) {
+      child->background_type = background_type.none;
+      child->text_color = text_color;
+      child->font_variant = font_variant.regular;
       child->render.changed = true;
     }
-    child->background_type = background_type.none;
-    child->text_color = text_color;
-    child->font_variant = font_variant.regular;
   }
 }
 
@@ -33,6 +34,7 @@ void set_active_menu_element(Element *element) {
   element->background_type = background_type.color;
   element->text_color = text_color_active;
   element->font_variant = font_variant.bold;
+  element->render.changed = true;
 }
 
 void set_menu(ElementTree *tree) {
@@ -43,7 +45,6 @@ void set_menu(ElementTree *tree) {
   if (clicked_element != 0 && side_panel != 0) {
     reset_menu_elements(side_panel);
     set_active_menu_element(active_menu_item);
-    tree->rerender = true;
   }
 }
 
@@ -66,9 +67,6 @@ void set_content_panel(ElementTree *tree, Element *element) {
 
     // Recalculate content layout
     set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
-
-    // Set rerendering
-    tree->rerender = true;
   }
 }
 
