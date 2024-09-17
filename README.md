@@ -134,3 +134,4 @@ Running:
 ## Todo
 - Mac .app packaging
 - To-Do example app
+- Font variant in input?

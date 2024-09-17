@@ -84,7 +84,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     .h = target_bottom_edge - target_top_edge,
   };
   // Rectangle that positions the element texture in the target texture
-  SDL_Rect element_cutout_rect = {
+  SDL_Rect target_texture_cutout_rect = {
     .x = target_left_edge,
     .y = target_top_edge,
     .w = target_right_edge - target_left_edge,
@@ -102,7 +102,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       element->render.width == element_texture_rect.w &&
       element->render.height == element_texture_rect.h) {
     // Copy a portion of the element texture to the same location on the target texture
-    SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &element_cutout_rect);
+    SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &target_texture_cutout_rect);
   } else {
     // If the element has a cached texture but its dimensions are not correct we need to destroy it
     if (element->render.texture != 0 && (element->render.width != element_texture_rect.w || element->render.height != element_texture_rect.h)) {
@@ -236,6 +236,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           Array *text = split_string_by_width(temp_arena, element->font_variant, element->input->text, text_position.w);
           i32 index = 0;
           i32 line_height = get_text_line_height(element->font_variant);
+          SDL_Rect selection = {0};
           // Step over rows and draw a rectangle between selected indexes
           for (i32 i = 0; i < array_length(text); i++) {
             s8 *line = array_get(text, i);
@@ -247,6 +248,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
               if (start_index <= index && end_index >= index + line->length) {
                 i32 line_length = line->length;
                 i32 text_width = 0;
+                // All but the last (empty) line
                 if (line_length > 0) {
                   // Remove newline character from the end of the line
                   if (line->data[line_length - 1] == '\n') {
@@ -258,17 +260,12 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                   TTF_SizeUTF8(font, to_char(trimmed_string), &text_width, 0);
                 }
 
-                SDL_Rect selection = {
+                selection = (SDL_Rect){
                   .x = text_position.x - 1, // Subtract 1 pixel for the cursor
                   .y = text_position.y + line_height * i,
                   .w = text_width + 2,
                   .h = get_font_height(element->font_variant),
                 };
-                if (start_index == end_index) {
-                  draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
-                } else {
-                  draw_filled_rectangle(locked_element, selection, 0, selection_color);
-                }
               }
               // Selection spans only part of the line
               else {
@@ -295,17 +292,17 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                   TTF_SizeUTF8(font, to_char(selection_start), &selection_start_width, 0);
                 }
 
-                SDL_Rect selection = {
+                selection = (SDL_Rect){
                   .x = text_position.x + selection_start_width - 1, // Subtract 1 pixel for the cursor
                   .y = text_position.y + line_height * i,
                   .w = selection_end_width - selection_start_width + 2, // Add 2 pixels for the cursor
                   .h = get_font_height(element->font_variant),
                 };
-                if (start_index == end_index) {
-                  draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
-                } else {
-                  draw_filled_rectangle(locked_element, selection, 0, selection_color);
-                }
+              }
+              if (start_index == end_index) {
+                draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
+              } else {
+                draw_filled_rectangle(locked_element, selection, 0, selection_color);
               }
             }
             index += line->length;
@@ -326,7 +323,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     SDL_UnlockTexture(element->render.texture);
 
     // Copy a portion of the element texture to the same location on the target texture
-    SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &element_cutout_rect);
+    SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &target_texture_cutout_rect);
     // Set the element as unchanged
     element->render.changed = false;
   }
@@ -336,7 +333,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
 
   for (i32 i = 0; i < array_length(children); i++) {
     Element *child = array_get(children, i);
-    draw_elements(renderer, child, element_cutout_rect, active_element, window_rect);
+    draw_elements(renderer, child, target_texture_cutout_rect, active_element, window_rect);
   }
 
   // Draw a scrollbar if the element has Y overflow
