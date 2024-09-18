@@ -53,9 +53,10 @@ struct IndexNode {
 typedef struct {
   Arena *arena;
   IndexNode *index; // Index tree of all items
-  i32 length;
-  i32 item_size;
-  i32 index_width;
+  i32 length; // Number of items currently in the array
+  i32 item_size; // Size of each item in the array
+  i32 index_width; // Number of children each node can have
+  i32 allocated; // Number of items we have allocated item memory for
 } Array;
 
 // Create a new index node and return a pointer to it
@@ -72,10 +73,10 @@ typedef struct {
   i32 index;
   i32 index_width;
   void *item;
-} index_set_params;
+} IndexSetParams;
 
 // Set item at the given index
-static void index_set(index_set_params params) {
+static void index_set(IndexSetParams params) {
   // If the indexNode is 0 there is nothing to add to
   if (params.indexNode == 0) {
     return;
@@ -100,7 +101,7 @@ static void index_set(index_set_params params) {
     if (params.indexNode->children[digit] == 0) {
       params.indexNode->children[digit] = index_create(params.arena);
     }
-    index_set_params next_params = {
+    IndexSetParams next_params = {
       .arena = params.arena,
       .indexNode = params.indexNode->children[digit],
       .index = next_index,
@@ -116,10 +117,10 @@ typedef struct {
   IndexNode *indexNode;
   i32 index;
   i32 index_width;
-} index_get_params;
+} IndexGetParams;
 
 // Get the item at the given index
-static void *index_get(index_get_params params) {
+static void *index_get(IndexGetParams params) {
   // If the indexNode is 0 there is nothing to get from
   if (params.indexNode == 0) {
     return 0;
@@ -132,7 +133,7 @@ static void *index_get(index_get_params params) {
   else {
     i32 digit = params.index % params.index_width;
     i32 next_index = params.index / params.index_width;
-    index_get_params next_params = {
+    IndexGetParams next_params = {
       .indexNode = params.indexNode->children[digit],
       .index = next_index,
       .index_width = params.index_width
@@ -150,6 +151,7 @@ Array *array_create_width(Arena *arena, i32 item_size, i32 index_width) {
   new_array->arena = arena;
   new_array->index = index_create(arena);
   new_array->length = 0;
+  new_array->allocated = 0;
   new_array->item_size = item_size;
   new_array->index_width = index_width;
   return new_array;
@@ -163,49 +165,60 @@ Array *array_create(Arena *arena, i32 item_size) {
 // Copy data onto the array and add it to the last position
 // The data has to be pushed by reference as that's the only type agnostic way to pass values
 void array_push(Array *array, void *data) {
-  void *item = arena_fill(array->arena, array->item_size);
-  if (item == 0) return; // Allocation failed
-  memcpy(item, data, array->item_size);
-
-  // Add the item to the index
-  index_set_params set_params = {
-    .arena = array->arena,
-    .indexNode = array->index,
-    .index = array->length,
-    .index_width = array->index_width,
-    .item = item
-  };
-  index_set(set_params);
-  array->length += 1;
+  // If there is already space in the array, we can just copy the new data directly to the last index
+  if (array->length < array->allocated) {
+    IndexGetParams get_params = {
+      .indexNode = array->index,
+      .index = array->length,
+      .index_width = array->index_width
+    };
+    void *item = index_get(get_params);
+    if (item == 0) return; // Item is null
+    // Overwrite data in item
+    memcpy(item, data, array->item_size);
+    // Increase the length of the array
+    array->length += 1;
+  }
+  // Otherwise we will need to allocate more memory
+  else {
+    void *item = arena_fill(array->arena, array->item_size);
+    if (item == 0) return; // Allocation failed
+    memcpy(item, data, array->item_size);
+    // Add the item to the index
+    IndexSetParams set_params = {
+      .arena = array->arena,
+      .indexNode = array->index,
+      .index = array->length,
+      .index_width = array->index_width,
+      .item = item
+    };
+    index_set(set_params);
+    array->allocated += 1;
+    array->length += 1;
+  }
 }
 
-// Get the data from the last item and remove it from the array
+// Get the data from the last item and decrease the length counter
 // The data has to be returned by reference as that's the only type agnostic way to return a value
 void *array_pop(Array *array) {
-  if (array->length == 0) return 0; // No items to pop
+  // No items to pop
+  if (array->length == 0) return 0;
+  // Decrease the length of the array
   array->length -= 1;
-  // Get last item and remove it from the index
-  index_get_params get_params = {
+  // Return the last item
+  IndexGetParams get_params = {
     .indexNode = array->index,
     .index = array->length,
     .index_width = array->index_width
   };
   void *data = index_get(get_params);
-  index_set_params set_params = {
-    .arena = array->arena,
-    .indexNode = array->index,
-    .index = array->length,
-    .index_width = array->index_width,
-    .item = 0
-  };
-  index_set(set_params);
   return data;
 }
 
 // Get the data at the given index starting from 0
 void *array_get(Array *array, i32 index) {
   if (index < 0 || index >= array->length) return 0;
-  index_get_params get_params = {
+  IndexGetParams get_params = {
     .indexNode = array->index,
     .index = index,
     .index_width = array->index_width
@@ -216,17 +229,14 @@ void *array_get(Array *array, i32 index) {
 // Set the data at the given index starting from 0
 void array_set(Array *array, i32 index, void *data) {
   if (index >= array->length) return;
-  void *item = arena_fill(array->arena, array->item_size);
-  if (item == 0) return; // Allocation failed
-  memcpy(item, data, array->item_size);
-  index_set_params set_params = {
-    .arena = array->arena,
+  IndexGetParams get_params = {
     .indexNode = array->index,
     .index = index,
-    .index_width = array->index_width,
-    .item = item
+    .index_width = array->index_width
   };
-  index_set(set_params);
+  void *item = index_get(get_params);
+  if (item == 0) return; // Failed to get item
+  memcpy(item, data, array->item_size);
 }
 
 // Return the used size of the array
@@ -242,9 +252,9 @@ i32 array_last(Array *array) {
   return array->length - 1;
 }
 
+// Resets the length counter, which overwrites the old data when pushing new data to the array, reusing the allocated memory
 void array_clear(Array *array) {
   array->length = 0;
-  array->index = index_create(array->arena);
 }
 
 #define C9_ARRAY

@@ -135,3 +135,4 @@ Running:
 - Mac .app packaging
 - To-Do example app
 - Font variant in input?
+- Selection is slow on large texts

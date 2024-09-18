@@ -138,11 +138,19 @@ void fill_search_results(Arena *arena, Element *result_list, s8 search_value) {
   }
   // If last item is a separator, remove it
   i32 last_index = array_last(result_list->children);
-  if (last_index >= 0) {
+  if (last_index > 0) {
     Element *last_item = array_get(result_list->children, last_index);
     if (last_item->element_tag == search_result_separator_tag) {
       array_pop(result_list->children);
     }
+  } else {
+    // If there are no items, add a message
+    Element *no_results = add_new_element(arena, result_list);
+    *no_results = (Element){
+      .padding = (Padding){8, 10, 8, 10},
+      .text = to_s8("No results found"),
+      .text_color = text_color,
+    };
   }
 }
 
