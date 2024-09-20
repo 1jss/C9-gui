@@ -37,14 +37,14 @@ An element is a struct that contains all the properties of a child. The structur
 | Type          | Name                  | Comment                             |
 |---------------|-----------------------|-------------------------------------|
 | `u8`          | `element_tag`         | id or group id                      |
-| `i32`         | `width`               | fixed width of the element          |
-| `i32`         | `height`              | fixed height of the element         |
-| `i32`         | `min_width`           | minimum width of the element        |
-| `i32`         | `min_height`          | minimum height of the element       |
+| `u16`         | `width`               | fixed width of the element          |
+| `u16`         | `height`              | fixed height of the element         |
+| `u16`         | `min_width`           | minimum width of the element        |
+| `u16`         | `min_height`          | minimum height of the element       |
 | `Padding`     | `padding`             | padding inside element (4 values)   |
 | `Border`      | `border`              | border around element (4 values)    |
-| `i32`         | `corner_radius`       | radius of superellipse corners      |
-| `i32`         | `gutter`              | space between children              |
+| `u8`         | `corner_radius`       | radius of superellipse corners      |
+| `u8`         | `gutter`              | space between children              |
 | `u8`          | `overflow`            | contain or scroll children          |
 | `u8`          | `layout_direction`    | direction of flex layout            |
 | `u8`          | `background_type`     | none, color, gradient, image        |

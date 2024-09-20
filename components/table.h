@@ -64,27 +64,27 @@ void create_table_element(Arena *arena) {
   add_cell(arena, description_column, "used if background_type is image");
 
   // width row
-  add_cell(arena, type_column, "i32");
+  add_cell(arena, type_column, "u16");
   add_cell(arena, name_column, "width");
   add_cell(arena, description_column, "fixed width of the element");
 
   // height row
-  add_cell(arena, type_column, "i32");
+  add_cell(arena, type_column, "u16");
   add_cell(arena, name_column, "height");
   add_cell(arena, description_column, "fixed height of the element");
 
   // min_width row
-  add_cell(arena, type_column, "i32");
+  add_cell(arena, type_column, "u16");
   add_cell(arena, name_column, "min_width");
   add_cell(arena, description_column, "minimum width of the element");
 
   // min_height row
-  add_cell(arena, type_column, "i32");
+  add_cell(arena, type_column, "u16");
   add_cell(arena, name_column, "min_height");
   add_cell(arena, description_column, "minimum height of the element");
 
   // gutter row
-  add_cell(arena, type_column, "i32");
+  add_cell(arena, type_column, "u8");
   add_cell(arena, name_column, "gutter");
   add_cell(arena, description_column, "space between children");
 
@@ -134,7 +134,7 @@ void create_table_element(Arena *arena) {
   add_cell(arena, description_column, "border around element (4 values)");
 
   // corner_radius row
-  add_cell(arena, type_column, "i32");
+  add_cell(arena, type_column, "u8");
   add_cell(arena, name_column, "corner_radius");
   add_cell(arena, description_column, "radius of superellipse corners");
 
