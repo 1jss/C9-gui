@@ -136,3 +136,7 @@ Running:
 - To-Do example app
 - Font variant in input?
 - Selection is slow on large texts
+  - Input cursor movement is causing rerender of entire text
+- Dark theme example
+- Better boolean values? boolean.TRUE, boolean.FALSE
+- Is min_width and min_height needed?

@@ -74,6 +74,7 @@ typedef struct ElementTree ElementTree;
 // The function takes a pointer to the ElementTree and a void pointer to optional event data
 typedef void (*OnEvent)(ElementTree *, void *);
 
+// This struct takes 64 bytes of memory
 // In most cases an i16 is enough, but for rendering very long documents an i32 is needed.
 typedef struct {
   i32 x;
@@ -141,14 +142,14 @@ typedef struct Element {
   OnEvent on_click; // Function pointer
   OnEvent on_blur; // Function pointer
   OnEvent on_key_press; // Function pointer
-  i32 width;
-  i32 height;
-  i32 min_width;
-  i32 min_height;
-  i32 gutter;
-  i32 corner_radius;
   RGBA border_color;
   RGBA text_color;
+  u16 width; // Fixed width
+  u16 height; // Fixed height
+  u16 min_width;
+  u16 min_height;
+  u8 gutter;
+  u8 corner_radius;
   u8 layout_direction;
   u8 overflow;
   u8 element_tag; // Optional id or group id

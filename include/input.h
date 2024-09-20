@@ -61,7 +61,7 @@ InputData *new_input(Arena *arena) {
   return input;
 }
 
-void clear_input(InputData *input){
+void clear_input(InputData *input) {
   input->text.length = 0;
   input->text.data[0] = '\0';
   input->selection = (Selection){0, 0};

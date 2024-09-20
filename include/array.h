@@ -41,7 +41,7 @@ The array index is stored in an arena allocator to allow for fast allocation and
 
 #endif
 
-const i32 DEFAULT_INDEX_WIDTH = 16;
+const i32 DEFAULT_INDEX_WIDTH = 8;
 const i32 INVALID_ARRAY_INDEX = -1;
 
 typedef struct IndexNode IndexNode;
@@ -50,6 +50,7 @@ struct IndexNode {
   void *item;
 };
 
+// item_size and index_widht do not need to be i32, but the alignment is 8 bytes, so the struct will be 32 bytes even with i16
 typedef struct {
   Arena *arena;
   IndexNode *index; // Index tree of all items
