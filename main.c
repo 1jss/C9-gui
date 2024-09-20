@@ -69,6 +69,12 @@ i32 main() {
   // Root element
   ElementTree *tree = new_element_tree(element_arena);
   tree->root->layout_direction = layout_direction.vertical;
+  tree->size = (TreeSize){
+    .width = window_width,
+    .height = window_height,
+    .min_width = 400,
+    .min_height = 150,
+  };
 
   // The target texture is used as a back buffer that persists between frames. This lets us rerender only the parts of the screen that have changed.
   tree->target_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, window_width, window_height);
@@ -140,7 +146,7 @@ i32 main() {
   add_element(tree->arena, top_right_panel, search_bar);
 
   // apply element layout
-  set_dimensions(tree, window_width, window_height);
+  set_dimensions(tree);
 
   if (tree->root->children == 0) {
     printf("No children\n");

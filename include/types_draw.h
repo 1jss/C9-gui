@@ -5,17 +5,17 @@
 #include "types.h" // i16
 
 typedef struct {
-  i16 top;
-  i16 right;
-  i16 bottom;
-  i16 left;
+  u8 top;
+  u8 right;
+  u8 bottom;
+  u8 left;
 } Padding;
 
 typedef struct {
-  i16 top;
-  i16 right;
-  i16 bottom;
-  i16 left;
+  u8 top;
+  u8 right;
+  u8 bottom;
+  u8 left;
 } Border;
 
 typedef struct {

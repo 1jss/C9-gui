@@ -118,9 +118,6 @@ void fill_max_height(Element *element, i32 max_height) {
 // Recursively sets scroll width of an element
 i32 fill_scroll_width(Element *element) {
   i32 self_width = element->width;
-  if (self_width == 0) {
-    self_width = element->min_width;
-  }
   i32 element_padding = element->padding.left + element->padding.right;
   i32 child_width = element_padding;
   Array *children = element->children;
@@ -204,9 +201,6 @@ i32 fill_scroll_width(Element *element) {
 // Recursively sets scroll height of an element
 i32 fill_scroll_height(Element *element) {
   i32 self_height = element->height;
-  if (self_height == 0) {
-    self_height = element->min_height;
-  }
   i32 element_padding = element->padding.top + element->padding.bottom;
   i32 child_height = element_padding;
   Array *children = element->children;
@@ -239,7 +233,12 @@ i32 fill_scroll_height(Element *element) {
   }
   if (child_height > self_height) {
     element->layout.scroll_height = child_height;
-    return child_height;
+    if (element->height == 0) {
+      // Only grow element with flexible height
+      return child_height;
+    } else {
+      return self_height;
+    }
   } else {
     element->layout.scroll_height = self_height;
     return self_height;
@@ -347,10 +346,10 @@ void set_root_element_dimensions(Element *element, i32 window_width, i32 window_
 }
 
 // Loop through element tree and set LayoutProp dimensions
-void set_dimensions(ElementTree *tree, i32 window_width, i32 window_height) {
-  set_root_element_dimensions(tree->root, window_width, window_height);
+void set_dimensions(ElementTree *tree) {
+  set_root_element_dimensions(tree->root, tree->size.width, tree->size.height);
   if (tree->overlay != 0) {
-    set_root_element_dimensions(tree->overlay, window_width, window_height);
+    set_root_element_dimensions(tree->overlay, tree->size.width, tree->size.height);
   }
 }
 
@@ -380,66 +379,6 @@ Element *get_clickable_element_at(Element *element, i32 x, i32 y) {
   }
   return 0;
 };
-
-// Recursively finds out the minimum width of an element before layout
-i32 get_min_width(Element *element) {
-  i32 element_padding = element->padding.left + element->padding.right;
-  if (element->width > 0) {
-    return element->width;
-  } else if (element->min_width > 0) {
-    return element->min_width;
-  } else if (element->overflow == overflow_type.contain ||
-             element->overflow == overflow_type.scroll_y) {
-    Array *children = element->children;
-    if (children == 0) return 0;
-    i32 width = element_padding;
-    for (i32 i = 0; i < array_length(children); i++) {
-      Element *child = array_get(children, i);
-      i32 child_width = get_min_width(child);
-      if (element->layout_direction == layout_direction.horizontal) {
-        width += child_width;
-        if (i != 0) {
-          width += element->gutter;
-        }
-      } else if (child_width + element_padding > width) {
-        width = child_width + element_padding;
-      }
-    }
-    return width;
-  } else {
-    return element_padding;
-  }
-}
-
-// Recursively finds out the minimum height of an element before layout
-i32 get_min_height(Element *element) {
-  i32 element_padding = element->padding.top + element->padding.bottom;
-  if (element->height > 0) {
-    return element->height;
-  } else if (element->min_height > 0) {
-    return element->min_height;
-  } else if (element->overflow == overflow_type.contain ||
-             element->overflow == overflow_type.scroll_x) {
-    Array *children = element->children;
-    if (children == 0) return 0;
-    i32 height = element_padding;
-    for (i32 i = 0; i < array_length(children); i++) {
-      Element *child = array_get(children, i);
-      i32 child_height = get_min_height(child);
-      if (element->layout_direction == layout_direction.vertical) {
-        height += child_height;
-        if (i != 0) {
-          height += element->gutter;
-        }
-      } else if (child_height + element_padding > height) {
-        height = child_height + element_padding;
-      }
-    }
-    return height;
-  } else {
-    return element_padding;
-  }
-}
 
 // Recursively scrolls the elements under the pointer starting with the children
 i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {

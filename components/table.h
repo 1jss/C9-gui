@@ -73,16 +73,6 @@ void create_table_element(Arena *arena) {
   add_cell(arena, name_column, "height");
   add_cell(arena, description_column, "fixed height of the element");
 
-  // min_width row
-  add_cell(arena, type_column, "u16");
-  add_cell(arena, name_column, "min_width");
-  add_cell(arena, description_column, "minimum width of the element");
-
-  // min_height row
-  add_cell(arena, type_column, "u16");
-  add_cell(arena, name_column, "min_height");
-  add_cell(arena, description_column, "minimum height of the element");
-
   // gutter row
   add_cell(arena, type_column, "u8");
   add_cell(arena, name_column, "gutter");

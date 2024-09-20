@@ -125,6 +125,14 @@ typedef struct {
   u8 state; // If the user is scrolling
 } ScrollProps;
 
+// Size of the tree
+typedef struct {
+  u16 width;
+  u16 height;
+  u16 min_width; // Minimum width for tree
+  u16 min_height; // Minimum height for tree
+} TreeSize;
+
 // element tree nodes
 typedef struct Element {
   LayoutProps layout; // Props set by the layout engine
@@ -146,8 +154,6 @@ typedef struct Element {
   RGBA text_color;
   u16 width; // Fixed width
   u16 height; // Fixed height
-  u16 min_width;
-  u16 min_height;
   u8 gutter;
   u8 corner_radius;
   u8 layout_direction;
@@ -164,8 +170,6 @@ Element empty_element = {
   .background.color = 0xFFFFFFFF,
   .width = 0,
   .height = 0,
-  .min_width = 0,
-  .min_height = 0,
   .gutter = 0,
   .text = {.data = 0, .length = 0},
   .text_align = 0,
@@ -214,6 +218,7 @@ struct ElementTree {
   Element *active_element;
   SDL_Texture *target_texture;
   ScrollProps scroll;
+  TreeSize size;
   bool rerender;
 };
 
@@ -235,6 +240,12 @@ ElementTree *new_element_tree(Arena *arena) {
     .last_x = 0,
     .last_y = 0,
     .state = 0,
+  };
+  tree->size = (TreeSize){
+    .width = 640,
+    .height = 640,
+    .min_width = 0,
+    .min_height = 0,
   };
   return tree;
 }

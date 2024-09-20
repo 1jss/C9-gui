@@ -66,7 +66,7 @@ void set_content_panel(ElementTree *tree, Element *element) {
     content_panel->layout.scroll_y = 0;
 
     // Recalculate content layout
-    set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
+    set_dimensions(tree);
   }
 }
 

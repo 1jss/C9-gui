@@ -168,7 +168,7 @@ void on_search_bar_input(ElementTree *tree, void *data) {
       fill_search_results(tree->arena, search_result_list, input->text);
       // Add new search result items
       search_result_list->render.changed = true;
-      set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
+      set_dimensions(tree);
     }
   }
 }
@@ -204,7 +204,6 @@ void create_search_overlay_element(Arena *arena) {
   Element *search_input = add_new_element(arena, input_panel);
   *search_input = (Element){
     .element_tag = search_panel_input_tag,
-    .min_width = 100,
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){6, 10, 6, 10},

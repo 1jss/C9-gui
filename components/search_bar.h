@@ -16,7 +16,6 @@ void click_open_overlay(ElementTree *tree, void *data) {
 void create_search_bar_element(Arena *arena) {
   search_bar = new_element(arena);
   *search_bar = (Element){
-    .min_width = 100,
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){6, 10, 6, 10},

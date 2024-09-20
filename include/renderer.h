@@ -193,7 +193,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       TTF_Font *font = get_font(font_variant.regular);
       SDL_Rect text_position = {
         .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
-        .y = element_texture_rect.y + element->padding.top,
+        .y = element_texture_rect.y + element->padding.top + element->layout.scroll_y,
         .w = element_texture_rect.w - element->padding.left - element->padding.right,
         .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
       };

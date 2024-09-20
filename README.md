@@ -39,8 +39,6 @@ An element is a struct that contains all the properties of a child. The structur
 | `u8`          | `element_tag`         | id or group id                      |
 | `u16`         | `width`               | fixed width of the element          |
 | `u16`         | `height`              | fixed height of the element         |
-| `u16`         | `min_width`           | minimum width of the element        |
-| `u16`         | `min_height`          | minimum height of the element       |
 | `Padding`     | `padding`             | padding inside element (4 values)   |
 | `Border`      | `border`              | border around element (4 values)    |
 | `u8`         | `corner_radius`       | radius of superellipse corners      |
@@ -139,4 +137,11 @@ Running:
   - Input cursor movement is causing rerender of entire text
 - Dark theme example
 - Better boolean values? boolean.TRUE, boolean.FALSE
-- Is min_width and min_height needed?
+- Fixed height multiline input scroll jumps on end
+
+## Notes
+- If element has background image, it has no border, other background or corner radius
+- If element has input it has has no label (text)
+- prop text_align only applies to label
+- prop font_variant only applies to label
+- text_color only applies to label and input

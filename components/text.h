@@ -200,7 +200,8 @@ void create_text_element(Arena *arena) {
 
   Element *multi_line_text_input_2 = add_new_element(arena, input_panel);
   *multi_line_text_input_2 = (Element){
-    .min_height = 100,
+    .height = 100,
+    .overflow = overflow_type.scroll_y,
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){6, 10, 6, 10},

@@ -36,7 +36,7 @@ void input_handler(ElementTree *tree, void *data) {
   if (element != 0 && element->input != 0) {
     char *text = (char *)data;
     handle_text_input(element->input, text);
-    set_dimensions(tree, tree->root->layout.max_width, tree->root->layout.max_height);
+    set_dimensions(tree);
     rerender_element(tree, element);
   }
   // Handle custom key press functions
@@ -99,16 +99,14 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
     while (main_loop && SDL_PollEvent(&event)) {
       if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-          // Cap to min width and height
-          i32 min_width = get_min_width(tree->root);
-          i32 min_height = get_min_height(tree->root);
+       
           i32 width = event.window.data1;
           i32 height = event.window.data2;
-          if (width < min_width) {
-            width = min_width;
+          if (width < tree->size.min_width) {
+            width = tree->size.min_width;
           }
-          if (height < min_height) {
-            height = min_height;
+          if (height < tree->size.min_height) {
+            height = tree->size.min_height;
           }
           SDL_SetWindowSize(window, width, height);
           // Recreate the target-texture with the new dimensions
@@ -119,7 +117,10 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
               printf("SDL_CreateTexture failed: %s\n", SDL_GetError());
             }
           }
-          set_dimensions(tree, width, height);
+          // Set new dimensions for the tree
+          tree->size.width = width;
+          tree->size.height = height;
+          set_dimensions(tree);
           tree->rerender = true;
         }
       } else if (event.type == SDL_KEYDOWN) {
