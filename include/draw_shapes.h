@@ -97,7 +97,6 @@ void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color,
       }
       text_position.y += line_height;
     }
-    printf("Arena size: %d\n", arena_size(temp_arena));
     arena_close(temp_arena);
   }
 }
