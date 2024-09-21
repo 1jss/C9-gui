@@ -98,7 +98,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
 
   // If the element has a cached texture and it hasn't changed we just copy it
   if (element->render.texture != 0 &&
-      element->render.changed == false &&
+      element->changed == false &&
       element->render.width == element_texture_rect.w &&
       element->render.height == element_texture_rect.h) {
     // Copy a portion of the element texture to the same location on the target texture
@@ -325,7 +325,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     // Copy a portion of the element texture to the same location on the target texture
     SDL_RenderCopy(renderer, element->render.texture, &element_texture_cutout_rect, &target_texture_cutout_rect);
     // Set the element as unchanged
-    element->render.changed = false;
+    element->changed = false;
   }
 
   Array *children = element->children;

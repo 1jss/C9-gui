@@ -167,7 +167,7 @@ void on_search_bar_input(ElementTree *tree, void *data) {
       array_clear(search_result_list->children);
       fill_search_results(tree->arena, search_result_list, input->text);
       // Add new search result items
-      search_result_list->render.changed = true;
+      search_result_list->changed = true;
       set_dimensions(tree);
     }
   }
@@ -255,7 +255,7 @@ void open_search_overlay(ElementTree *tree) {
   set_active_input_style(search_input);
   Element *search_result_list = get_element_by_tag(search_overlay_element, search_result_list_tag);
   fill_search_results(tree->arena, search_result_list, search_input->input->text);
-  search_input->render.changed = true;
+  search_input->changed = true;
   set_root_element_dimensions(search_overlay_element, tree->root->layout.max_width, tree->root->layout.max_height);
   tree->overlay = search_overlay_element;
 }

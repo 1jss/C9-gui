@@ -10,7 +10,7 @@
 #include "types_draw.h" // Position
 
 void rerender_element(ElementTree *tree, Element *element) {
-  element->render.changed = true;
+  element->changed = true;
   tree->rerender = true;
 }
 

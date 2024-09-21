@@ -25,7 +25,7 @@ void reset_menu_elements(Element *side_panel) {
       child->background_type = background_type.none;
       child->text_color = text_color;
       child->font_variant = font_variant.regular;
-      child->render.changed = true;
+      child->changed = true;
     }
   }
 }
@@ -34,7 +34,7 @@ void set_active_menu_element(Element *element) {
   element->background_type = background_type.color;
   element->text_color = text_color_active;
   element->font_variant = font_variant.bold;
-  element->render.changed = true;
+  element->changed = true;
 }
 
 void set_menu(ElementTree *tree) {

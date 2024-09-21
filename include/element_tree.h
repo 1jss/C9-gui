@@ -103,7 +103,6 @@ typedef struct {
   SDL_Texture *texture;
   i32 width;
   i32 height;
-  bool changed;
 } RenderProps;
 
 typedef struct {
@@ -162,6 +161,7 @@ typedef struct Element {
   u8 background_type; // Key for background union
   u8 text_align;
   u8 font_variant;
+  bool changed; // If the element has changed and needs to be rerendered
 } Element;
 
 Element empty_element = {
@@ -199,8 +199,8 @@ Element empty_element = {
     .texture = 0,
     .width = 0,
     .height = 0,
-    .changed = 0,
   },
+  .changed = true,
 };
 
 // Create a new element and return a pointer to it
@@ -228,7 +228,7 @@ ElementTree *new_element_tree(Arena *arena) {
   tree->arena = arena;
   Element *root = new_element(arena);
   root->layout_direction = layout_direction.vertical;
-  root->render.changed = true;
+  root->changed = true;
 
   // Assign the root element to the tree
   tree->root = root;
