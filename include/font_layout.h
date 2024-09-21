@@ -29,7 +29,7 @@ bool has_continuation_byte(u8 byte) {
 // Splits a string into lines based on a maximum width. Returns an array of strings but does not allocate memory for the new strings but only points to places in the original string.
 Array *split_string_by_width(Arena *arena, u8 font_variant, s8 text, i32 max_width) {
   TTF_Font *font = get_font(font_variant);
-  Array *lines = array_create(arena, sizeof(s8));
+  Array *lines = array_create_width(arena, sizeof(s8), 4);
 
   // The text has no width limit
   if (max_width == 0) {
@@ -37,7 +37,7 @@ Array *split_string_by_width(Arena *arena, u8 font_variant, s8 text, i32 max_wid
     return lines;
   }
 
-  // The text has no linebreaks
+  // The text has no newline characters
   else if (!contains_newline(text)) {
     i32 text_width = 0;
     i32 text_height = 0;
@@ -63,18 +63,20 @@ Array *split_string_by_width(Arena *arena, u8 font_variant, s8 text, i32 max_wid
     i32 last_space = -1;
     i32 newline_position = -1;
     i32 read_index = start_index;
-    for (i32 i = 0; i < character_count; i++) {
+    while (character_count > 0 && read_index < text.length) {
       if (text.data[read_index] == '\n') {
         newline_position = read_index;
-        i = character_count; // Break the loop
+        character_count = 0; // Break the loop
       } else if (text.data[read_index] == ' ') {
         last_space = read_index;
       }
       // Step index by full utf-8 characters
       read_index += 1;
-      while (has_continuation_byte(text.data[read_index])) {
+      while (read_index < text.length &&
+             has_continuation_byte(text.data[read_index])) {
         read_index += 1;
       }
+      character_count -= 1;
     }
     // Break at the first newline
     if (newline_position != -1) {
@@ -254,7 +256,7 @@ i32 index_from_position(Position cursor, Element *element) {
   i32 line_height = get_text_line_height(element->font_variant);
   i32 row = position.y / line_height;
 
-  Arena *temp_arena = arena_open(512);
+  Arena *temp_arena = arena_open(1024);
   // Copy element text to a new string to avoid modifying the original string
   s8 text = string_from_substring(temp_arena, element->input->text.data, 0, element->input->text.length);
 

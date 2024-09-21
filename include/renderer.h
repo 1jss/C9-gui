@@ -233,17 +233,17 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
           Arena *temp_arena = arena_open(512);
           i32 start_index = get_start_value(element->input->selection);
           i32 end_index = get_end_value(element->input->selection);
-          Array *text = split_string_by_width(temp_arena, element->font_variant, element->input->text, text_position.w);
+          Array *lines = split_string_by_width(temp_arena, element->font_variant, element->input->text, text_position.w);
           i32 index = 0;
           i32 line_height = get_text_line_height(element->font_variant);
           SDL_Rect selection = {0};
           // Step over rows and draw a rectangle between selected indexes
-          for (i32 i = 0; i < array_length(text); i++) {
-            s8 *line = array_get(text, i);
+          for (i32 i = 0; i < array_length(lines); i++) {
+            s8 *line = array_get(lines, i);
             // If the selection has started at the end of the line and the line ends on or after the start index
             // Or if the selection starts on the end of the line and this is the last line
             if ((start_index < index + line->length && end_index >= index) ||
-                (start_index == index + line->length && i == array_length(text) - 1)) {
+                (start_index == index + line->length && i == array_length(lines) - 1)) {
               // Selection spans the entire line
               if (start_index <= index && end_index >= index + line->length) {
                 i32 line_length = line->length;

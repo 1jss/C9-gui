@@ -137,7 +137,8 @@ Running:
   - Input cursor movement is causing rerender of entire text
 - Dark theme example
 - Better boolean values? boolean.TRUE, boolean.FALSE
-- Fixed height multiline input scroll jumps on end
+- Fixed height multiline input scroll grows in layout
+- Input rerenders when added to layout
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius
@@ -145,3 +146,4 @@ Running:
 - prop text_align only applies to label
 - prop font_variant only applies to label
 - text_color only applies to label and input
+

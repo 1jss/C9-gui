@@ -81,7 +81,7 @@ void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color,
   if (text.data != 0 && text.data[0] != '\0') {
     TTF_Font *font = get_font(font_variant);
     i32 line_height = get_text_line_height(font_variant);
-    Arena *temp_arena = arena_open(512);
+    Arena *temp_arena = arena_open(256);
     Array *lines = split_string_by_width(temp_arena, font_variant, text, text_position.w);
     for (i32 i = 0; i < array_length(lines); i++) {
       s8 *line = array_get(lines, i);
@@ -97,6 +97,7 @@ void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color,
       }
       text_position.y += line_height;
     }
+    printf("Arena size: %d\n", arena_size(temp_arena));
     arena_close(temp_arena);
   }
 }

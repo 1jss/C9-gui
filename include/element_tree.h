@@ -267,7 +267,7 @@ void free_textures(Element *element) {
 Element *add_new_element(Arena *arena, Element *parent) {
   // If the parent element has no children, create a new array
   if (parent->children == 0) {
-    parent->children = array_create(arena, sizeof(Element));
+    parent->children = array_create_width(arena, sizeof(Element), 4);
   }
   // Add a new child element to the parent element
   array_push(parent->children, &empty_element);
@@ -279,7 +279,7 @@ Element *add_new_element(Arena *arena, Element *parent) {
 void add_element(Arena *arena, Element *parent, Element *child) {
   // If the parent element has no children, create a new array
   if (parent->children == 0) {
-    parent->children = array_create(arena, sizeof(Element));
+    parent->children = array_create_width(arena, sizeof(Element), 4);
   }
   // Add a new child element to the parent element
   array_push(parent->children, child);

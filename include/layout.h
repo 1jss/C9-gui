@@ -233,12 +233,7 @@ i32 fill_scroll_height(Element *element) {
   }
   if (child_height > self_height) {
     element->layout.scroll_height = child_height;
-    if (element->height == 0) {
-      // Only grow element with flexible height
-      return child_height;
-    } else {
-      return self_height;
-    }
+    return child_height;
   } else {
     element->layout.scroll_height = self_height;
     return self_height;

@@ -139,12 +139,6 @@ void create_text_element(Arena *arena) {
     .text_color = text_color,
   };
 
-  Element *input_text_description_2 = add_new_element(arena, input_text_panel);
-  *input_text_description_2 = (Element){
-    .text = to_s8("Minimum height can be used to set initial height of a growing muliline input."),
-    .text_color = text_color,
-  };
-
   Element *single_line_input_title = add_new_element(arena, input_panel);
   *single_line_input_title = (Element){
     .text = to_s8("SINGLE LINE"),
@@ -178,30 +172,6 @@ void create_text_element(Arena *arena) {
 
   Element *multi_line_text_input = add_new_element(arena, input_panel);
   *multi_line_text_input = (Element){
-    .background_type = background_type.color,
-    .background.color = white,
-    .padding = (Padding){6, 10, 6, 10},
-    .corner_radius = 15,
-    .border_color = border_color,
-    .border = (Border){1, 1, 1, 1},
-    .input = new_input(arena),
-    .text_color = text_color,
-    .on_click = &click_text_input,
-    .on_blur = &blur_text_input,
-  };
-
-  Element *multi_line_input_title_2 = add_new_element(arena, input_panel);
-  *multi_line_input_title_2 = (Element){
-    .text = to_s8("MINIMUM HEIGHT"),
-    .text_color = text_color,
-    .font_variant = font_variant.small,
-    .padding = (Padding){10, 0, 6, 10},
-  };
-
-  Element *multi_line_text_input_2 = add_new_element(arena, input_panel);
-  *multi_line_text_input_2 = (Element){
-    .height = 100,
-    .overflow = overflow_type.scroll_y,
     .background_type = background_type.color,
     .background.color = white,
     .padding = (Padding){6, 10, 6, 10},
