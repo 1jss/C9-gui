@@ -47,14 +47,13 @@ void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
 void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
   if (text[0] != '\0') {
-    SDL_Color text_base_color = {
-      .r = red(color),
-      .g = green(color),
-      .b = blue(color),
-      .a = alpha(color),
-    };
-    SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, text_base_color);
+    SDL_Color SDL_Color_WHITE = {255, 255, 255, 255};
+    SDL_Color SDL_Color_BLACK = {0, 0, 0, 255};
+    SDL_Surface *surface = TTF_RenderUTF8_Shaded(font, text, SDL_Color_WHITE, SDL_Color_BLACK);
     SDL_LockSurface(surface);
+    u8 *pixels = (u8 *)surface->pixels;
+    i32 pitch = surface->pitch;
+
     // Loop over text pixels
     for (i32 x = 0; x < surface->w; x++) {
       // Check if we're inside the target bounds
@@ -62,11 +61,10 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
           text_position.x + x < text_position.w + padding.left) {
         for (i32 y = 0; y < surface->h; y++) {
           i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
-          // Get the pixel color from the text surface
-          u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
-          RGBA text_pixel = RGBA_from_u8(pixel[2], pixel[1], pixel[0], pixel[3]);
+          // Get the pixel from the text surface
+          u8 text_alpha = pixels[y * pitch + x];
           RGBA target_pixel = target.pixels[pixel_index];
-          RGBA blended_pixel = blend_colors(text_pixel, target_pixel);
+          RGBA blended_pixel = blend_alpha(target_pixel, color, text_alpha);
           target.pixels[pixel_index] = blended_pixel;
         }
       }

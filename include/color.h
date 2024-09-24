@@ -40,6 +40,23 @@ RGBA blend_colors(RGBA color_1, RGBA color_2) {
   return (blend_r << 24) | (blend_g << 16) | (blend_b << 8) | blend_a;
 }
 
+// Add overlay color to base color with alpha blending (0-255)
+RGBA blend_alpha(RGBA base_color, RGBA overlay_color, u8 alpha) {
+  if(base_color == 0) {
+    return (overlay_color & 0xFFFFFF00) | alpha;
+  }
+  u8 base_r = (base_color & 0xFF000000) >> 24;
+  u8 base_g = (base_color & 0x00FF0000) >> 16;
+  u8 base_b = (base_color & 0x0000FF00) >> 8;
+  u8 overlay_r = (overlay_color & 0xFF000000) >> 24;
+  u8 overlay_g = (overlay_color & 0x00FF0000) >> 16;
+  u8 overlay_b = (overlay_color & 0x0000FF00) >> 8;
+  u8 blend_r = (alpha * overlay_r + (255 - alpha) * base_r) / 255;
+  u8 blend_g = (alpha * overlay_g + (255 - alpha) * base_g) / 255;
+  u8 blend_b = (alpha * overlay_b + (255 - alpha) * base_b) / 255;  
+  return (blend_r << 24) | (blend_g << 16) | (blend_b << 8) | 255;
+}
+
 RGBA RGBA_from_u8(u8 r, u8 g, u8 b, u8 a) {
   return (r << 24) | (g << 16) | (b << 8) | a;
 }
