@@ -63,9 +63,11 @@ void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rec
           i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
           // Get the pixel from the text surface
           u8 text_alpha = pixels[y * pitch + x];
-          RGBA target_pixel = target.pixels[pixel_index];
-          RGBA blended_pixel = blend_alpha(target_pixel, color, text_alpha);
-          target.pixels[pixel_index] = blended_pixel;
+          if (text_alpha > 0) {
+            RGBA target_pixel = target.pixels[pixel_index];
+            RGBA blended_pixel = blend_alpha(target_pixel, color, text_alpha);
+            target.pixels[pixel_index] = blended_pixel;
+          }
         }
       }
     }
