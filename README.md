@@ -41,8 +41,8 @@ An element is a struct that contains all the properties of a child. The structur
 | `u16`         | `height`              | fixed height of the element         |
 | `Padding`     | `padding`             | padding inside element (4 values)   |
 | `Border`      | `border`              | border around element (4 values)    |
-| `u8`         | `corner_radius`       | radius of superellipse corners      |
-| `u8`         | `gutter`              | space between children              |
+| `u8`          | `corner_radius`       | radius of superellipse corners      |
+| `u8`          | `gutter`              | space between children              |
 | `u8`          | `overflow`            | contain or scroll children          |
 | `u8`          | `layout_direction`    | direction of flex layout            |
 | `u8`          | `background_type`     | none, color, gradient, image        |
@@ -135,10 +135,19 @@ Running:
 - Font variant in input?
 - Selection is slow on large texts
   - Input cursor movement is causing rerender of entire text
+    - Move input text rendering into child elements in layout step
+      - Break elements at newlines
+    - Render selection and cursor in parent element
+    - Lazy loading only draws visible text elements
+- Input rerenders when added to layout
+  - Only rerender lines that have changed
+    - Compare newline list length with child element list length. If different, rerender.
+    - Compare text length with child element text length. If different, rerender.
+    - Compare text content with child element text content. If different, rerender.
+- Fixed height multiline input scroll grows in layout
+  - Might be fixed by adding input text as actual children, not as text in the same element.
 - Dark theme example
 - Better boolean values? boolean.TRUE, boolean.FALSE
-- Fixed height multiline input scroll grows in layout
-- Input rerenders when added to layout
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius
