@@ -215,8 +215,12 @@ void draw_filled_rectangle(PixelData target, SDL_Rect rectangle, i32 corner_radi
   };
   if (center_rect.w > 0 && center_rect.h > 0) {
     for (i32 y = 0; y < center_rect.h; y++) {
-      for (i32 x = 0; x < center_rect.w; x++) {
-        target.pixels[(center_rect.y + y) * target.width + center_rect.x + x] = background_color;
+      if (center_rect.y + y < target.height) {
+        for (i32 x = 0; x < center_rect.w; x++) {
+          if (center_rect.x + x < target.width) {
+            target.pixels[(center_rect.y + y) * target.width + center_rect.x + x] = background_color;
+          }
+        }
       }
     }
   }
