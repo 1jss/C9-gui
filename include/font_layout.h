@@ -9,7 +9,7 @@
 #include "status.h" // status
 #include "string.h" // s8
 #include "types.h" // i32, u8
-#include "types_draw.h" // Position
+#include "types_common.h" // Position, Line
 
 // Check if a string contains a newline character
 bool contains_newline(s8 text) {
@@ -119,7 +119,7 @@ i32 get_text_line_height(u8 font_variant) {
 i32 get_text_block_height(u8 font_variant, s8 text, i32 max_width) {
   i32 font_height = get_font_height(font_variant);
   // The text has no width limit
-  if (max_width == 0) {
+  if (max_width == 0 || text.length <= 0) {
     return font_height;
   }
   // The text has no linebreaks

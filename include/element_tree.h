@@ -7,7 +7,7 @@
 #include "input.h" // InputData
 #include "string.h" // s8
 #include "types.h" // u8, i32
-#include "types_draw.h" // Border, Padding
+#include "types_common.h" // Border, Padding
 #include <stdbool.h> // bool
 
 // Layout direction

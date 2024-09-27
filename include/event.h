@@ -7,7 +7,7 @@
 #include "input_actions.h" // select_word, set_selection_start_index, set_selection_end_index
 #include "layout.h" // fill_scroll_width, get_clickable_element_at
 #include "types.h" // i32
-#include "types_draw.h" // Position
+#include "types_common.h" // Position
 
 void rerender_element(ElementTree *tree, Element *element) {
   element->changed = true;
@@ -17,16 +17,16 @@ void rerender_element(ElementTree *tree, Element *element) {
 void click_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_click != 0) {
-    element->on_click(tree, data);
     rerender_element(tree, element);
+    element->on_click(tree, data);
   }
 }
 
 void blur_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   if (element != 0 && element->on_blur != 0) {
-    element->on_blur(tree, data);
     rerender_element(tree, element);
+    element->on_blur(tree, data);
   }
 }
 
@@ -34,15 +34,15 @@ void input_handler(ElementTree *tree, void *data) {
   Element *element = tree->active_element;
   // Automatically handle text input
   if (element != 0 && element->input != 0) {
+    rerender_element(tree, element);
     char *text = (char *)data;
     handle_text_input(element->input, text);
     set_dimensions(tree);
-    rerender_element(tree, element);
   }
   // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
-    element->on_key_press(tree, data);
     rerender_element(tree, element);
+    element->on_key_press(tree, data);
   }
 }
 

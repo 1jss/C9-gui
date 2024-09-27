@@ -7,7 +7,7 @@
 #include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
 #include "font_layout.h" // split_string_by_width, get_text_line_height
 #include "types.h" // u8, f32, i32
-#include "types_draw.h" // Border, Padding
+#include "types_common.h" // Border, Padding
 
 // Locked texture as pixel data
 typedef struct {
