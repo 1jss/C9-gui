@@ -373,6 +373,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
   if ((element->overflow == overflow_type.scroll ||
        element->overflow == overflow_type.scroll_x) &&
       element->children != 0 &&
+      element->input == 0 &&
       element_rect.w < element->layout.scroll_width) {
     f32 scroll_percentage = -element->layout.scroll_x / (f32)(element->layout.scroll_width - element_rect.w);
 

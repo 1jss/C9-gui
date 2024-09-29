@@ -6,7 +6,7 @@
 #include "array.h" // Array
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
-#include "font_layout.h" // get_text_block_height
+#include "font_layout.h" // get_text_block_height, split_string_at_width
 #include "string.h" // s8
 #include "types.h" // i32
 
