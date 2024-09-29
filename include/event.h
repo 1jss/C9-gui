@@ -37,6 +37,7 @@ void input_handler(ElementTree *tree, void *data) {
     rerender_element(tree, element);
     char *text = (char *)data;
     handle_text_input(element->input, text);
+    populate_inputs(tree);
     set_dimensions(tree);
   }
   // Handle custom key press functions

@@ -2,12 +2,97 @@
 
 #include <stdbool.h> // bool
 #include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
+#include "arena.h" // Arena
 #include "array.h" // Array
 #include "element_tree.h" // Element, ElementTree
 #include "font.h" // get_font
 #include "font_layout.h" // get_text_block_height
 #include "string.h" // s8
 #include "types.h" // i32
+
+// Create children from input text, one child per newline
+void populate_input_text(Arena *arena, Element *element) {
+  // If the element is an input
+  if (element->input != 0 && element->input->text.length != 0) {
+    s8 input_text = element->input->text;
+    i32 max_width = element->layout.max_width - element->padding.left - element->padding.right;
+    if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
+      max_width = 0;
+    }
+    // If no child has been set up yet
+    if (element->children == 0) {
+      element->layout_direction = layout_direction.vertical;
+      element->gutter = line_spacing;
+
+      // Split into lines and save them for later
+      Array *indexes = split_string_at_width(arena, 0, input_text, max_width);
+      element->input->lines = indexes;
+
+      // Populate children with text lines
+      element->children = array_create_width(arena, sizeof(Element), 4);
+      // Add one child per line
+      for (i32 i = 0; i < array_length(indexes); i++) {
+        Line *line = array_get(indexes, i);
+        s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
+        Element *text_element = add_new_element(arena, element);
+        text_element->text = line_data;
+        text_element->overflow = overflow_type.scroll_x;
+        text_element->changed = true;
+      }
+    }
+    // If the child array already exists
+    // If the input element has been changed
+    else if (element->changed) {
+      // Split into lines and save them for later
+      Array *indexes = split_string_at_width(arena, 0, input_text, max_width);
+      element->input->lines = indexes;
+      // Loop through all children and lines and update the changed lines, add lines that are new and remove old lines.
+      i32 line_count = array_length(indexes);
+      i32 child_count = array_length(element->children);
+      // Update the text of the children that already exist
+      for (i32 i = 0; i < line_count && i < child_count; i++) {
+        Line *line = array_get(indexes, i);
+        s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
+        Element *text_element = array_get(element->children, i);
+        if (!equal_s8(text_element->text, line_data)) {
+          text_element->text = line_data;
+          text_element->overflow = overflow_type.scroll_x;
+          text_element->changed = true;
+        }
+      }
+      // Add elements if there are more lines than children
+      if (line_count > child_count) {
+        for (i32 i = child_count; i < line_count; i++) {
+          Line *line = array_get(indexes, i);
+          s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
+          Element *text_element = add_new_element(arena, element);
+          text_element->text = line_data;
+          text_element->changed = true;
+        }
+      }
+      // Remove children if there are more children than lines
+      else if (line_count < child_count) {
+        for (i32 i = line_count; i < child_count; i++) {
+          array_pop(element->children);
+        }
+      }
+    }
+  }
+  // Recursively populate children if the element is not an input
+  else if (element->input == 0 && element->children != 0) {
+    for (i32 i = 0; i < array_length(element->children); i++) {
+      Element *child = array_get(element->children, i);
+      populate_input_text(arena, child);
+    }
+  } else if (element->input != 0 && element->input->text.length == 0) {
+    if (element->children != 0 && array_length(element->children) > 0) {
+      array_clear(element->children);
+    }
+    if (element->input->lines != 0 && array_length(element->input->lines) > 0) {
+      array_clear(element->input->lines);
+    }
+  }
+}
 
 // Recursively sets maximum width of an element
 void fill_max_width(Element *element, i32 max_width) {
@@ -140,7 +225,9 @@ i32 fill_scroll_width(Element *element) {
         }
       }
     }
-  } else if (element->text.length != 0) {
+  }
+  // text is always the last child
+  else if (element->text.data != 0) {
     if (element->layout.max_width > 0 &&
         element->overflow != overflow_type.scroll &&
         element->overflow != overflow_type.scroll_x) {
@@ -152,40 +239,26 @@ i32 fill_scroll_width(Element *element) {
       TTF_Font *text_font = get_font(element->font_variant);
       i32 text_width = 0;
       TTF_SizeUTF8(text_font, (char *)element->text.data, &text_width, NULL);
-      child_width += text_width;
-      element->layout.scroll_height = 0;
-    }
-  } else if (element->input != 0) {
-    if (element->layout.max_width > 0 &&
-        element->overflow != overflow_type.scroll &&
-        element->overflow != overflow_type.scroll_x) {
-      child_width = element->layout.max_width; // child width will later be used to set scroll width
-      i32 text_max_width = element->layout.max_width - element_padding;
-      i32 text_height = get_text_block_height(element->font_variant, element->input->text, text_max_width);
-      element->layout.scroll_height = text_height + element->padding.top + element->padding.bottom;
-    } else {
-      TTF_Font *input_font = get_font(font_variant.regular);
-      i32 text_width = 0;
-      TTF_SizeUTF8(input_font, (char *)element->input->text.data, &text_width, NULL);
       if (text_width > 0) {
         child_width += text_width + 1; // Add 1 for cursor
       } else {
         child_width += 2; // Add 2 for cursor
       }
+      element->layout.scroll_height = 0;
     }
-
-    // Reset scroll if input is smaller than parent
+  }
+  // Recalculate scroll for input elements
+  if (element->input != 0 && (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x)) {
+    // Reset scroll if text is smaller than parent
     if (child_width < element->layout.max_width) {
       element->layout.scroll_x = 0;
     }
     // Make sure scroll is decresed when text is subtracted
-    else if (child_width > element->layout.max_width &&
-             child_width + element->layout.scroll_x < element->layout.max_width) {
+    else if (child_width > element->layout.max_width && child_width + element->layout.scroll_x < element->layout.max_width) {
       element->layout.scroll_x = element->layout.max_width - child_width;
     }
     // Scroll to end if cursor is at the end and outside of view
-    else if (child_width + element->layout.scroll_x > element->layout.max_width &&
-             element->input->selection.end_index == element->input->text.length) {
+    else if (child_width + element->layout.scroll_x > element->layout.max_width && element->input->selection.end_index == element->input->text.length) {
       element->layout.scroll_x = element->layout.max_width - child_width;
     }
   }
@@ -204,7 +277,7 @@ i32 fill_scroll_height(Element *element) {
   i32 element_padding = element->padding.top + element->padding.bottom;
   i32 child_height = element_padding;
   Array *children = element->children;
-  if (children != 0) {
+  if (children != 0 && array_length(children) > 0) {
     for (i32 i = 0; i < array_length(children); i++) {
       Element *child = array_get(children, i);
       // Vertical layout adds heights
@@ -223,7 +296,7 @@ i32 fill_scroll_height(Element *element) {
         }
       }
     }
-  } else if (element->text.length != 0 || element->input != 0) {
+  } else if (element->text.data != 0 || element->input != 0) {
     i32 text_height = get_font_height(element->font_variant);
     child_height += text_height;
     // This can already be set by fill_scroll_width if the text is multiline
@@ -337,6 +410,13 @@ void set_root_element_dimensions(Element *element, i32 window_width, i32 window_
     cap_scroll(element);
     set_x(element, 0);
     set_y(element, 0);
+  }
+}
+
+void populate_inputs(ElementTree *tree) {
+  populate_input_text(tree->arena, tree->root);
+  if (tree->overlay != 0) {
+    populate_input_text(tree->arena, tree->overlay);
   }
 }
 
