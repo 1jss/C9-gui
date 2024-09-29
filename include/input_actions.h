@@ -337,9 +337,11 @@ void paste_text(InputData *input) {
   }
 }
 
-void handle_text_input(InputData *input, char *text) {
+bool handle_text_input(InputData *input, char *text) {
+  bool changed_text = false;
   if (strcmp(text, "BACKSPACE") == 0) {
     delete_text(input);
+    changed_text = true;
   } else if (strcmp(text, "SELECT_LEFT") == 0) {
     select_left(input);
   } else if (strcmp(text, "SELECT_RIGHT") == 0) {
@@ -358,17 +360,23 @@ void handle_text_input(InputData *input, char *text) {
     move_cursor_right(input);
   } else if (strcmp(text, "UNDO") == 0) {
     undo_action(input);
+    changed_text = true;
   } else if (strcmp(text, "REDO") == 0) {
     redo_action(input);
+    changed_text = true;
   } else if (strcmp(text, "COPY") == 0) {
     copy_text(input);
   } else if (strcmp(text, "CUT") == 0) {
     cut_text(input);
+    changed_text = true;
   } else if (strcmp(text, "PASTE") == 0) {
     paste_text(input);
+    changed_text = true;
   } else {
     insert_text(input, text);
+    changed_text = true;
   }
+  return changed_text;
 }
 
 SDL_Rect measure_selection(TTF_Font *font, InputData *input) {

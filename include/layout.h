@@ -13,7 +13,7 @@
 // Create children from input text, one child per newline
 void populate_input_text(Arena *arena, Element *element) {
   // If the element is an input
-  if (element->input != 0 && element->input->text.length != 0) {
+  if (element->input != 0 && element->input->text.data != 0) {
     s8 input_text = element->input->text;
     i32 max_width = element->layout.max_width - element->padding.left - element->padding.right;
     if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {

@@ -226,18 +226,30 @@ i32 index_from_x(u8 font_variant, s8 *text, i32 position) {
   return character_index;
 }
 
-// Returns the order of the child at a given y position
+// Binary search to find the child element at coordinate y
 i32 get_child_order_at(Element *parent, i32 y) {
   if (parent->children == 0) return -1;
   i32 number_of_children = array_length(parent->children);
-  for (i32 i = 0; i < number_of_children; i++) {
-    Element *child = array_get(parent->children, i);
+  i32 low = 0;
+  i32 high = number_of_children - 1;
+  while (low <= high) {
+    i32 mid = (low + high) / 2;
+    Element *child = array_get(parent->children, mid);
     if (y <= child->layout.y + child->layout.max_height) {
-      return i;
+      if (mid == 0) {
+        return mid;
+      }
+      Element *previous_child = array_get(parent->children, mid - 1);
+      if (y > previous_child->layout.y + previous_child->layout.max_height) {
+        return mid;
+      }
+      high = mid - 1;
+    } else {
+      low = mid + 1;
     }
   }
   return number_of_children - 1;
-};
+}
 
 // Returns a character index from a global position
 i32 index_from_position(Position cursor, Element *element) {
