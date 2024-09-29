@@ -156,3 +156,19 @@ Running:
 - prop font_variant only applies to label
 - text_color only applies to label and input
 
+
+Split by newline to enable partial rerendering
+Put each line in a separate element
+Store the split lines in an array in the parent
+- Save the start and end index of each line in the parent
+- Insert into the array on change
+Index to coordinate:
+- Find line with the correct start and end index
+- Get corresponding child element
+- Calculate exact coordinate based on child position and padding
+Coordinate to index
+- Get child element at coordinate
+- Get coresponding split line in parent
+- Calculate exact index based on the line start and end index and the child position and padding
+
+If previous line end_index is same as selection_end_index and current line start_index, only draw current line mark, not previous

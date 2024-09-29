@@ -4,6 +4,7 @@
 #include "array.h" // Array, array_create, array_clear
 #include "string.h" // s8, new_string
 #include "types.h" // u8, i32
+#include "types_common.h" // Line
 
 typedef struct {
   u8 insert;
@@ -38,6 +39,7 @@ typedef struct {
   s8 text;
   Selection selection;
   EditHistory *history;
+  Array *lines;
   Arena *arena;
 } InputData;
 
@@ -56,6 +58,7 @@ InputData *new_input(Arena *arena) {
     .text = new_string(arena),
     .selection = (Selection){0, 0},
     .history = new_edit_history(arena),
+    .lines = array_create(arena, sizeof(Line)),
     .arena = arena
   };
   return input;
@@ -67,6 +70,7 @@ void clear_input(InputData *input) {
   input->selection = (Selection){0, 0};
   input->history->current_index = 0;
   array_clear(input->history->actions);
+  array_clear(input->lines);
 }
 
 #define C9_INPUT

@@ -1,4 +1,4 @@
-#ifndef C9_TYPES_DRAW
+#ifndef C9_TYPES_COMMON
 
 // Types common for several steps in the drawing process
 
@@ -23,5 +23,10 @@ typedef struct {
   i32 y;
 } Position;
 
-#define C9_TYPES_DRAW
+typedef struct {
+  i32 start_index;
+  i32 end_index;
+} Line;
+
+#define C9_TYPES_COMMON
 #endif

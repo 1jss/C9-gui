@@ -9,7 +9,7 @@
 #include "status.h" // status
 #include "string.h" // s8
 #include "types.h" // i32, u8
-#include "types_draw.h" // Position
+#include "types_common.h" // Position, Line
 
 // Check if a string contains a newline character
 bool contains_newline(s8 text) {
@@ -26,34 +26,26 @@ bool has_continuation_byte(u8 byte) {
   return (byte & 0b11000000) == 0b10000000;
 }
 
-// Splits a string into lines based on a maximum width. Returns an array of strings but does not allocate memory for the new strings but only points to places in the original string.
-Array *split_string_by_width(Arena *arena, u8 font_variant, s8 text, i32 max_width) {
+// Splits a string into lines based on a maximum width. Returns an array of indexes.
+Array *split_string_at_width(Arena *arena, u8 font_variant, s8 text, i32 max_width) {
   TTF_Font *font = get_font(font_variant);
   Array *lines = array_create_width(arena, sizeof(s8), 4);
 
   // The text has no width limit
-  if (max_width == 0) {
-    array_push(lines, &text);
+  if (max_width == 0 || text.length <= 0) {
+    Line line = {
+      .start_index = 0,
+      .end_index = text.length,
+    };
+    array_push(lines, &line);
     return lines;
-  }
-
-  // The text has no newline characters
-  else if (!contains_newline(text)) {
-    i32 text_width = 0;
-    i32 text_height = 0;
-    TTF_SizeUTF8(font, (char *)text.data, &text_width, &text_height);
-    // The text fits in the width
-    if (text_width <= max_width) {
-      array_push(lines, &text);
-      return lines;
-    }
   }
 
   // Loop through the text
   i32 start_index = 0;
   while (start_index < text.length) {
-    s8 current_line = {
-      .data = text.data + start_index,
+    Line line = {
+      .start_index = start_index,
     };
     i32 character_count = 0; // How many characters fit in the width
     i32 character_width = 0; // Width of the characters in pixels
@@ -80,28 +72,28 @@ Array *split_string_by_width(Arena *arena, u8 font_variant, s8 text, i32 max_wid
     }
     // Break at the first newline
     if (newline_position != -1) {
-      current_line.length = newline_position - start_index + 1; // Include the newline
-      array_push(lines, &current_line);
+      line.end_index = newline_position;
+      array_push(lines, &line);
       start_index = newline_position + 1;
     }
     // Break at the last space if we are not at string end
     else if (last_space != -1 && read_index < text.length) {
-      current_line.length = last_space - start_index + 1; // Include the space
-      array_push(lines, &current_line);
+      line.end_index = last_space + 1; // Include the space
+      array_push(lines, &line);
       start_index = last_space + 1;
     }
     // No space found, break at the last character
     else {
-      current_line.length = read_index - start_index;
-      array_push(lines, &current_line);
+      line.end_index = read_index;
+      array_push(lines, &line);
       start_index = read_index;
     }
   }
   // If the last character is a newline, add an empty line
   if (text.data[text.length - 1] == '\n') {
-    s8 empty_line = {
-      .data = 0,
-      .length = 0,
+    Line empty_line = {
+      .start_index = text.length,
+      .end_index = text.length,
     };
     array_push(lines, &empty_line);
   }
@@ -119,18 +111,8 @@ i32 get_text_line_height(u8 font_variant) {
 i32 get_text_block_height(u8 font_variant, s8 text, i32 max_width) {
   i32 font_height = get_font_height(font_variant);
   // The text has no width limit
-  if (max_width == 0) {
+  if (max_width == 0 || text.length <= 0) {
     return font_height;
-  }
-  // The text has no linebreaks
-  else if (!contains_newline(text)) {
-    i32 text_width = 0;
-    i32 text_height = 0;
-    TTF_Font *font = get_font(font_variant);
-    TTF_SizeUTF8(font, (char *)text.data, &text_width, &text_height);
-    if (text_width <= max_width) {
-      return font_height;
-    }
   }
 
   // Loop through the text
@@ -244,6 +226,19 @@ i32 index_from_x(u8 font_variant, s8 *text, i32 position) {
   return character_index;
 }
 
+// Returns the order of the child at a given y position
+i32 get_child_order_at(Element *parent, i32 y) {
+  if (parent->children == 0) return -1;
+  i32 number_of_children = array_length(parent->children);
+  for (i32 i = 0; i < number_of_children; i++) {
+    Element *child = array_get(parent->children, i);
+    if (y <= child->layout.y + child->layout.max_height) {
+      return i;
+    }
+  }
+  return number_of_children - 1;
+};
+
 // Returns a character index from a global position
 i32 index_from_position(Position cursor, Element *element) {
   // Relative position
@@ -253,55 +248,41 @@ i32 index_from_position(Position cursor, Element *element) {
   };
   if (position.y <= 0) return 0;
 
-  i32 line_height = get_text_line_height(element->font_variant);
-  i32 row = position.y / line_height;
+  // Find out which line was clicked
+  i32 line_number = get_child_order_at(element, cursor.y);
+  if (line_number < 0) return 0;
 
+  if (line_number >= array_length(element->input->lines)) {
+    printf("Line number out of bounds\n");
+    return element->input->text.length;
+  }
+  // Get the indexes for that line
+  Line *indexes = array_get(element->input->lines, line_number);
   Arena *temp_arena = arena_open(1024);
-  // Copy element text to a new string to avoid modifying the original string
-  s8 text = string_from_substring(temp_arena, element->input->text.data, 0, element->input->text.length);
+  s8 line_text = {
+    .data = element->input->text.data + indexes->start_index,
+    .length = indexes->end_index - indexes->start_index,
+  };
 
-  i32 max_width = 0;
-  if (element->overflow != overflow_type.scroll &&
-      element->overflow != overflow_type.scroll_x) {
-    max_width = element->layout.max_width - element->padding.left - element->padding.right;
-  }
-  // Split the text into lines
-  Array *lines = split_string_by_width(temp_arena, element->font_variant, text, max_width);
-  i32 number_of_lines = array_length(lines);
-  // Return the last character index if the row is out of bounds
-  if (row >= number_of_lines) return text.length;
+  i32 index_in_line = index_from_x(element->font_variant, &line_text, position.x);
 
-  i32 string_index = 0;
-  // Add up length of previous lines
-  for (i32 i = 0; i < row; i++) {
-    s8 *line = array_get(lines, i);
-    if (row < number_of_lines) {
-      string_index += line->length;
-    }
-  }
-  // Find the index of the character in the clicked line
-  if (row < number_of_lines) {
-    s8 *line = array_get(lines, row);
-    i32 index = index_from_x(element->font_variant, line, position.x);
-    string_index += index;
-  }
   arena_close(temp_arena);
-  return string_index;
+  return indexes->start_index + index_in_line;
 }
 
 // Returns a global position from a character index
 Position position_from_index(i32 index, Element *element) {
   Arena *temp_arena = arena_open(512);
   Position position = {0, 0};
-  s8 element_text = element->input->text;
-  // Copy element text to a new string to avoid modifying the original string
-  s8 text = string_from_substring(temp_arena, element_text.data, 0, element_text.length);
+
+  s8 element_text = string_from_substring(temp_arena, element->input->text.data, 0, element->input->text.length);
   // Text is only one line
   if (element->overflow == overflow_type.scroll ||
       element->overflow == overflow_type.scroll_x) {
+    // Copy element text to a new string to avoid modifying the original string
     i32 width = 0;
     i32 height = 0;
-    TTF_SizeUTF8(get_font(element->font_variant), to_char(text), &width, &height);
+    TTF_SizeUTF8(get_font(element->font_variant), to_char(element_text), &width, &height);
     position = (Position){
       .x = element->layout.x + element->padding.left + width,
       .y = element->layout.y + element->padding.top,
@@ -309,30 +290,41 @@ Position position_from_index(i32 index, Element *element) {
   }
   // Text is multiline
   else {
-    i32 max_width = element->layout.max_width - element->padding.left - element->padding.right;
-    // Split the text into lines
-    Array *lines = split_string_by_width(temp_arena, element->font_variant, text, max_width);
-    i32 number_of_lines = array_length(lines);
-    i32 counting_index = 0;
-    i32 row = 0;
-    while (row < number_of_lines) {
-      s8 *line = array_get(lines, row);
-      // Last index of the line is on the next line except for the last line
-      if ((index >= counting_index && index < counting_index + line->length) ||
-          (index == counting_index + line->length && row == number_of_lines - 1)) {
-        s8 substring = string_from_substring(temp_arena, line->data, 0, index - counting_index);
-        i32 width = 0;
-        TTF_SizeUTF8(get_font(element->font_variant), to_char(substring), &width, 0);
-        i32 line_height = get_text_line_height(element->font_variant);
-        position = (Position){
-          .x = element->layout.x + element->padding.left + width,
-          .y = element->layout.y + element->padding.top + row * line_height + line_height / 2,
-        };
-        row = number_of_lines; // Break the loop
+    // Find out which child element contains the index
+    Array *indexes = element->input->lines;
+    Line *line = 0;
+    i32 line_index = 0;
+    for (i32 i = 0; i < array_length(indexes); i++) {
+      Line *current_line = array_get(indexes, i);
+      if (current_line->end_index >= index && current_line->start_index <= index) {
+        line = current_line;
+        line_index = i;
       }
-      counting_index += line->length;
-      row += 1;
     }
+    if (line == 0) {
+      printf("No line found\n");
+      line_index = array_last(indexes);
+      line = array_get(indexes, line_index);
+    }
+    if (line == 0 || element->children == 0) return position;
+
+    Element *child_element = array_get(element->children, line_index);
+    if (child_element == 0) return position;
+
+    i32 relative_end = index - line->start_index;
+    if (relative_end < 0) {
+      relative_end = 0;
+    }
+    s8 line_text = string_from_substring(temp_arena, element_text.data, line->start_index, index - line->start_index);
+
+    i32 width = 0;
+    i32 height = 0;
+    TTF_SizeUTF8(get_font(element->font_variant), to_char(line_text), &width, &height);
+
+    position = (Position){
+      .x = child_element->layout.x + width,
+      .y = child_element->layout.y + height / 2,
+    };
   }
   arena_close(temp_arena);
   return position;
