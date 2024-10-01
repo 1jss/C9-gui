@@ -30,8 +30,9 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
     .h = element->layout.max_height,
   };
 
-  // Lazy load elements outside of the window
-  if (element->render.texture == 0 && (element_rect.x > window_rect.w || element_rect.y > window_rect.h)) {
+  // Skip elements outside of the window
+  if (element_rect.x > window_rect.w || element_rect.y > window_rect.h ||
+      element_rect.x + element_rect.w < 0 || element_rect.y + element_rect.h < 0) {
     return;
   }
 
@@ -185,7 +186,10 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
         }
       }
       if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
-        draw_text(locked_element, font, to_char(element->text), element->text_color, text_position, element->padding);
+        Arena *temp_arena = arena_open(sizeof(u8) * element->text.length + 1);
+        s8 trimmed_line = string_from_substring(temp_arena, element->text.data, 0, element->text.length);
+        draw_text(locked_element, font, to_char(trimmed_line), element->text_color, text_position, element->padding);
+        arena_close(temp_arena);
       } else {
         draw_multiline_text(locked_element, element->font_variant, element->text, element->text_color, text_position, element->padding);
       }
@@ -262,7 +266,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
               draw_cursor = true;
             }
             // If the selection starts on the end of the line and the next line does not start at the same index
-            else if (selection_start_index == line->end_index && selection_start_index != next_line_start_index){
+            else if (selection_start_index == line->end_index && selection_start_index != next_line_start_index) {
               draw_cursor = true;
             }
             // If the selection starts between the end of the last line and the start of this line
@@ -271,15 +275,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
             ) {
               draw_cursor = true;
             }
-            
+
             if (draw_cursor) {
               Element *child_element = array_get(element->children, i);
               if (child_element == 0) return;
               // Selection spans the entire line
               if (selection_start_index <= line->start_index && selection_end_index >= line->end_index) {
+                s8 trimmed_line = string_from_substring(temp_arena, child_element->text.data, 0, child_element->text.length);
                 i32 text_width = 0;
-                TTF_SizeUTF8(font, to_char(child_element->text), &text_width, 0);
-
+                TTF_SizeUTF8(font, to_char(trimmed_line), &text_width, 0);
                 selection = (SDL_Rect){
                   .x = text_position.x - 1, // Subtract 1 pixel for the cursor
                   .y = text_position.y + line_height * i,

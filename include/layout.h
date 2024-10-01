@@ -33,7 +33,11 @@ void populate_input_text(Arena *arena, Element *element) {
       // Add one child per line
       for (i32 i = 0; i < array_length(indexes); i++) {
         Line *line = array_get(indexes, i);
-        s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
+        s8 line_data = {
+          .data = input_text.data + line->start_index,
+          .length = line->end_index - line->start_index,
+        };
+        // s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
         Element *text_element = add_new_element(arena, element);
         text_element->text = line_data;
         text_element->overflow = overflow_type.scroll_x;
@@ -52,7 +56,11 @@ void populate_input_text(Arena *arena, Element *element) {
       // Update the text of the children that already exist
       for (i32 i = 0; i < line_count && i < child_count; i++) {
         Line *line = array_get(indexes, i);
-        s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
+        s8 line_data = {
+          .data = input_text.data + line->start_index,
+          .length = line->end_index - line->start_index,
+        };
+        // s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
         Element *text_element = array_get(element->children, i);
         if (!equal_s8(text_element->text, line_data)) {
           text_element->text = line_data;
@@ -64,7 +72,11 @@ void populate_input_text(Arena *arena, Element *element) {
       if (line_count > child_count) {
         for (i32 i = child_count; i < line_count; i++) {
           Line *line = array_get(indexes, i);
-          s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
+          s8 line_data = {
+            .data = input_text.data + line->start_index,
+            .length = line->end_index - line->start_index,
+          };
+          // s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
           Element *text_element = add_new_element(arena, element);
           text_element->text = line_data;
           text_element->changed = true;
@@ -84,7 +96,10 @@ void populate_input_text(Arena *arena, Element *element) {
       Element *child = array_get(element->children, i);
       populate_input_text(arena, child);
     }
-  } else if (element->input != 0 && element->input->text.length == 0) {
+  }
+  // TODO: Find out if this is needed
+  else if (element->input != 0 && element->input->text.length == 0) {
+    printf("No text in input\n");
     if (element->children != 0 && array_length(element->children) > 0) {
       array_clear(element->children);
     }

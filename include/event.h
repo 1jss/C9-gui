@@ -37,10 +37,10 @@ void input_handler(ElementTree *tree, void *data) {
     rerender_element(tree, element);
     char *text = (char *)data;
     bool changed_text = handle_text_input(element->input, text);
-    if(changed_text) {
+    if (changed_text) {
       populate_inputs(tree);
+      set_dimensions(tree);
     }
-    set_dimensions(tree);
   }
   // Handle custom key press functions
   if (element != 0 && element->on_key_press != 0) {
@@ -102,7 +102,6 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
     while (main_loop && SDL_PollEvent(&event)) {
       if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-       
           i32 width = event.window.data1;
           i32 height = event.window.data2;
           if (width < tree->size.min_width) {
