@@ -1,12 +1,12 @@
 #ifndef C9_LAYOUT
 
 #include <stdbool.h> // bool
-#include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "element_tree.h" // Element, ElementTree
-#include "font.h" // get_font
+#include "font.h" // get_sft
 #include "font_layout.h" // get_text_block_height, split_string_at_width
+#include "schrift.h" // SFT, SFT_text_width
 #include "string.h" // s8
 #include "types.h" // i32
 
@@ -37,7 +37,6 @@ void populate_input_text(Arena *arena, Element *element) {
           .data = input_text.data + line->start_index,
           .length = line->end_index - line->start_index,
         };
-        // s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
         Element *text_element = add_new_element(arena, element);
         text_element->text = line_data;
         text_element->overflow = overflow_type.scroll_x;
@@ -60,7 +59,6 @@ void populate_input_text(Arena *arena, Element *element) {
           .data = input_text.data + line->start_index,
           .length = line->end_index - line->start_index,
         };
-        // s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
         Element *text_element = array_get(element->children, i);
         if (!equal_s8(text_element->text, line_data)) {
           text_element->text = line_data;
@@ -76,7 +74,6 @@ void populate_input_text(Arena *arena, Element *element) {
             .data = input_text.data + line->start_index,
             .length = line->end_index - line->start_index,
           };
-          // s8 line_data = string_from_substring(arena, input_text.data, line->start_index, line->end_index - line->start_index);
           Element *text_element = add_new_element(arena, element);
           text_element->text = line_data;
           text_element->changed = true;
@@ -243,17 +240,21 @@ i32 fill_scroll_width(Element *element) {
   }
   // text is always the last child
   else if (element->text.data != 0) {
+    SFT *text_font = get_sft(element->font_variant);
+    i32 text_width = 0;
+    SFT_text_width(text_font, element->text.data, &text_width);
     if (element->layout.max_width > 0 &&
         element->overflow != overflow_type.scroll &&
         element->overflow != overflow_type.scroll_x) {
-      child_width = element->layout.max_width;
-      i32 text_max_width = element->layout.max_width - element_padding;
-      i32 text_height = get_text_block_height(element->font_variant, element->text, text_max_width);
-      element->layout.scroll_height = text_height + element->padding.top + element->padding.bottom;
+      if (text_width < element->layout.max_width) {
+        child_width += text_width;
+      } else {
+        child_width = element->layout.max_width;
+        i32 text_max_width = element->layout.max_width - element_padding;
+        i32 text_height = get_text_block_height(element->font_variant, element->text, text_max_width);
+        element->layout.scroll_height = text_height + element->padding.top + element->padding.bottom;
+      }
     } else {
-      TTF_Font *text_font = get_font(element->font_variant);
-      i32 text_width = 0;
-      TTF_SizeUTF8(text_font, (char *)element->text.data, &text_width, NULL);
       if (text_width > 0) {
         child_width += text_width + 1; // Add 1 for cursor
       } else {

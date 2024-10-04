@@ -1,6 +1,7 @@
 #ifndef C9_ELEMENT_TREE
 
 #include <SDL2/SDL.h> // SDL_Texture
+#include <stdbool.h> // bool
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "color.h" // RGBA, C9_Gradient, gradient
@@ -8,7 +9,6 @@
 #include "string.h" // s8
 #include "types.h" // u8, i32
 #include "types_common.h" // Border, Padding
-#include <stdbool.h> // bool
 
 // Layout direction
 typedef struct {
@@ -74,17 +74,16 @@ typedef struct ElementTree ElementTree;
 // The function takes a pointer to the ElementTree and a void pointer to optional event data
 typedef void (*OnEvent)(ElementTree *, void *);
 
-// This struct takes 64 bytes of memory
-// In most cases an i16 is enough, but for rendering very long documents an i32 is needed.
+// Maximum SDL texture size is 16384x16384, so i16 is enough for the width and height
 typedef struct {
-  i32 x;
-  i32 y;
-  i32 max_width; // Flexible width
-  i32 max_height; // Flexible height
-  i32 scroll_width; // Width of children
-  i32 scroll_height; // Height of children
-  i32 scroll_x; // current horizontal scroll
-  i32 scroll_y; // current vertical scroll
+  i16 x;
+  i16 y;
+  i16 max_width; // Flexible width
+  i16 max_height; // Flexible height
+  i16 scroll_width; // Width of children
+  i16 scroll_height; // Height of children
+  i16 scroll_x; // current horizontal scroll
+  i16 scroll_y; // current vertical scroll
 } LayoutProps;
 
 const LayoutProps empty_layout_props = {

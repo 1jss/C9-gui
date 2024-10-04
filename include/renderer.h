@@ -1,15 +1,15 @@
 #ifndef C9_RENDERER
 
 #include <SDL2/SDL.h> // SDL_rect, SDL_Texture
-#include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena, arena_fill
 #include "array.h" // array_get
 #include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, has_border
 #include "element_tree.h" // Element, ElementTree
-#include "font.h" // get_font
+#include "font.h" // get_sft
 #include "font_layout.h" // get_text_line_height
 #include "input.h" // InputData
 #include "input_actions.h" // measure_selection
+#include "schrift.h" // SFT, SFT_text_width
 #include "types.h" // i32
 
 // Recursively draws all elements
@@ -167,18 +167,16 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       draw_rectangle_with_border(locked_element, element_texture_rect, element->corner_radius, element->border, element->border_color, 0);
     }
     if (element->text.data != 0) {
-      TTF_Font *font = get_font(element->font_variant);
+      SFT *font = get_sft(element->font_variant);
       SDL_Rect text_position = {
         .x = element->padding.left + element->layout.scroll_x,
         .y = element->padding.top + element->layout.scroll_y,
-        .w = element_texture_rect.w - element->padding.left - element->padding.right,
-        .h = element_texture_rect.h - element->padding.top - element->padding.bottom,
+        .w = element->layout.scroll_width - element->padding.left - element->padding.right,
+        .h = element->layout.scroll_height - element->padding.top - element->padding.bottom,
       };
       // Apply text alignment
       if (element->text_align != text_align.start) {
-        i32 text_width = 0;
-        TTF_SizeUTF8(font, to_char(element->text), &text_width, 0);
-        i32 extra_space = text_position.w - text_width;
+        i32 extra_space = element->layout.max_width - element->layout.scroll_width;
         if (extra_space > 0 && element->text_align == text_align.center) {
           text_position.x += extra_space / 2;
         } else if (extra_space > 0 && element->text_align == text_align.end) {
@@ -188,14 +186,14 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
         Arena *temp_arena = arena_open(sizeof(u8) * element->text.length + 1);
         s8 trimmed_line = string_from_substring(temp_arena, element->text.data, 0, element->text.length);
-        draw_text(locked_element, font, to_char(trimmed_line), element->text_color, text_position, element->padding);
+        draw_text(locked_element, font, trimmed_line.data, element->text_color, text_position, element->padding);
         arena_close(temp_arena);
       } else {
         draw_multiline_text(locked_element, element->font_variant, element->text, element->text_color, text_position, element->padding);
       }
     } else if (element->input != 0 && element == active_element) {
       // If the element is the active element we should also draw the cursor
-      TTF_Font *font = get_font(font_variant.regular);
+      SFT *font = get_sft(font_variant.regular);
       SDL_Rect text_position = {
         .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
         .y = element_texture_rect.y + element->padding.top + element->layout.scroll_y,
@@ -240,7 +238,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
         SDL_Rect selection = {0};
         Array *indexes = element->input->lines;
         // No data in the input yet
-        if (array_length(indexes) == 0) {
+        if (element->input->text.length == 0) {
           selection = (SDL_Rect){
             .x = text_position.x - 1,
             .y = text_position.y,
@@ -283,7 +281,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
               if (selection_start_index <= line->start_index && selection_end_index >= line->end_index) {
                 s8 trimmed_line = string_from_substring(temp_arena, child_element->text.data, 0, child_element->text.length);
                 i32 text_width = 0;
-                TTF_SizeUTF8(font, to_char(trimmed_line), &text_width, 0);
+                SFT_text_width(font, trimmed_line.data, &text_width);
                 selection = (SDL_Rect){
                   .x = text_position.x - 1, // Subtract 1 pixel for the cursor
                   .y = text_position.y + line_height * i,
@@ -308,13 +306,13 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                 i32 selection_start_width = 0;
                 if (relative_start > 0) {
                   s8 selection_start = string_from_substring(temp_arena, child_element->text.data, 0, relative_start);
-                  TTF_SizeUTF8(font, to_char(selection_start), &selection_start_width, 0);
+                  SFT_text_width(font, selection_start.data, &selection_start_width);
                 }
                 // Measure text from 0 to relative_end
                 i32 selection_end_width = selection_start_width;
                 if (relative_end != relative_start) {
                   s8 selection_end = string_from_substring(temp_arena, child_element->text.data, 0, relative_end);
-                  TTF_SizeUTF8(font, to_char(selection_end), &selection_end_width, 0);
+                  SFT_text_width(font, selection_end.data, &selection_end_width);
                 }
                 selection = (SDL_Rect){
                   .x = text_position.x + selection_start_width - 1, // Subtract 1 pixel for the cursor

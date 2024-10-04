@@ -3,11 +3,11 @@
 #include <SDL2/SDL.h> // SDL_SetClipboardText, SDL_GetClipboardText
 #include <stdbool.h> // bool
 #include <string.h> // memcpy, strcmp
-#include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "font_layout.h" // has_continuation_byte
 #include "input.h" // EditAction, EditHistory, Selection, InputData
+#include "schrift.h" // SFT, SFT_text_width
 #include "status.h" // status
 #include "string.h" // s8, insert_into_string, delete_from_string, string_from_substring
 #include "types.h" // u8, i32
@@ -379,36 +379,33 @@ bool handle_text_input(InputData *input, char *text) {
   return changed_text;
 }
 
-SDL_Rect measure_selection(TTF_Font *font, InputData *input) {
+SDL_Rect measure_selection(SFT *font, InputData *input) {
   i32 start_index = *get_start_ref(&input->selection);
   i32 end_index = *get_end_ref(&input->selection);
   Arena *temp_arena = arena_open(sizeof(char) * input->text.capacity);
   s8 text = input->text;
 
   // Measure from text start to end of selection
-  char *selection_end = arena_fill(temp_arena, end_index + 1); // +1 for null terminator
+  u8 *selection_end = arena_fill(temp_arena, end_index + 1); // +1 for null terminator
   memcpy(selection_end, text.data, end_index);
   // Add null-terminator
   selection_end[end_index] = '\0';
   i32 selection_end_x;
-  TTF_SizeUTF8(font, selection_end, &selection_end_x, 0);
+  SFT_text_width(font, selection_end, &selection_end_x);
 
   // Measure the selected text
   i32 selection_length = end_index - start_index;
-  char *selected_text = arena_fill(temp_arena, selection_length + 1); // +1 for null terminator
+  u8 *selected_text = arena_fill(temp_arena, selection_length + 1); // +1 for null terminator
   memcpy(selected_text, text.data + start_index, selection_length);
   // Add null-terminator
   selected_text[selection_length] = '\0';
   i32 selection_w;
-  i32 selection_h;
-  TTF_SizeUTF8(font, selected_text, &selection_w, &selection_h);
+  SFT_text_width(font, selected_text, &selection_w);
 
   arena_close(temp_arena);
   SDL_Rect result = {
     .x = selection_end_x - selection_w,
-    .y = 0,
     .w = selection_w,
-    .h = selection_h
   };
   return result;
 }

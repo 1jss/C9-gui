@@ -3,7 +3,6 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h> // bool
 #include "SDL_image.h"
-#include "SDL_ttf.h" // TTF_RenderUTF8_Blended
 #include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
 #include "font_layout.h" // split_string_at_width, get_text_line_height
 #include "types.h" // u8, f32, i32
@@ -44,42 +43,54 @@ void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
   }
 }
 
-void draw_text(PixelData target, TTF_Font *font, char *text, RGBA color, SDL_Rect text_position, Padding padding) {
+void draw_text(PixelData target, SFT *sft, u8 *text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
   if (text[0] != '\0') {
-    SDL_Color SDL_Color_WHITE = {255, 255, 255, 255};
-    SDL_Color SDL_Color_BLACK = {0, 0, 0, 255};
-    SDL_Surface *surface = TTF_RenderUTF8_Shaded(font, text, SDL_Color_WHITE, SDL_Color_BLACK);
-    SDL_LockSurface(surface);
-    u8 *pixels = (u8 *)surface->pixels;
-    i32 pitch = surface->pitch;
+    Arena *temp_arena = arena_open(256);
 
+    i32 pixel_count = text_position.w * text_position.h;
+    u8 *pixels = arena_fill(temp_arena, pixel_count * sizeof(u8));
+    // arena_fill does not zero allocated memory
+    for (i32 i = 0; i < pixel_count; i++) {
+      pixels[i] = 0;
+    }
+
+    SFT_Image image = {
+      .width = text_position.w,
+      .height = text_position.h,
+      .pixels = pixels,
+    };
+    if (SFT_RenderUTF8(sft, text, image) < 0) {
+      printf("Failed to render text\n");
+      return;
+    }
     // Loop over text pixels
-    for (i32 x = 0; x < surface->w; x++) {
+    for (i32 x = 0; x < image.width; x++) {
       // Check if we're inside the target bounds
-      if (text_position.x + x >= padding.left &&
-          text_position.x + x < text_position.w + padding.left) {
-        for (i32 y = 0; y < surface->h; y++) {
-          i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
-          // Get the pixel from the text surface
-          u8 text_alpha = pixels[y * pitch + x];
-          if (text_alpha > 0) {
-            RGBA target_pixel = target.pixels[pixel_index];
-            RGBA blended_pixel = blend_alpha(target_pixel, color, text_alpha);
-            target.pixels[pixel_index] = blended_pixel;
+      if (text_position.x + x < target.width - padding.right &&
+          text_position.x + x >= padding.left) {
+        for (i32 y = 0; y < image.height; y++) {
+          if (text_position.y + y < target.height) {
+            i32 pixel_index = (text_position.y + y) * target.width + text_position.x + x;
+            // Get the pixel from the text surface
+            u8 text_alpha = pixels[y * image.width + x];
+            if (text_alpha > 0) {
+              RGBA target_pixel = target.pixels[pixel_index];
+              RGBA blended_pixel = blend_alpha(target_pixel, color, text_alpha);
+              target.pixels[pixel_index] = blended_pixel;
+            }
           }
         }
       }
     }
-    SDL_UnlockSurface(surface);
-    SDL_FreeSurface(surface);
+    arena_close(temp_arena);
   }
 }
 
 void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color, SDL_Rect text_position, Padding padding) {
   // Check if text has any content
   if (text.data != 0 && text.data[0] != '\0') {
-    TTF_Font *font = get_font(font_variant);
+    SFT *sft = get_sft(font_variant);
     i32 line_height = get_text_line_height(font_variant);
     Arena *temp_arena = arena_open(256);
     Array *indexes = split_string_at_width(temp_arena, font_variant, text, text_position.w);
@@ -89,7 +100,7 @@ void draw_multiline_text(PixelData target, u8 font_variant, s8 text, RGBA color,
       if (line_length > 0) {
         // Trims and adds null terminator
         s8 trimmed_line = string_from_substring(temp_arena, text.data, line->start_index, line_length);
-        draw_text(target, font, to_char(trimmed_line), color, text_position, padding);
+        draw_text(target, sft, trimmed_line.data, color, text_position, padding);
       }
       text_position.y += line_height;
     }

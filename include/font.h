@@ -1,15 +1,35 @@
 #ifndef C9_FONT
 
 #include <stdbool.h> // bool
-#include "SDL_ttf.h" // TTF_Font, TTF_Init, TTF_OpenFont, TTF_CloseFont, TTF_GetError, TTF_Quit
+#include "schrift.h" // SFT, sft_loadfile, sft_freefont
 #include "status.h" // status
 #include "types.h" // i32, u8
 
 bool font_initialized = false;
-TTF_Font *inter_regular = 0;
-TTF_Font *inter_bold = 0;
-TTF_Font *inter_small = 0;
-TTF_Font *inter_large = 0;
+
+SFT inter_regular = {
+  .xScale = 14,
+  .yScale = 14,
+  .flags = SFT_DOWNWARD_Y,
+};
+
+SFT inter_bold = {
+  .xScale = 14,
+  .yScale = 14,
+  .flags = SFT_DOWNWARD_Y,
+};
+
+SFT inter_small = {
+  .xScale = 12,
+  .yScale = 12,
+  .flags = SFT_DOWNWARD_Y,
+};
+
+SFT inter_large = {
+  .xScale = 18,
+  .yScale = 18,
+  .flags = SFT_DOWNWARD_Y,
+};
 
 typedef struct {
   u8 regular;
@@ -25,65 +45,57 @@ FontVariants font_variant = {
   .large = 3,
 };
 
-i32 init_font(void) {
-  if (TTF_Init()) {
-    printf("TTF_Init: %s\n", TTF_GetError());
-    return status.ERROR;
-  }
-  if (inter_regular == 0) {
-    inter_regular = TTF_OpenFont("Inter-Regular.ttf", 14);
-    if (inter_regular == 0) {
-      printf("inter_regular failed: %s\n", TTF_GetError());
+i32 init_fonts(void) {
+  if (inter_regular.font == 0) {
+    inter_regular.font = sft_loadfile("Inter-Regular.ttf");
+    if (inter_regular.font == NULL) {
+      printf("inter_regular STF failed\n");
       return status.ERROR;
     }
-    TTF_SetFontHinting(inter_regular, TTF_HINTING_LIGHT_SUBPIXEL);
   }
-  if (inter_bold == 0) {
-    inter_bold = TTF_OpenFont("Inter-Medium.ttf", 14);
-    if (inter_bold == 0) {
-      printf("inter_bold failed: %s\n", TTF_GetError());
+  if (inter_bold.font == 0) {
+    inter_bold.font = sft_loadfile("Inter-Medium.ttf");
+    if (inter_bold.font == NULL) {
+      printf("inter_bold STF failed\n");
       return status.ERROR;
     }
-    TTF_SetFontHinting(inter_bold, TTF_HINTING_LIGHT_SUBPIXEL);
   }
-  if (inter_small == 0) {
-    inter_small = TTF_OpenFont("Inter-Medium.ttf", 12);
-    if (inter_small == 0) {
-      printf("inter_small failed: %s\n", TTF_GetError());
+  if (inter_small.font == 0) {
+    inter_small.font = sft_loadfile("Inter-Medium.ttf");
+    if (inter_small.font == NULL) {
+      printf("inter_small STF failed\n");
       return status.ERROR;
     }
-    TTF_SetFontHinting(inter_small, TTF_HINTING_LIGHT_SUBPIXEL);
   }
-  if (inter_large == 0) {
-    inter_large = TTF_OpenFont("Inter-Regular.ttf", 18);
-    if (inter_large == 0) {
-      printf("inter_large failed: %s\n", TTF_GetError());
+  if (inter_large.font == 0) {
+    inter_large.font = sft_loadfile("Inter-Regular.ttf");
+    if (inter_large.font == NULL) {
+      printf("inter_large STF failed\n");
       return status.ERROR;
     }
-    TTF_SetFontHinting(inter_large, TTF_HINTING_LIGHT_SUBPIXEL);
   }
   return status.OK;
 }
 
-TTF_Font *get_font(u8 variant) {
+SFT *get_sft(u8 variant) {
   if (font_initialized == false) {
-    if (init_font() == status.OK) {
+    if (init_fonts() == status.OK) {
       font_initialized = true;
     } else {
       return 0; // null pointer
     }
   }
   if (variant == font_variant.regular) {
-    return inter_regular;
+    return &inter_regular;
   }
   if (variant == font_variant.bold) {
-    return inter_bold;
+    return &inter_bold;
   } else if (variant == font_variant.small) {
-    return inter_small;
+    return &inter_small;
   } else if (variant == font_variant.large) {
-    return inter_large;
+    return &inter_large;
   } else {
-    return inter_regular;
+    return &inter_regular;
   }
 }
 
@@ -102,13 +114,12 @@ i32 get_font_height(u8 variant) {
   }
 }
 
-void close_font(void) {
+void close_fonts(void) {
   if (font_initialized == true) {
-    TTF_CloseFont(inter_regular);
-    TTF_CloseFont(inter_bold);
-    TTF_CloseFont(inter_small);
-    TTF_CloseFont(inter_large);
-    TTF_Quit();
+    sft_freefont(inter_regular.font);
+    sft_freefont(inter_bold.font);
+    sft_freefont(inter_small.font);
+    sft_freefont(inter_large.font);
   }
 }
 

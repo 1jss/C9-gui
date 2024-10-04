@@ -1,11 +1,11 @@
 #ifndef C9_FONT_LAYOUT
 
 #include <stdbool.h> // bool
-#include "SDL_ttf.h" // TTF_Font, TTF_SizeUTF8, TTF_MeasureUTF8
 #include "arena.h" // Arena
 #include "array.h" // Array
 #include "element_tree.h" // Element
-#include "font.h" // get_font, has_continuation_byte, get_next_character_width
+#include "font.h" // get_sft, get_font_height
+#include "schrift.h" // SFT, SFT_MeasureUTF8, SFT_text_width
 #include "status.h" // status
 #include "string.h" // s8
 #include "types.h" // i32, u8
@@ -28,7 +28,7 @@ bool has_continuation_byte(u8 byte) {
 
 // Splits a string into lines based on a maximum width. Returns an array of indexes.
 Array *split_string_at_width(Arena *arena, u8 font_variant, s8 text, i32 max_width) {
-  TTF_Font *font = get_font(font_variant);
+  SFT *sft = get_sft(font_variant);
   Array *lines = array_create_width(arena, sizeof(s8), 4);
 
   // The text has no width limit
@@ -47,18 +47,19 @@ Array *split_string_at_width(Arena *arena, u8 font_variant, s8 text, i32 max_wid
     Line line = {
       .start_index = start_index,
     };
-    i32 character_count = 0; // How many characters fit in the width
-    i32 character_width = 0; // Width of the characters in pixels
-    TTF_MeasureUTF8(font, (char *)text.data + start_index, max_width, &character_width, &character_count);
+
+    i32 sft_character_count = 0;
+    i32 sft_character_width = 0;
+    SFT_MeasureUTF8(sft, text.data + start_index, max_width, &sft_character_width, &sft_character_count);
 
     // Step through the characters to break at the last space
     i32 last_space = -1;
     i32 newline_position = -1;
     i32 read_index = start_index;
-    while (character_count > 0 && read_index < text.length) {
+    while (sft_character_count > 0 && read_index < text.length) {
       if (text.data[read_index] == '\n') {
         newline_position = read_index;
-        character_count = 0; // Break the loop
+        sft_character_count = 0; // Break the loop
       } else if (text.data[read_index] == ' ') {
         last_space = read_index;
       }
@@ -68,7 +69,7 @@ Array *split_string_at_width(Arena *arena, u8 font_variant, s8 text, i32 max_wid
              has_continuation_byte(text.data[read_index])) {
         read_index += 1;
       }
-      character_count -= 1;
+      sft_character_count -= 1;
     }
     // Break at the first newline
     if (newline_position != -1) {
@@ -116,13 +117,13 @@ i32 get_text_block_height(u8 font_variant, s8 text, i32 max_width) {
   }
 
   // Loop through the text
-  TTF_Font *font = get_font(font_variant);
+  SFT *font = get_sft(font_variant);
   i32 start_index = 0;
   i32 rows = 0;
   while (start_index < text.length) {
     i32 character_count = 0;
     i32 character_width = 0;
-    TTF_MeasureUTF8(font, (char *)text.data + start_index, max_width, &character_width, &character_count);
+    SFT_MeasureUTF8(font, &text.data[start_index], max_width, &character_width, &character_count);
 
     // Step through the characters to break at the last space
     i32 last_space = -1;
@@ -162,7 +163,7 @@ i32 get_text_block_height(u8 font_variant, s8 text, i32 max_width) {
   return font_height * rows + line_spacing * (rows - 1);
 }
 
-i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_position) {
+i32 get_next_character_width(SFT *font, u8 *text, i32 next_character_position) {
   i32 character_index = 0;
   // Step over previous characters to find the start of the character
   for (i32 i = 0; i < next_character_position; i++) {
@@ -179,10 +180,10 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 
   // Temporarily null-terminate the next byte to measure the character
   i32 next_byte_index = character_index + character_length;
-  char next_byte_backup = text[next_byte_index];
+  u8 next_byte_backup = text[next_byte_index];
   text[next_byte_index] = '\0';
   i32 character_width = 0;
-  TTF_SizeUTF8(font, &text[character_index], &character_width, NULL);
+  SFT_text_width(font, &text[character_index], &character_width);
   // Restore the next byte
   text[next_byte_index] = next_byte_backup;
 
@@ -190,17 +191,17 @@ i32 get_next_character_width(TTF_Font *font, char *text, i32 next_character_posi
 }
 
 i32 index_from_x(u8 font_variant, s8 *text, i32 position) {
-  TTF_Font *font = get_font(font_variant);
+  SFT *font = get_sft(font_variant);
   // Make sure the position and text is valid
   if (position <= 0 || text->length == 0) return 0;
 
   i32 character_index = 0;
   i32 character_width = 0; // Width of characters in pixels
   i32 character_count = 0; // How many characters fit in the width
-  TTF_MeasureUTF8(font, (char *)text->data, position, &character_width, &character_count);
+  SFT_MeasureUTF8(font, text->data, position, &character_width, &character_count);
 
   // Check if position is closer to the next character
-  i32 next_character_width = get_next_character_width(font, (char *)text->data, character_count);
+  i32 next_character_width = get_next_character_width(font, text->data, character_count);
   if (position - character_width > next_character_width / 2) {
     character_count += 1;
   }
@@ -293,8 +294,7 @@ Position position_from_index(i32 index, Element *element) {
       element->overflow == overflow_type.scroll_x) {
     // Copy element text to a new string to avoid modifying the original string
     i32 width = 0;
-    i32 height = 0;
-    TTF_SizeUTF8(get_font(element->font_variant), to_char(element_text), &width, &height);
+    SFT_text_width(get_sft(element->font_variant), element_text.data, &width);
     position = (Position){
       .x = element->layout.x + element->padding.left + width,
       .y = element->layout.y + element->padding.top,
@@ -330,8 +330,8 @@ Position position_from_index(i32 index, Element *element) {
     s8 line_text = string_from_substring(temp_arena, element_text.data, line->start_index, index - line->start_index);
 
     i32 width = 0;
-    i32 height = 0;
-    TTF_SizeUTF8(get_font(element->font_variant), to_char(line_text), &width, &height);
+    i32 height = get_text_line_height(element->font_variant);
+    SFT_text_width(get_sft(element->font_variant), line_text.data, &width);
 
     position = (Position){
       .x = child_element->layout.x + width,

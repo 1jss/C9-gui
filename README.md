@@ -112,19 +112,19 @@ The project starts from `main.c` and all C9 includes are header only. The base l
 The foundational layer of drawing is handled in `draw_shapes.h`, where functions for directly drawing superellipses of different types. These should normaly not be used directly by the library user, but only by the rendereer (`renderer.h`) that draws the Element tree. The layout of the tree is calculated in `layout.h`.
 
 ## Prerequisites
-SDL2, SDL2_ttf and SDL2_image libraries are required to compile and run this project.
+SDL2 and SDL2_image libraries are required to compile and run this project.
 
 ### MacOS
-Download sdl2, sdl2_ttf and sdl2_image from official releases and move them to `/Library/Frameworks`
+Download sdl2 and sdl2_image from official releases and move them to `/Library/Frameworks`
 https://stackoverflow.com/questions/60202947/vscode-intellisense-not-recognising-sdl-image-extension-library-for-sdl-framewor
 
 ## Compiling and running
 
 ### Clang
-Compiling with SDL2, SDL2_ttf and SDL2_image:
-`clang -std=c99 -Wall -Wextra  -F /Library/Frameworks -framework SDL2 -framework SDL2_ttf -framework SDL2_image main.c -o main`
+Compiling with SDL2 and SDL2_image:
+`clang -std=c99 -Wall -Wextra  -F /Library/Frameworks -framework SDL2 -framework SDL2_image main.c -o main`
 
-`clang $(sdl2-config --cflags --libs) -lSDL2_ttf -lSDL2_image -o main main.c`
+`clang $(sdl2-config --cflags --libs) -lSDL2_image -o main main.c`
 
 Running:
 `./main`
@@ -133,8 +133,6 @@ Running:
 - Mac .app packaging
 - To-Do example app
 - Font variant in input?
-- Selection is slow on large texts
-  - Binary search for clicked line
 - Input rerenders when added to layout
   - Only rerender lines that have changed
     - Compare newline list length with child element list length. If different, rerender.
@@ -144,6 +142,10 @@ Running:
   - Might be fixed by adding input text as actual children, not as text in the same element.
 - Dark theme example
 - Better boolean values? boolean.TRUE, boolean.FALSE
+  - https://github.com/leowhitehead/c-bool-value
+- Scrolling text is cut by renderer
+- Replace SDL2_image?
+- Make SFT_MeasureUTF8 return u8 indexes instead of utf8 characters
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius

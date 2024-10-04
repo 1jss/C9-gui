@@ -11,7 +11,7 @@
 #include "include/color.h" // RGBA, C9_Gradient
 #include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, Border, Padding
 #include "include/event.h" // click_handler, blur_handler, input_handler, handle_events
-#include "include/font.h" // init_font, close_font
+#include "include/font.h" // init_fonts, close_fonts
 #include "include/layout.h" // set_dimensions
 #include "include/renderer.h" // render_element_tree
 #include "include/types.h" // i32
@@ -63,7 +63,7 @@ i32 main() {
   SDL_RenderPresent(renderer);
 
   // Initialize font
-  if (init_font() == status.ERROR) return -1;
+  if (init_fonts() == status.ERROR) return -1;
 
   Arena *element_arena = arena_open(4096);
   // Root element
@@ -191,7 +191,7 @@ i32 main() {
   // printf("Size of element_arena %d\n", arena_size(element_arena));
   free_textures(tree->root);
   arena_close(element_arena);
-  close_font();
+  close_fonts();
   SDL_Quit();
 
   return 0;
