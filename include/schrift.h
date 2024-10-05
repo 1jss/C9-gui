@@ -302,6 +302,7 @@ int sft_kerning(const SFT *sft, SFT_Glyph leftGlyph, SFT_Glyph rightGlyph, SFT_K
 
   // TODO: Debug why this fails
   if (gettable(sft->font, "kern", &offset) < 0) {
+    printf("Kern table not found\n");
     return 0;
   };
 
@@ -1397,11 +1398,8 @@ int SFT_MeasureUTF8(SFT *sft, uint8_t *text, int measure_width, int *extent, int
     if (lastGlyph != 0) {
       if (sft_kerning(sft, lastGlyph, glyph, &kerning) < 0) return -1;
     }
-    double glyph_start = width + kerning.xShift + metrics.leftSideBearing;
-    double rounding_error = round(glyph_start) - glyph_start;
-
-    if (width + kerning.xShift + metrics.advanceWidth + rounding_error < measure_width) {
-      width += kerning.xShift + metrics.advanceWidth + rounding_error;
+    if (width + kerning.xShift + metrics.advanceWidth < measure_width) {
+      width += kerning.xShift + metrics.advanceWidth;
     } else {
       break;
     }
@@ -1409,7 +1407,7 @@ int SFT_MeasureUTF8(SFT *sft, uint8_t *text, int measure_width, int *extent, int
     lastGlyph = glyph;
   }
   if (extent) {
-    *extent = (int)ceil(width);
+    *extent = fast_floor(width + 1);
   }
   if (count) {
     *count = j;
@@ -1472,24 +1470,35 @@ int SFT_RenderUTF8(SFT *sft, uint8_t *text, SFT_Image image) {
       charStart += kerning.xShift;
     }
     // Glyphs are drawn on even pixels. The rounding errors are used to ajust the position of the next glyph.
-    glyph_start = (int)round(charStart + metrics.leftSideBearing);
-    rounding_error = glyph_start - (charStart + metrics.leftSideBearing);
+    glyph_start = fast_floor(charStart + metrics.leftSideBearing);
+    rounding_error = (charStart + metrics.leftSideBearing) - glyph_start;
     // Copy the character pixels to the image
-    for (int x = 0; x < charImage.width; x++) {
-      int target_x = glyph_start + x;
-      if (target_x < image.width) {
-        for (int y = 0; y < charImage.height; y++) {
-          int target_y = y + lmetrics.ascender + metrics.yOffset;
-          if (target_y < image.height) {
-            uint8_t pixel = char_pixels[y * charImage.width + x];
-            target_pixels[(target_y * image.width) + target_x] = pixel;
+    for (int y = 0; y < charImage.height; y++) {
+      int target_y = y + lmetrics.ascender + metrics.yOffset;
+      // First pixel of the glyph transparent
+      uint8_t last_pixel = 0;
+      if (target_y < image.height) {
+        for (int x = 0; x < charImage.width + 1; x++) {
+          int target_x = glyph_start + x;
+          if (target_x < image.width) {
+            uint8_t *target_pixel = &target_pixels[(target_y * image.width) + target_x];
+            if (x < charImage.width) {
+              uint8_t pixel = char_pixels[y * charImage.width + x];
+              uint8_t new_value = pixel * (1 - rounding_error) + last_pixel * rounding_error;
+              // If glyphs overlap, take the maximum value
+              *target_pixel = *target_pixel > new_value ? *target_pixel : new_value;
+              last_pixel = pixel;
+            } else {
+              // Last pixel is rounding overflow from the glyph placement
+              *target_pixel = last_pixel * rounding_error;
+            }
           }
         }
       }
     }
     // Free the image pixels
     free(char_pixels);
-    charStart += metrics.advanceWidth + rounding_error;
+    charStart += metrics.advanceWidth;
     lastGlyph = glyph;
   }
   return 0;

@@ -47,28 +47,28 @@ FontVariants font_variant = {
 
 i32 init_fonts(void) {
   if (inter_regular.font == 0) {
-    inter_regular.font = sft_loadfile("Inter-Regular.ttf");
+    inter_regular.font = sft_loadfile("InterDisplay-Regular-Tiny.ttf");
     if (inter_regular.font == NULL) {
       printf("inter_regular STF failed\n");
       return status.ERROR;
     }
   }
   if (inter_bold.font == 0) {
-    inter_bold.font = sft_loadfile("Inter-Medium.ttf");
+    inter_bold.font = sft_loadfile("InterDisplay-Medium-Tiny.ttf");
     if (inter_bold.font == NULL) {
       printf("inter_bold STF failed\n");
       return status.ERROR;
     }
   }
   if (inter_small.font == 0) {
-    inter_small.font = sft_loadfile("Inter-Medium.ttf");
+    inter_small.font = sft_loadfile("InterDisplay-Medium-Tiny.ttf");
     if (inter_small.font == NULL) {
       printf("inter_small STF failed\n");
       return status.ERROR;
     }
   }
   if (inter_large.font == 0) {
-    inter_large.font = sft_loadfile("Inter-Regular.ttf");
+    inter_large.font = sft_loadfile("InterDisplay-Regular-Tiny.ttf");
     if (inter_large.font == NULL) {
       printf("inter_large STF failed\n");
       return status.ERROR;
@@ -101,16 +101,16 @@ SFT *get_sft(u8 variant) {
 
 i32 get_font_height(u8 variant) {
   if (variant == font_variant.regular) {
-    return 18;
+    return 17;
   }
   if (variant == font_variant.bold) {
-    return 18;
+    return 17;
   } else if (variant == font_variant.small) {
     return 15;
   } else if (variant == font_variant.large) {
-    return 23;
+    return 22;
   } else {
-    return 18;
+    return 17;
   }
 }
 
