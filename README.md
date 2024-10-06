@@ -145,7 +145,6 @@ Running:
   - https://github.com/leowhitehead/c-bool-value
 - Replace SDL2_image?
 - Make SFT_MeasureUTF8 return u8 indexes instead of utf8 characters
-- Kerning table not found in Inter font
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius
