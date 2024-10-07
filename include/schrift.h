@@ -325,7 +325,7 @@ int sft_kerning(const SFT *sft, SFT_Glyph leftGlyph, SFT_Glyph rightGlyph, SFT_K
     offset += 6;
 
     if (format == 0 && (flags & HORIZONTAL_KERNING) && !(flags & MINIMUM_KERNING)) {
-     // Read format 0 header.
+      // Read format 0 header.
       if (!is_safe_offset(sft->font, offset, 8))
         return -1;
       numPairs = getu16(sft->font, offset);
@@ -667,7 +667,7 @@ static int cmap_fmt4(SFT_Font *font, uint_fast32_t table, SFT_UChar charCode, SF
   if ((startCode = getu16(font, startCodes + segIdxX2)) > shortCode) return 0;
   idDelta = getu16(font, idDeltas + segIdxX2);
   if (!(idRangeOffset = getu16(font, idRangeOffsets + segIdxX2))) {
-  // Intentional integer under- and overflow.
+    // Intentional integer under- and overflow.
     *glyph = (shortCode + idDelta) & 0xFFFF;
     return 0;
   }
@@ -747,11 +747,11 @@ static int glyph_id(SFT_Font *font, SFT_UChar charCode, SFT_Glyph *glyph) {
 
   if (!is_safe_offset(font, cmap, 4 + numEntries * 8)) return -1;
 
- // First look for a 'full repertoire'/non-BMP map.
+  // First look for a 'full repertoire'/non-BMP map.
   for (idx = 0; idx < numEntries; ++idx) {
     entry = cmap + 4 + idx * 8;
     type = getu16(font, entry) * 0100 + getu16(font, entry + 2);
-  // Complete unicode map
+    // Complete unicode map
     if (type == 0004 || type == 0312) {
       table = cmap + getu32(font, entry + 4);
       if (!is_safe_offset(font, table, 8)) return -1;
@@ -1083,7 +1083,7 @@ static int compound_outline(SFT_Font *font, uint_fast32_t offset, int recDepth, 
     offset += 4;
     // We don't implement point matching, and neither does stb_truetype for that matter.
     if (!(flags & ACTUAL_XY_OFFSETS)) return -1;
-   // Read additional X and Y offsets (in FUnits) of this component.
+    // Read additional X and Y offsets (in FUnits) of this component.
     if (flags & OFFSETS_ARE_LARGE) {
       if (!is_safe_offset(font, offset, 4)) return -1;
       local[4] = geti16(font, offset);

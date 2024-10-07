@@ -9,7 +9,7 @@ f32 random_number() {
   return (f32)(seed_state >> 8) / (1 << 23); // Normalize using bit shift
 }
 
-void set_seed(u32 new_seed){
+void set_seed(u32 new_seed) {
   seed_state = new_seed;
 }
 
