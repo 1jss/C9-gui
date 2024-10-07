@@ -2,9 +2,9 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h> // bool
-#include "SDL_image.h"
 #include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
 #include "font_layout.h" // split_string_at_width, get_text_line_height
+#include "stb_image.h" // stbi_load
 #include "types.h" // u8, f32, i32
 #include "types_common.h" // Border, Padding
 
@@ -15,31 +15,47 @@ typedef struct {
   i32 height;
 } PixelData;
 
-void renderer_draw_image(SDL_Renderer *renderer, char *image_url, SDL_Rect image_position) {
-  SDL_Texture *texture = IMG_LoadTexture(renderer, image_url);
-  if (texture != NULL) {
-    SDL_RenderCopy(renderer, texture, NULL, &image_position);
-    SDL_DestroyTexture(texture);
-  }
-}
-
 void draw_image(PixelData target, char *image_url, SDL_Rect image_position) {
-  SDL_Surface *surface = IMG_Load(image_url);
-  if (surface != NULL) {
-    SDL_LockSurface(surface);
-    for (i32 y = 0; y < surface->h; y++) {
-      if (y < image_position.h) {
-        for (i32 x = 0; x < surface->w; x++) {
-          if (x < image_position.w) {
-            u8 *pixel = (u8 *)surface->pixels + y * surface->pitch + x * surface->format->BytesPerPixel;
-            RGBA image_pixel = RGBA_from_u8(pixel[2], pixel[1], pixel[0], pixel[3]);
-            target.pixels[(image_position.y + y) * target.width + image_position.y + x] = image_pixel;
+  i32 width = 0;
+  i32 height = 0;
+  i32 components = 0;
+  u8 *data = stbi_load(image_url, &width, &height, &components, 4);
+  if (data != 0) {
+    for (i32 x = 0; x < width; x++) {
+      if (x < image_position.w) {
+        for (i32 y = 0; y < height; y++) {
+          if (y < image_position.h) {
+            RGBA image_pixel = RGBA_from_u8(data[(y * width + x) * 4 + 0], data[(y * width + x) * 4 + 1], data[(y * width + x) * 4 + 2], data[(y * width + x) * 4 + 3]);
+            target.pixels[(image_position.y + y) * target.width + image_position.x + x] = image_pixel;
           }
         }
       }
     }
-    SDL_UnlockSurface(surface);
-    SDL_FreeSurface(surface);
+    stbi_image_free(data);
+  }
+}
+
+// Draws an image to the renderer
+void renderer_draw_image(SDL_Renderer *renderer, char *image_url, SDL_Rect image_position) {
+  SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, image_position.w, image_position.h);
+  if (texture != 0) {
+    // Lock texture for writing
+    void *pixels = 0;
+    int pitch = 0;
+    SDL_LockTexture(texture, NULL, &pixels, &pitch);
+    PixelData target = {
+      .pixels = (RGBA *)pixels,
+      .width = image_position.w,
+      .height = image_position.h
+    };
+    SDL_Rect image_in_texture = {
+      .w = image_position.w,
+      .h = image_position.h
+    };
+    draw_image(target, image_url, image_in_texture);
+    SDL_UnlockTexture(texture);
+    SDL_RenderCopy(renderer, texture, NULL, &image_position);
+    SDL_DestroyTexture(texture);
   }
 }
 

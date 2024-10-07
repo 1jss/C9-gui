@@ -7,7 +7,7 @@ C9 gui is a performant and flexible GUI library built on SDL2. C9 gui primarily 
 - Padding, border and gutter around elements and between children
 - Superellipse rounded corners (with anti-aliasing)
 - Gradient backgrounds (smoothed with blue noise dithering) 
-- Image backgrounds (png, jpg, bmp)
+- Image backgrounds (png)
 - Event handling (click, blur, key press)
 - Layout engine (flex or scroll children in any direction)
 - Lazy loading of elements (if outside of window bounds)
@@ -112,19 +112,16 @@ The project starts from `main.c` and all C9 includes are header only. The base l
 The foundational layer of drawing is handled in `draw_shapes.h`, where functions for directly drawing superellipses of different types. These should normaly not be used directly by the library user, but only by the rendereer (`renderer.h`) that draws the Element tree. The layout of the tree is calculated in `layout.h`.
 
 ## Prerequisites
-SDL2 and SDL2_image libraries are required to compile and run this project.
+SDL2 is required to compile and run this project.
 
 ### MacOS
-Download sdl2 and sdl2_image from official releases and move them to `/Library/Frameworks`
-https://stackoverflow.com/questions/60202947/vscode-intellisense-not-recognising-sdl-image-extension-library-for-sdl-framewor
+Download SDL2 from official releases and move it to `/Library/Frameworks`
 
 ## Compiling and running
 
 ### Clang
-Compiling with SDL2 and SDL2_image:
-`clang -std=c99 -Wall -Wextra  -F /Library/Frameworks -framework SDL2 -framework SDL2_image main.c -o main`
-
-`clang $(sdl2-config --cflags --libs) -lSDL2_image -o main main.c`
+Compiling with SDL2:
+`clang -std=c99 -Wall -Wextra -F /Library/Frameworks -framework SDL2 main.c -o main`
 
 Running:
 `./main`
@@ -143,7 +140,6 @@ Running:
 - Dark theme example
 - Better boolean values? boolean.TRUE, boolean.FALSE
   - https://github.com/leowhitehead/c-bool-value
-- Replace SDL2_image?
 - Make SFT_MeasureUTF8 return u8 indexes instead of utf8 characters
 
 ## Notes
