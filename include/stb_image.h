@@ -107,12 +107,6 @@
 //
 // ADDITIONAL CONFIGURATION
 //
-//  - You can suppress implementation of any of the decoders to reduce
-//    your code footprint by #defining one or more of the following
-//    symbols before creating the implementation.
-//
-//        STBI_NO_PNG
-//
 //  - If you define STBI_MAX_DIMENSIONS, stb_image will reject images greater
 //    than that size (in either width or height) without further processing.
 //    This is to let programs in the wild set an upper bound to prevent
@@ -132,7 +126,6 @@
 
 enum {
   STBI_default = 0, // only used for desired_channels
-
   STBI_grey = 1,
   STBI_grey_alpha = 2,
   STBI_rgb = 3,
@@ -153,7 +146,7 @@ typedef unsigned short stbi_us;
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// PRIMARY API - works on images of any type
+// PRIMARY API
 //
 
 //
@@ -162,9 +155,9 @@ typedef unsigned short stbi_us;
 
 typedef struct
 {
-  int (*read)(void *user, char *data, int size);   // fill 'data' with 'size' bytes.  return number of bytes actually read
-  void (*skip)(void *user, int n);                 // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
-  int (*eof)(void *user);                       // returns nonzero if we are at end of file/data
+  int (*read)(void *user, char *data, int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
+  void (*skip)(void *user, int n); // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
+  int (*eof)(void *user); // returns nonzero if we are at end of file/data
 } stbi_io_callbacks;
 
 ////////////////////////////////////
@@ -412,9 +405,9 @@ static int stbi__stdio_read(void *user, char *data, int size) {
 static void stbi__stdio_skip(void *user, int n) {
   int ch;
   fseek((FILE *)user, n, SEEK_CUR);
-  ch = fgetc((FILE *)user);  /* have to read a byte to reset feof()'s flag */
+  ch = fgetc((FILE *)user); /* have to read a byte to reset feof()'s flag */
   if (ch != EOF) {
-    ungetc(ch, (FILE *)user);  /* push byte back onto stream if valid. */
+    ungetc(ch, (FILE *)user); /* push byte back onto stream if valid. */
   }
 }
 
@@ -438,9 +431,9 @@ static void stbi__start_file(stbi__context *s, FILE *f) {
 #endif // !STBI_NO_STDIO
 
 static void stbi__rewind(stbi__context *s) {
-   // conceptually rewind SHOULD rewind to the beginning of the stream,
-   // but we just rewind to the beginning of the initial buffer, because
-   // we only use it after doing 'test', which only ever looks at at most 92 bytes
+  // conceptually rewind SHOULD rewind to the beginning of the stream,
+  // but we just rewind to the beginning of the initial buffer, because
+  // we only use it after doing 'test', which only ever looks at at most 92 bytes
   s->img_buffer = s->img_buffer_original;
   s->img_buffer_end = s->img_buffer_original_end;
 }
@@ -499,10 +492,10 @@ static void *stbi__malloc(size_t size) {
 // negative terms are considered invalid.
 static int stbi__addsizes_valid(int a, int b) {
   if (b < 0) return 0;
-   // now 0 <= b <= INT_MAX, hence also
-   // 0 <= INT_MAX - b <= INTMAX.
-   // And "a + b <= INT_MAX" (which might overflow) is the
-   // same as a <= INT_MAX - b (no overflow)
+  // now 0 <= b <= INT_MAX, hence also
+  // 0 <= INT_MAX - b <= INTMAX.
+  // And "a + b <= INT_MAX" (which might overflow) is the
+  // same as a <= INT_MAX - b (no overflow)
   return a <= INT_MAX - b;
 }
 
@@ -511,7 +504,7 @@ static int stbi__addsizes_valid(int a, int b) {
 static int stbi__mul2sizes_valid(int a, int b) {
   if (a < 0 || b < 0) return 0;
   if (b == 0) return 1; // mul-by-0 is always safe
-   // portable way to check for no overflows in a*b
+  // portable way to check for no overflows in a*b
   return a <= INT_MAX / b;
 }
 
@@ -539,21 +532,6 @@ static void *stbi__malloc_mad2(int a, int b, int add) {
 static void *stbi__malloc_mad3(int a, int b, int c, int add) {
   if (!stbi__mad3sizes_valid(a, b, c, add)) return NULL;
   return stbi__malloc(a * b * c + add);
-}
-
-// returns 1 if the sum of two signed ints is valid (between -2^31 and 2^31-1 inclusive), 0 on overflow.
-static int stbi__addints_valid(int a, int b) {
-  if ((a >= 0) != (b >= 0)) return 1; // a and b have different signs, so no overflow
-  if (a < 0 && b < 0) return a >= INT_MIN - b; // same as a + b >= INT_MIN; INT_MIN - b cannot overflow since b < 0.
-  return a <= INT_MAX - b;
-}
-
-// returns 1 if the product of two ints fits in a signed short, 0 on overflow.
-static int stbi__mul2shorts_valid(int a, int b) {
-  if (b == 0 || b == -1) return 1; // multiplication by 0 is always 0; check for -1 so SHRT_MIN/b doesn't overflow
-  if ((a >= 0) == (b >= 0)) return a <= SHRT_MAX / b; // product is positive, so similar to mul2sizes_valid
-  if (b < 0) return a <= SHRT_MIN / b; // same as a * b >= SHRT_MIN
-  return a >= SHRT_MIN / b;
 }
 
 // stbi__err - error
@@ -596,12 +574,12 @@ STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_fli
 
 static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri, int bpc) {
   memset(ri, 0, sizeof(*ri)); // make sure it's initialized if we add new fields
-  ri->bits_per_channel = 8; // default is 8 so most paths don't have to be changed
+  ri->bits_per_channel = bpc; // default is 8 so most paths don't have to be changed
   ri->channel_order = STBI_ORDER_RGB; // all current input & output are this, but this is here so we can add BGR order
   ri->num_channels = 0;
 
-   // test the formats with a very explicit header first (at least a FOURCC
-   // or distinctive magic number first)
+  // test the formats with a very explicit header first (at least a FOURCC
+  // or distinctive magic number first)
 #ifndef STBI_NO_PNG
   if (stbi__png_test(s)) return stbi__png_load(s, x, y, comp, req_comp, ri);
 #endif
@@ -648,7 +626,7 @@ static void stbi__vertical_flip(void *image, int w, int h, int bytes_per_pixel) 
   for (row = 0; row < (h >> 1); row++) {
     stbi_uc *row0 = bytes + row * bytes_per_row;
     stbi_uc *row1 = bytes + (h - row - 1) * bytes_per_row;
-      // swap row0 with row1
+    // swap row0 with row1
     size_t bytes_left = bytes_per_row;
     while (bytes_left) {
       size_t bytes_copy = (bytes_left < sizeof(temp)) ? bytes_left : sizeof(temp);
@@ -669,7 +647,7 @@ static unsigned char *stbi__load_and_postprocess_8bit(stbi__context *s, int *x, 
   if (result == NULL)
     return NULL;
 
-   // it is the responsibility of the loaders to make sure we get either 8 or 16 bit.
+  // it is the responsibility of the loaders to make sure we get either 8 or 16 bit.
   STBI_ASSERT(ri.bits_per_channel == 8 || ri.bits_per_channel == 16);
 
   if (ri.bits_per_channel != 8) {
@@ -677,7 +655,7 @@ static unsigned char *stbi__load_and_postprocess_8bit(stbi__context *s, int *x, 
     ri.bits_per_channel = 8;
   }
 
-   // @TODO: move stbi__convert_format to here
+  // @TODO: move stbi__convert_format to here
 
   if (stbi__vertically_flip_on_load) {
     int channels = req_comp ? req_comp : *comp;
@@ -694,7 +672,7 @@ static stbi__uint16 *stbi__load_and_postprocess_16bit(stbi__context *s, int *x, 
   if (result == NULL)
     return NULL;
 
-   // it is the responsibility of the loaders to make sure we get either 8 or 16 bit.
+  // it is the responsibility of the loaders to make sure we get either 8 or 16 bit.
   STBI_ASSERT(ri.bits_per_channel == 8 || ri.bits_per_channel == 16);
 
   if (ri.bits_per_channel != 16) {
@@ -702,8 +680,8 @@ static stbi__uint16 *stbi__load_and_postprocess_16bit(stbi__context *s, int *x, 
     ri.bits_per_channel = 16;
   }
 
-   // @TODO: move stbi__convert_format16 to here
-   // @TODO: special case RGB-to-Y (and RGBA-to-YA) for 8-bit-to-16-bit case to keep more precision
+  // @TODO: move stbi__convert_format16 to here
+  // @TODO: special case RGB-to-Y (and RGBA-to-YA) for 8-bit-to-16-bit case to keep more precision
 
   if (stbi__vertically_flip_on_load) {
     int channels = req_comp ? req_comp : *comp;
@@ -741,7 +719,7 @@ STBIDEF stbi_uc *stbi_load_from_file(FILE *f, int *x, int *y, int *comp, int req
   stbi__start_file(&s, f);
   result = stbi__load_and_postprocess_8bit(&s, x, y, comp, req_comp);
   if (result) {
-      // need to 'unget' all the characters in the IO buffer
+    // need to 'unget' all the characters in the IO buffer
     fseek(f, -(int)(s.img_buffer_end - s.img_buffer), SEEK_CUR);
   }
   return result;
@@ -753,7 +731,7 @@ STBIDEF stbi__uint16 *stbi_load_from_file_16(FILE *f, int *x, int *y, int *comp,
   stbi__start_file(&s, f);
   result = stbi__load_and_postprocess_16bit(&s, x, y, comp, req_comp);
   if (result) {
-      // need to 'unget' all the characters in the IO buffer
+    // need to 'unget' all the characters in the IO buffer
     fseek(f, -(int)(s.img_buffer_end - s.img_buffer), SEEK_CUR);
   }
   return result;
@@ -809,8 +787,8 @@ static void stbi__refill_buffer(stbi__context *s) {
   int n = (s->io.read)(s->io_user_data, (char *)s->buffer_start, s->buflen);
   s->callback_already_read += (int)(s->img_buffer - s->img_buffer_original);
   if (n == 0) {
-      // at end of file, treat same as if from memory, but need to handle case
-      // where s->img_buffer isn't pointing to safe memory, e.g. 0-byte file
+    // at end of file, treat same as if from memory, but need to handle case
+    // where s->img_buffer isn't pointing to safe memory, e.g. 0-byte file
     s->read_from_callbacks = 0;
     s->img_buffer = s->buffer_start;
     s->img_buffer_end = s->buffer_start + 1;
@@ -835,7 +813,7 @@ stbi_inline static stbi_uc stbi__get8(stbi__context *s) {
 // nothing
 #else
 static void stbi__skip(stbi__context *s, int n) {
-  if (n == 0) return;  // already there!
+  if (n == 0) return; // already there!
   if (n < 0) {
     s->img_buffer = s->img_buffer_end;
     return;
@@ -897,7 +875,7 @@ static stbi__uint32 stbi__get32be(stbi__context *s) {
 }
 #endif
 
-#define STBI__BYTECAST(x) ((stbi_uc)((x) & 255))  // truncate int to byte without warnings
+#define STBI__BYTECAST(x) ((stbi_uc)((x) & 255)) // truncate int to byte without warnings
 
 #if defined(STBI_NO_PNG)
 // nothing
@@ -942,8 +920,8 @@ static unsigned char *stbi__convert_format(unsigned char *data, int img_n, int r
 #define STBI__CASE(a, b) \
   case STBI__COMBO(a, b): \
     for (i = x - 1; i >= 0; --i, src += a, dest += b)
-      // convert source image with img_n components to one with req_comp components;
-      // avoid switch per pixel, so use switch per scanline and massive macros
+    // convert source image with img_n components to one with req_comp components;
+    // avoid switch per pixel, so use switch per scanline and massive macros
     switch (STBI__COMBO(img_n, req_comp)) {
       STBI__CASE(1, 2) {
         dest[0] = src[0];
@@ -1039,8 +1017,8 @@ static stbi__uint16 *stbi__convert_format16(stbi__uint16 *data, int img_n, int r
 #define STBI__CASE(a, b) \
   case STBI__COMBO(a, b): \
     for (i = x - 1; i >= 0; --i, src += a, dest += b)
-      // convert source image with img_n components to one with req_comp components;
-      // avoid switch per pixel, so use switch per scanline and massive macros
+    // convert source image with img_n components to one with req_comp components;
+    // avoid switch per pixel, so use switch per scanline and massive macros
     switch (STBI__COMBO(img_n, req_comp)) {
       STBI__CASE(1, 2) {
         dest[0] = src[0];
@@ -1140,8 +1118,8 @@ stbi_inline static int stbi__bitreverse16(int n) {
 
 stbi_inline static int stbi__bit_reverse(int v, int bits) {
   STBI_ASSERT(bits <= 16);
-   // to bit reverse n bits, reverse 16 and shift
-   // e.g. 11 bits, bit reverse and shift away 5
+  // to bit reverse n bits, reverse 16 and shift
+  // e.g. 11 bits, bit reverse and shift away 5
   return stbi__bitreverse16(v) >> (16 - bits);
 }
 
@@ -1149,7 +1127,7 @@ static int stbi__zbuild_huffman(stbi__zhuffman *z, const stbi_uc *sizelist, int 
   int i, k = 0;
   int code, next_code[16], sizes[17];
 
-   // DEFLATE spec for generating codes
+  // DEFLATE spec for generating codes
   memset(sizes, 0, sizeof(sizes));
   memset(z->fast, 0, sizeof(z->fast));
   for (i = 0; i < num; ++i)
@@ -1223,7 +1201,7 @@ stbi_inline static stbi_uc stbi__zget8(stbi__zbuf *z) {
 static void stbi__fill_bits(stbi__zbuf *z) {
   do {
     if (z->code_buffer >= (1U << z->num_bits)) {
-      z->zbuffer = z->zbuffer_end;  /* treat this as EOF so we fail. */
+      z->zbuffer = z->zbuffer_end; /* treat this as EOF so we fail. */
       return;
     }
     z->code_buffer |= (unsigned int)stbi__zget8(z) << z->num_bits;
@@ -1242,17 +1220,17 @@ stbi_inline static unsigned int stbi__zreceive(stbi__zbuf *z, int n) {
 
 static int stbi__zhuffman_decode_slowpath(stbi__zbuf *a, stbi__zhuffman *z) {
   int b, s, k;
-   // not resolved by fast table, so compute it the slow way
-   // use jpeg approach, which requires MSbits at top
+  // not resolved by fast table, so compute it the slow way
+  // use jpeg approach, which requires MSbits at top
   k = stbi__bit_reverse(a->code_buffer, 16);
   for (s = STBI__ZFAST_BITS + 1;; ++s)
     if (k < z->maxcode[s])
       break;
   if (s >= 16) return -1; // invalid code!
-   // code size is s, so:
+  // code size is s, so:
   b = (k >> (16 - s)) - z->firstcode[s] + z->firstsymbol[s];
   if (b >= STBI__ZNSYMS) return -1; // some data was corrupt somewhere!
-  if (z->size[b] != s) return -1;  // was originally an assert, but report failure instead.
+  if (z->size[b] != s) return -1; // was originally an assert, but report failure instead.
   a->code_buffer >>= s;
   a->num_bits -= s;
   return z->value[b];
@@ -1263,14 +1241,14 @@ stbi_inline static int stbi__zhuffman_decode(stbi__zbuf *a, stbi__zhuffman *z) {
   if (a->num_bits < 16) {
     if (stbi__zeof(a)) {
       if (!a->hit_zeof_once) {
-            // This is the first time we hit eof, insert 16 extra padding btis
-            // to allow us to keep going; if we actually consume any of them
-            // though, that is invalid data. This is caught later.
+        // This is the first time we hit eof, insert 16 extra padding btis
+        // to allow us to keep going; if we actually consume any of them
+        // though, that is invalid data. This is caught later.
         a->hit_zeof_once = 1;
         a->num_bits += 16; // add 16 implicit zero bits
       } else {
-            // We already inserted our extra 16 padding bits and are again
-            // out, this stream is actually prematurely terminated.
+        // We already inserted our extra 16 padding bits and are again
+        // out, this stream is actually prematurely terminated.
         return -1;
       }
     } else {
@@ -1287,7 +1265,7 @@ stbi_inline static int stbi__zhuffman_decode(stbi__zbuf *a, stbi__zhuffman *z) {
   return stbi__zhuffman_decode_slowpath(a, z);
 }
 
-static int stbi__zexpand(stbi__zbuf *z, char *zout, int n)  // need to make room for n bytes
+static int stbi__zexpand(stbi__zbuf *z, char *zout, int n) // need to make room for n bytes
 {
   char *q;
   unsigned int cur, limit, old_limit;
@@ -1340,10 +1318,10 @@ static int stbi__parse_huffman_block(stbi__zbuf *a) {
       if (z == 256) {
         a->zout = zout;
         if (a->hit_zeof_once && a->num_bits < 16) {
-               // The first time we hit zeof, we inserted 16 extra zero bits into our bit
-               // buffer so the decoder can just do its speculative decoding. But if we
-               // actually consumed any of those bits (which is the case when num_bits < 16),
-               // the stream actually read past the end so it is malformed.
+          // The first time we hit zeof, we inserted 16 extra zero bits into our bit
+          // buffer so the decoder can just do its speculative decoding. But if we
+          // actually consumed any of those bits (which is the case when num_bits < 16),
+          // the stream actually read past the end so it is malformed.
           return stbi__err("unexpected end", "Corrupt PNG");
         }
         return 1;
@@ -1383,7 +1361,7 @@ static int stbi__parse_huffman_block(stbi__zbuf *a) {
 static int stbi__compute_huffman_codes(stbi__zbuf *a) {
   static const stbi_uc length_dezigzag[19] = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
   stbi__zhuffman z_codelength;
-  stbi_uc lencodes[286 + 32 + 137];//padding for maximum single op
+  stbi_uc lencodes[286 + 32 + 137]; //padding for maximum single op
   stbi_uc codelength_sizes[19];
   int i, n;
 
@@ -1434,7 +1412,7 @@ static int stbi__parse_uncompressed_block(stbi__zbuf *a) {
   int len, nlen, k;
   if (a->num_bits & 7)
     stbi__zreceive(a, a->num_bits & 7); // discard
-   // drain the bit-packed data into header
+  // drain the bit-packed data into header
   k = 0;
   while (a->num_bits > 0) {
     header[k++] = (stbi_uc)(a->code_buffer & 255); // suppress MSVC run-time check
@@ -1442,7 +1420,7 @@ static int stbi__parse_uncompressed_block(stbi__zbuf *a) {
     a->num_bits -= 8;
   }
   if (a->num_bits < 0) return stbi__err("zlib corrupt", "Corrupt PNG");
-   // now fill header the normal way
+  // now fill header the normal way
   while (k < 4)
     header[k++] = stbi__zget8(a);
   len = header[1] * 256 + header[0];
@@ -1460,13 +1438,13 @@ static int stbi__parse_uncompressed_block(stbi__zbuf *a) {
 static int stbi__parse_zlib_header(stbi__zbuf *a) {
   int cmf = stbi__zget8(a);
   int cm = cmf & 15;
-   /* int cinfo = cmf >> 4; */
+  /* int cinfo = cmf >> 4; */
   int flg = stbi__zget8(a);
   if (stbi__zeof(a)) return stbi__err("bad zlib header", "Corrupt PNG"); // zlib spec
   if ((cmf * 256 + flg) % 31 != 0) return stbi__err("bad zlib header", "Corrupt PNG"); // zlib spec
   if (flg & 32) return stbi__err("no preset dict", "Corrupt PNG"); // preset dictionary not allowed in png
   if (cm != 8) return stbi__err("bad compression", "Corrupt PNG"); // DEFLATE required for png
-   // window = 1 << (8 + cinfo)... but who cares, we fully buffer output
+  // window = 1 << (8 + cinfo)... but who cares, we fully buffer output
   return 1;
 }
 
@@ -1515,7 +1493,7 @@ static int stbi__parse_zlib(stbi__zbuf *a, int parse_header) {
       return 0;
     } else {
       if (type == 1) {
-            // use fixed code lengths
+        // use fixed code lengths
         if (!stbi__zbuild_huffman(&a->z_length, stbi__zdefault_length, STBI__ZNSYMS)) return 0;
         if (!stbi__zbuild_huffman(&a->z_distance, stbi__zdefault_distance, 32)) return 0;
       } else {
@@ -1651,7 +1629,7 @@ enum {
   STBI__F_up = 2,
   STBI__F_avg = 3,
   STBI__F_paeth = 4,
-   // synthetic filter used for first scanline to avoid needing a dummy row of 0s
+  // synthetic filter used for first scanline to avoid needing a dummy row of 0s
   STBI__F_avg_first
 };
 
@@ -1665,9 +1643,9 @@ static stbi_uc first_row_filter[5] =
 };
 
 static int stbi__paeth(int a, int b, int c) {
-   // This formulation looks very different from the reference in the PNG spec, but is
-   // actually equivalent and has favorable data dependencies and admits straightforward
-   // generation of branch-free code, which helps performance significantly.
+  // This formulation looks very different from the reference in the PNG spec, but is
+  // actually equivalent and has favorable data dependencies and admits straightforward
+  // generation of branch-free code, which helps performance significantly.
   int thresh = c * 3 - (a + b);
   int lo = a < b ? a : b;
   int hi = a < b ? b : a;
@@ -1683,7 +1661,7 @@ static const stbi_uc stbi__depth_scale_table[9] = {0, 0xff, 0x55, 0, 0x11, 0, 0,
 // img_n must be 1 or 3
 static void stbi__create_png_alpha_expand8(stbi_uc *dest, stbi_uc *src, stbi__uint32 x, int img_n) {
   int i;
-   // must process data backwards since we allow dest==src
+  // must process data backwards since we allow dest==src
   if (img_n == 1) {
     for (i = x - 1; i >= 0; --i) {
       dest[i * 2 + 1] = 255;
@@ -1719,46 +1697,46 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
   a->out = (stbi_uc *)stbi__malloc_mad3(x, y, output_bytes, 0); // extra bytes to write off the end into
   if (!a->out) return stbi__err("outofmem", "Out of memory");
 
-   // note: error exits here don't need to clean up a->out individually,
-   // stbi__do_png always does on error.
+  // note: error exits here don't need to clean up a->out individually,
+  // stbi__do_png always does on error.
   if (!stbi__mad3sizes_valid(img_n, x, depth, 7)) return stbi__err("too large", "Corrupt PNG");
   img_width_bytes = (((img_n * x * depth) + 7) >> 3);
   if (!stbi__mad2sizes_valid(img_width_bytes, y, img_width_bytes)) return stbi__err("too large", "Corrupt PNG");
   img_len = (img_width_bytes + 1) * y;
 
-   // we used to check for exact match between raw_len and img_len on non-interlaced PNGs,
-   // but issue #276 reported a PNG in the wild that had extra data at the end (all zeros),
-   // so just check for raw_len < img_len always.
+  // we used to check for exact match between raw_len and img_len on non-interlaced PNGs,
+  // but issue #276 reported a PNG in the wild that had extra data at the end (all zeros),
+  // so just check for raw_len < img_len always.
   if (raw_len < img_len) return stbi__err("not enough pixels", "Corrupt PNG");
 
-   // Allocate two scan lines worth of filter workspace buffer.
+  // Allocate two scan lines worth of filter workspace buffer.
   filter_buf = (stbi_uc *)stbi__malloc_mad2(img_width_bytes, 2, 0);
   if (!filter_buf) return stbi__err("outofmem", "Out of memory");
 
-   // Filtering for low-bit-depth images
+  // Filtering for low-bit-depth images
   if (depth < 8) {
     filter_bytes = 1;
     width = img_width_bytes;
   }
 
   for (j = 0; j < y; ++j) {
-      // cur/prior filter buffers alternate
+    // cur/prior filter buffers alternate
     stbi_uc *cur = filter_buf + (j & 1) * img_width_bytes;
     stbi_uc *prior = filter_buf + (~j & 1) * img_width_bytes;
     stbi_uc *dest = a->out + stride * j;
     int nk = width * filter_bytes;
     int filter = *raw++;
 
-      // check filter type
+    // check filter type
     if (filter > 4) {
       all_ok = stbi__err("invalid filter", "Corrupt PNG");
       break;
     }
 
-      // if first row, use special filter that doesn't sample previous row
+    // if first row, use special filter that doesn't sample previous row
     if (j == 0) filter = first_row_filter[filter];
 
-      // perform actual filtering
+    // perform actual filtering
     switch (filter) {
       case STBI__F_none:
         memcpy(cur, raw, nk);
@@ -1793,7 +1771,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
 
     raw += nk;
 
-      // expand decoded bits in cur to dest, also adding an extra alpha channel if desired
+    // expand decoded bits in cur to dest, also adding an extra alpha channel if desired
     if (depth < 8) {
       stbi_uc scale = (color == 0) ? stbi__depth_scale_table[depth] : 1; // scale grayscale values to 0..255 range
       stbi_uc *in = cur;
@@ -1801,7 +1779,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
       stbi_uc inb = 0;
       stbi__uint32 nsmp = x * img_n;
 
-         // expand bits to bytes first
+      // expand bits to bytes first
       if (depth == 4) {
         for (i = 0; i < nsmp; ++i) {
           if ((i & 1) == 0) inb = *in++;
@@ -1823,7 +1801,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
         }
       }
 
-         // insert alpha=255 values if desired
+      // insert alpha=255 values if desired
       if (img_n != out_n)
         stbi__create_png_alpha_expand8(dest, dest, x, img_n);
     } else if (depth == 8) {
@@ -1832,7 +1810,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
       else
         stbi__create_png_alpha_expand8(dest, cur, x, img_n);
     } else if (depth == 16) {
-         // convert the image data from big-endian to platform-native
+      // convert the image data from big-endian to platform-native
       stbi__uint16 *dest16 = (stbi__uint16 *)dest;
       stbi__uint32 nsmp = x * img_n;
 
@@ -1873,7 +1851,7 @@ static int stbi__create_png_image(stbi__png *a, stbi_uc *image_data, stbi__uint3
   if (!interlaced)
     return stbi__create_png_image_raw(a, image_data, image_data_len, out_n, a->s->img_x, a->s->img_y, depth, color);
 
-   // de-interlacing
+  // de-interlacing
   final = (stbi_uc *)stbi__malloc_mad3(a->s->img_x, a->s->img_y, out_bytes, 0);
   if (!final) return stbi__err("outofmem", "Out of memory");
   for (p = 0; p < 7; ++p) {
@@ -1882,7 +1860,7 @@ static int stbi__create_png_image(stbi__png *a, stbi_uc *image_data, stbi__uint3
     int xspc[] = {8, 8, 4, 4, 2, 2, 1};
     int yspc[] = {8, 8, 8, 4, 4, 2, 2};
     int i, j, x, y;
-      // pass1_x[4] = 0, pass1_x[5] = 1, pass1_x[12] = 1
+    // pass1_x[4] = 0, pass1_x[5] = 1, pass1_x[12] = 1
     x = (a->s->img_x - xorig[p] + xspc[p] - 1) / xspc[p];
     y = (a->s->img_y - yorig[p] + yspc[p] - 1) / yspc[p];
     if (x && y) {
@@ -1913,8 +1891,8 @@ static int stbi__compute_transparency(stbi__png *z, stbi_uc tc[3], int out_n) {
   stbi__uint32 i, pixel_count = s->img_x * s->img_y;
   stbi_uc *p = z->out;
 
-   // compute color-based transparency, assuming we've
-   // already got 255 as the alpha value in the output
+  // compute color-based transparency, assuming we've
+  // already got 255 as the alpha value in the output
   STBI_ASSERT(out_n == 2 || out_n == 4);
 
   if (out_n == 2) {
@@ -1937,8 +1915,8 @@ static int stbi__compute_transparency16(stbi__png *z, stbi__uint16 tc[3], int ou
   stbi__uint32 i, pixel_count = s->img_x * s->img_y;
   stbi__uint16 *p = (stbi__uint16 *)z->out;
 
-   // compute color-based transparency, assuming we've
-   // already got 65535 as the alpha value in the output
+  // compute color-based transparency, assuming we've
+  // already got 65535 as the alpha value in the output
   STBI_ASSERT(out_n == 2 || out_n == 4);
 
   if (out_n == 2) {
@@ -1963,7 +1941,7 @@ static int stbi__expand_png_palette(stbi__png *a, stbi_uc *palette, int len, int
   p = (stbi_uc *)stbi__malloc_mad2(pixel_count, pal_img_n, 0);
   if (p == NULL) return stbi__err("outofmem", "Out of memory");
 
-   // between here and free(out) below, exitting would leak
+  // between here and free(out) below, exitting would leak
   temp_out = p;
 
   if (pal_img_n == 3) {
@@ -2029,7 +2007,7 @@ static void stbi__de_iphone(stbi__png *z) {
   stbi__uint32 i, pixel_count = s->img_x * s->img_y;
   stbi_uc *p = z->out;
 
-  if (s->img_out_n == 3) {  // convert bgr to rgb
+  if (s->img_out_n == 3) { // convert bgr to rgb
     for (i = 0; i < pixel_count; ++i) {
       stbi_uc t = p[0];
       p[0] = p[2];
@@ -2039,7 +2017,7 @@ static void stbi__de_iphone(stbi__png *z) {
   } else {
     STBI_ASSERT(s->img_out_n == 4);
     if (stbi__unpremultiply_on_load) {
-         // convert bgr to rgb and unpremultiply
+      // convert bgr to rgb and unpremultiply
       for (i = 0; i < pixel_count; ++i) {
         stbi_uc a = p[3];
         stbi_uc t = p[0];
@@ -2055,7 +2033,7 @@ static void stbi__de_iphone(stbi__png *z) {
         p += 4;
       }
     } else {
-         // convert bgr to rgb
+      // convert bgr to rgb
       for (i = 0; i < pixel_count; ++i) {
         stbi_uc t = p[0];
         p[0] = p[2];
@@ -2120,12 +2098,12 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
           s->img_n = (color & 2 ? 3 : 1) + (color & 4 ? 1 : 0);
           if ((1 << 30) / s->img_x / s->img_n < s->img_y) return stbi__err("too large", "Image too large to decode");
         } else {
-               // if paletted, then pal_n is our final components, and
-               // img_n is # components to decompress/filter.
+          // if paletted, then pal_n is our final components, and
+          // img_n is # components to decompress/filter.
           s->img_n = 1;
           if ((1 << 30) / s->img_x / 4 < s->img_y) return stbi__err("too large", "Corrupt PNG");
         }
-            // even with SCAN_header, have to scan to see if we have a tRNS
+        // even with SCAN_header, have to scan to see if we have a tRNS
         break;
       }
 
@@ -2160,7 +2138,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
           if (!(s->img_n & 1)) return stbi__err("tRNS with alpha", "Corrupt PNG");
           if (c.length != (stbi__uint32)s->img_n * 2) return stbi__err("bad tRNS len", "Corrupt PNG");
           has_trans = 1;
-               // non-paletted with tRNS = constant alpha. if header-scanning, we can stop now.
+          // non-paletted with tRNS = constant alpha. if header-scanning, we can stop now.
           if (scan == STBI__SCAN_header) {
             ++s->img_n;
             return 1;
@@ -2180,7 +2158,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
         if (first) return stbi__err("first not IHDR", "Corrupt PNG");
         if (pal_img_n && !pal_len) return stbi__err("no PLTE", "Corrupt PNG");
         if (scan == STBI__SCAN_header) {
-               // header scan definitely stops at first IDAT
+          // header scan definitely stops at first IDAT
           if (pal_img_n)
             s->img_n = pal_img_n;
           return 1;
@@ -2208,7 +2186,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
         if (first) return stbi__err("first not IHDR", "Corrupt PNG");
         if (scan != STBI__SCAN_load) return 1;
         if (z->idata == NULL) return stbi__err("no IDAT", "Corrupt PNG");
-            // initial guess for decoded data size to avoid unnecessary reallocs
+        // initial guess for decoded data size to avoid unnecessary reallocs
         bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
         raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per row */;
         z->expanded = (stbi_uc *)stbi_zlib_decode_malloc_guesssize_headerflag((char *)z->idata, ioff, raw_len, (int *)&raw_len, !is_iphone);
@@ -2230,29 +2208,29 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
         if (is_iphone && stbi__de_iphone_flag && s->img_out_n > 2)
           stbi__de_iphone(z);
         if (pal_img_n) {
-               // pal_img_n == 3 or 4
+          // pal_img_n == 3 or 4
           s->img_n = pal_img_n; // record the actual colors we had
           s->img_out_n = pal_img_n;
           if (req_comp >= 3) s->img_out_n = req_comp;
           if (!stbi__expand_png_palette(z, palette, pal_len, s->img_out_n))
             return 0;
         } else if (has_trans) {
-               // non-paletted image with tRNS -> source image has (constant) alpha
+          // non-paletted image with tRNS -> source image has (constant) alpha
           ++s->img_n;
         }
         STBI_FREE(z->expanded);
         z->expanded = NULL;
-            // end of PNG chunk, read and skip CRC
+        // end of PNG chunk, read and skip CRC
         stbi__get32be(s);
         return 1;
       }
 
       default:
-            // if critical, fail
+        // if critical, fail
         if (first) return stbi__err("first not IHDR", "Corrupt PNG");
         if ((c.type & (1 << 29)) == 0) {
 #ifndef STBI_NO_FAILURE_STRINGS
-               // not threadsafe
+          // not threadsafe
           static char invalid_chunk[] = "XXXX PNG chunk not known";
           invalid_chunk[0] = STBI__BYTECAST(c.type >> 24);
           invalid_chunk[1] = STBI__BYTECAST(c.type >> 16);
@@ -2264,7 +2242,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
         stbi__skip(s, c.length);
         break;
     }
-      // end of PNG chunk, read and skip CRC
+    // end of PNG chunk, read and skip CRC
     stbi__get32be(s);
   }
 }
@@ -2347,7 +2325,6 @@ static int stbi__png_is16(stbi__context *s) {
 #endif
 
 static int stbi__info_main(stbi__context *s, int *x, int *y, int *comp) {
-
 #ifndef STBI_NO_PNG
   if (stbi__png_info(s, x, y, comp)) return 1;
 #endif
