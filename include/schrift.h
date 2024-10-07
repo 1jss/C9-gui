@@ -1407,7 +1407,7 @@ int SFT_MeasureUTF8(SFT *sft, uint8_t *text, int measure_width, int *extent, int
     lastGlyph = glyph;
   }
   if (extent) {
-    *extent = fast_floor(width + 1);
+    *extent = fast_ceil(width);
   }
   if (count) {
     *count = j;

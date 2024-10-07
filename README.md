@@ -141,6 +141,7 @@ Running:
 - Better boolean values? boolean.TRUE, boolean.FALSE
   - https://github.com/leowhitehead/c-bool-value
 - Make SFT_MeasureUTF8 return u8 indexes instead of utf8 characters
+- Make stb_image.h and schrift.h more C9 conformant
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius

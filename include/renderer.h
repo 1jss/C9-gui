@@ -287,11 +287,16 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                 i32 text_width = 0;
                 SFT_text_width(font, trimmed_line.data, &text_width);
                 selection = (SDL_Rect){
-                  .x = text_position.x - 1, // Subtract 1 pixel for the cursor
+                  .x = text_position.x,
                   .y = text_position.y + line_height * i,
-                  .w = text_width + 2,
+                  .w = text_width,
                   .h = get_font_height(element->font_variant),
                 };
+                // Line is empty
+                if (selection.w == 0) {
+                  selection.x -= 1; // Subtract 1 pixel for the cursor
+                  selection.w = 2; // Set 2 pixels width for the cursor
+                }
               }
               // Selection spans only part of the line
               else {
@@ -324,7 +329,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                   .w = selection_end_width - selection_start_width,
                   .h = get_font_height(element->font_variant),
                 };
-                if (selection_end_width - selection_start_width == 0) {
+                if (selection.w == 0) {
                   selection.x -= 1; // Subtract 1 pixel for the cursor
                   selection.w = 2; // Set 2 pixels width for the cursor
                 }
