@@ -393,20 +393,20 @@ SDL_Rect measure_selection(SFT *font, InputData *input) {
   i32 selection_end_x;
   SFT_text_width(font, selection_end, &selection_end_x);
 
-  // Measure the selected text
-  i32 selection_length = end_index - start_index;
-  u8 *selected_text = arena_fill(temp_arena, selection_length + 1); // +1 for null terminator
-  memcpy(selected_text, text.data + start_index, selection_length);
+  // Measure from text start to start of selection
+  u8 *selection_start = arena_fill(temp_arena, start_index + 1); // +1 for null terminator
+  memcpy(selection_start, text.data, start_index);
   // Add null-terminator
-  selected_text[selection_length] = '\0';
-  i32 selection_w;
-  SFT_text_width(font, selected_text, &selection_w);
+  selection_start[start_index] = '\0';
+  i32 selection_start_x;
+  SFT_text_width(font, selection_start, &selection_start_x);
 
   arena_close(temp_arena);
   SDL_Rect result = {
-    .x = selection_end_x - selection_w,
-    .w = selection_w,
+    .x = selection_start_x,
+    .w = selection_end_x - selection_start_x,
   };
+
   return result;
 }
 

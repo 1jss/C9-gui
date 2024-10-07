@@ -205,11 +205,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       if (element->overflow == overflow_type.scroll || element->overflow == overflow_type.scroll_x) {
         SDL_Rect selection_rect = measure_selection(font, element->input);
         SDL_Rect selection = {
-          .x = text_position.x + selection_rect.x - 1, // Subtract 1 pixel for the cursor
+          .x = text_position.x + selection_rect.x,
           .y = text_position.y + selection_rect.y,
-          .w = selection_rect.w + 2, // Add 2 pixels for the cursor
+          .w = selection_rect.w,
           .h = get_font_height(element->font_variant),
         };
+        if (selection_rect.w == 0) {
+          selection.x -= 1; // Subtract 1 pixel for the cursor
+          selection.w = 2; // Set 2 pixels width for the cursor
+        }
         // Make sure selection is not drawn outside text bounds
         i32 text_limit_left = element_texture_rect.x + element->border.left;
         i32 text_limit_right = element_texture_rect.x + element_texture_rect.w - element->border.right;
@@ -315,11 +319,15 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
                   SFT_text_width(font, selection_end.data, &selection_end_width);
                 }
                 selection = (SDL_Rect){
-                  .x = text_position.x + selection_start_width - 1, // Subtract 1 pixel for the cursor
+                  .x = text_position.x + selection_start_width,
                   .y = text_position.y + line_height * i,
-                  .w = selection_end_width - selection_start_width + 2, // Add 2 pixels for the cursor
+                  .w = selection_end_width - selection_start_width,
                   .h = get_font_height(element->font_variant),
                 };
+                if (selection_end_width - selection_start_width == 0) {
+                  selection.x -= 1; // Subtract 1 pixel for the cursor
+                  selection.w = 2; // Set 2 pixels width for the cursor
+                }
               }
               if (selection_start_index == selection_end_index) {
                 draw_filled_rectangle(locked_element, selection, 0, text_cursor_color);
