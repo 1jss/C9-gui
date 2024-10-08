@@ -2,7 +2,7 @@
 #ifndef SCHRIFT_TTF
 
 #include <assert.h> // assert
-#include <errno.h> // errno
+#include <errno.h> // errno, ENOMEM
 #include <fcntl.h> // open
 #include <math.h> // fabs, floor
 #include <stddef.h> // size_t
@@ -300,7 +300,6 @@ int sft_kerning(const SFT *sft, SFT_Glyph leftGlyph, SFT_Glyph rightGlyph, SFT_K
 
   memset(kerning, 0, sizeof *kerning);
 
-  // TODO: Debug why this fails
   if (gettable(sft->font, "kern", &offset) < 0) {
     printf("Kern table not found\n");
     return 0;
@@ -1373,7 +1372,7 @@ static int utf8_to_utf32(const uint8_t *utf8, uint32_t *utf32) {
   return 0;
 }
 
-// Steps through a UTF-8 string and measures the width of each character and the kerning between them to determine how many characters fit into a given measure width.
+// Steps through a UTF-8 string and measures the width of each character and the kerning between them to determine how many characters fit into a given width. Set measure_width to 0 to measure the entire string.
 int SFT_MeasureUTF8(SFT *sft, uint8_t *text, int measure_width, int *extent, int *count) {
   SFT_UChar charCode;
   SFT_Glyph glyph;
@@ -1398,7 +1397,7 @@ int SFT_MeasureUTF8(SFT *sft, uint8_t *text, int measure_width, int *extent, int
     if (lastGlyph != 0) {
       if (sft_kerning(sft, lastGlyph, glyph, &kerning) < 0) return -1;
     }
-    if (width + kerning.xShift + metrics.advanceWidth < measure_width) {
+    if (measure_width == 0 || width + kerning.xShift + metrics.advanceWidth < measure_width) {
       width += kerning.xShift + metrics.advanceWidth;
     } else {
       break;
@@ -1417,8 +1416,8 @@ int SFT_MeasureUTF8(SFT *sft, uint8_t *text, int measure_width, int *extent, int
 
 int SFT_text_width(SFT *sft, uint8_t *text, int *width_ref) {
   int width;
-  if (SFT_MeasureUTF8(sft, text, i32_max, &width, 0) < 0) return -1;
-  if (width_ref != 0) {
+  if (SFT_MeasureUTF8(sft, text, 0, &width, 0) < 0) return -1;
+  if (width_ref) {
     *width_ref = width;
   }
   return 0;
@@ -1469,8 +1468,8 @@ int SFT_RenderUTF8(SFT *sft, uint8_t *text, SFT_Image image) {
       if (sft_kerning(sft, lastGlyph, glyph, &kerning) < 0) return -1;
       charStart += kerning.xShift;
     }
-    // Glyphs are drawn on even pixels. The rounding errors are used to ajust the position of the next glyph.
     glyph_start = fast_floor(charStart + metrics.leftSideBearing);
+    // Rounding error for subpixel placement
     rounding_error = (charStart + metrics.leftSideBearing) - glyph_start;
     // Copy the character pixels to the image
     for (int y = 0; y < charImage.height; y++) {
