@@ -14,9 +14,6 @@
 #include <sys/stat.h> // fstat
 #include <unistd.h> // close
 
-const uint8_t SFT_DOWNWARD_Y = 0x01;
-const int32_t i32_max = 2147483647;
-
 typedef struct SFT SFT;
 typedef struct SFT_Font SFT_Font;
 typedef uint_least32_t SFT_UChar; // Guaranteed to be compatible with char32_t.
@@ -286,7 +283,7 @@ int sft_gmetrics(const SFT *sft, SFT_Glyph glyph, SFT_GMetrics *metrics) {
   if (glyph_bbox(sft, outline, bbox) < 0) return -1;
   metrics->minWidth = bbox[2] - bbox[0] + 1;
   metrics->minHeight = bbox[3] - bbox[1] + 1;
-  metrics->yOffset = sft->flags & SFT_DOWNWARD_Y ? -bbox[3] : bbox[1];
+  metrics->yOffset = -bbox[3];
 
   return 0;
 }
@@ -370,13 +367,8 @@ int sft_render(const SFT *sft, SFT_Glyph glyph, SFT_Image image) {
   transform[1] = 0.0;
   transform[2] = 0.0;
   transform[4] = sft->xOffset - bbox[0];
-  if (sft->flags & SFT_DOWNWARD_Y) {
-    transform[3] = -sft->yScale / sft->font->unitsPerEm;
-    transform[5] = bbox[3] - sft->yOffset;
-  } else {
-    transform[3] = +sft->yScale / sft->font->unitsPerEm;
-    transform[5] = sft->yOffset - bbox[1];
-  }
+  transform[3] = -sft->yScale / sft->font->unitsPerEm;
+  transform[5] = bbox[3] - sft->yOffset;
 
   memset(&outl, 0, sizeof outl);
   if (init_outline(&outl) < 0)

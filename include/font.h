@@ -10,25 +10,21 @@ bool font_initialized = false;
 SFT inter_regular = {
   .xScale = 14,
   .yScale = 14,
-  .flags = SFT_DOWNWARD_Y,
 };
 
 SFT inter_bold = {
   .xScale = 14,
   .yScale = 14,
-  .flags = SFT_DOWNWARD_Y,
 };
 
 SFT inter_small = {
   .xScale = 12,
   .yScale = 12,
-  .flags = SFT_DOWNWARD_Y,
 };
 
 SFT inter_large = {
   .xScale = 18,
   .yScale = 18,
-  .flags = SFT_DOWNWARD_Y,
 };
 
 typedef struct {
