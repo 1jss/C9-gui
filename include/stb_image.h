@@ -88,21 +88,6 @@
 // The three functions you must define are "read" (reads some bytes of data),
 // "skip" (skips some bytes of data), "eof" (reports if the stream is at the end).
 //
-//
-// ===========================================================================
-//
-// iPhone PNG support:
-//
-// We optionally support converting iPhone-formatted PNGs (which store
-// premultiplied BGRA) back to RGB, even though they're internally encoded
-// differently. To enable this conversion, call
-// stbi_convert_iphone_png_to_rgb(1).
-//
-// Call stbi_set_unpremultiply_on_load(1) as well to force a divide per
-// pixel to remove any premultiplied alpha *only* if the image file explicitly
-// says there's premultiplied data (currently only happens in iPhone images,
-// and only if iPhone convert-to-rgb processing is on).
-//
 // ===========================================================================
 //
 // ADDITIONAL CONFIGURATION
@@ -207,23 +192,12 @@ STBIDEF int stbi_is_16_bit(char const *filename);
 STBIDEF int stbi_is_16_bit_from_file(FILE *f);
 #endif
 
-// for image formats that explicitly notate that they have premultiplied alpha,
-// we just return the colors as stored in the file. set this flag to force
-// unpremultiplication. results are undefined if the unpremultiply overflow.
-STBIDEF void stbi_set_unpremultiply_on_load(int flag_true_if_should_unpremultiply);
-
-// indicate whether we should process iphone images back to canonical format,
-// or just pass them through "as-is"
-STBIDEF void stbi_convert_iphone_png_to_rgb(int flag_true_if_should_convert);
-
 // flip the image vertically, so the first pixel in the output array is the bottom left
 STBIDEF void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip);
 
 // as above, but only applies to images loaded on the thread that calls the function
 // this function is only available if your compiler supports thread-local variables;
 // calling it will fail to link if your compiler doesn't
-STBIDEF void stbi_set_unpremultiply_on_load_thread(int flag_true_if_should_unpremultiply);
-STBIDEF void stbi_convert_iphone_png_to_rgb_thread(int flag_true_if_should_convert);
 STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_flip);
 
 // ZLIB client - used by PNG, available for other purposes
@@ -1970,80 +1944,6 @@ static int stbi__expand_png_palette(stbi__png *a, stbi_uc *palette, int len, int
   return 1;
 }
 
-static int stbi__unpremultiply_on_load_global = 0;
-static int stbi__de_iphone_flag_global = 0;
-
-STBIDEF void stbi_set_unpremultiply_on_load(int flag_true_if_should_unpremultiply) {
-  stbi__unpremultiply_on_load_global = flag_true_if_should_unpremultiply;
-}
-
-STBIDEF void stbi_convert_iphone_png_to_rgb(int flag_true_if_should_convert) {
-  stbi__de_iphone_flag_global = flag_true_if_should_convert;
-}
-
-#ifndef STBI_THREAD_LOCAL
-#define stbi__unpremultiply_on_load stbi__unpremultiply_on_load_global
-#define stbi__de_iphone_flag stbi__de_iphone_flag_global
-#else
-static STBI_THREAD_LOCAL int stbi__unpremultiply_on_load_local, stbi__unpremultiply_on_load_set;
-static STBI_THREAD_LOCAL int stbi__de_iphone_flag_local, stbi__de_iphone_flag_set;
-
-STBIDEF void stbi_set_unpremultiply_on_load_thread(int flag_true_if_should_unpremultiply) {
-  stbi__unpremultiply_on_load_local = flag_true_if_should_unpremultiply;
-  stbi__unpremultiply_on_load_set = 1;
-}
-
-STBIDEF void stbi_convert_iphone_png_to_rgb_thread(int flag_true_if_should_convert) {
-  stbi__de_iphone_flag_local = flag_true_if_should_convert;
-  stbi__de_iphone_flag_set = 1;
-}
-
-#define stbi__unpremultiply_on_load (stbi__unpremultiply_on_load_set ? stbi__unpremultiply_on_load_local : stbi__unpremultiply_on_load_global)
-#define stbi__de_iphone_flag (stbi__de_iphone_flag_set ? stbi__de_iphone_flag_local : stbi__de_iphone_flag_global)
-#endif // STBI_THREAD_LOCAL
-
-static void stbi__de_iphone(stbi__png *z) {
-  stbi__context *s = z->s;
-  stbi__uint32 i, pixel_count = s->img_x * s->img_y;
-  stbi_uc *p = z->out;
-
-  if (s->img_out_n == 3) { // convert bgr to rgb
-    for (i = 0; i < pixel_count; ++i) {
-      stbi_uc t = p[0];
-      p[0] = p[2];
-      p[2] = t;
-      p += 3;
-    }
-  } else {
-    STBI_ASSERT(s->img_out_n == 4);
-    if (stbi__unpremultiply_on_load) {
-      // convert bgr to rgb and unpremultiply
-      for (i = 0; i < pixel_count; ++i) {
-        stbi_uc a = p[3];
-        stbi_uc t = p[0];
-        if (a) {
-          stbi_uc half = a / 2;
-          p[0] = (p[2] * 255 + half) / a;
-          p[1] = (p[1] * 255 + half) / a;
-          p[2] = (t * 255 + half) / a;
-        } else {
-          p[0] = p[2];
-          p[2] = t;
-        }
-        p += 4;
-      }
-    } else {
-      // convert bgr to rgb
-      for (i = 0; i < pixel_count; ++i) {
-        stbi_uc t = p[0];
-        p[0] = p[2];
-        p[2] = t;
-        p += 4;
-      }
-    }
-  }
-}
-
 #define STBI__PNG_TYPE(a, b, c, d) (((unsigned)(a) << 24) + ((unsigned)(b) << 16) + ((unsigned)(c) << 8) + (unsigned)(d))
 
 static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
@@ -2051,7 +1951,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
   stbi_uc has_trans = 0, tc[3] = {0};
   stbi__uint16 tc16[3];
   stbi__uint32 ioff = 0, idata_limit = 0, i, pal_len = 0;
-  int first = 1, k, interlace = 0, color = 0, is_iphone = 0;
+  int first = 1, k, interlace = 0, color = 0;
   stbi__context *s = z->s;
 
   z->expanded = NULL;
@@ -2065,10 +1965,6 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
   for (;;) {
     stbi__pngchunk c = stbi__get_chunk_header(s);
     switch (c.type) {
-      case STBI__PNG_TYPE('C', 'g', 'B', 'I'):
-        is_iphone = 1;
-        stbi__skip(s, c.length);
-        break;
       case STBI__PNG_TYPE('I', 'H', 'D', 'R'): {
         int comp, filter;
         if (!first) return stbi__err("multiple IHDR", "Corrupt PNG");
@@ -2189,7 +2085,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
         // initial guess for decoded data size to avoid unnecessary reallocs
         bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
         raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per row */;
-        z->expanded = (stbi_uc *)stbi_zlib_decode_malloc_guesssize_headerflag((char *)z->idata, ioff, raw_len, (int *)&raw_len, !is_iphone);
+        z->expanded = (stbi_uc *)stbi_zlib_decode_malloc_guesssize_headerflag((char *)z->idata, ioff, raw_len, (int *)&raw_len, true);
         if (z->expanded == NULL) return 0; // zlib should set error
         STBI_FREE(z->idata);
         z->idata = NULL;
@@ -2205,8 +2101,6 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
             if (!stbi__compute_transparency(z, tc, s->img_out_n)) return 0;
           }
         }
-        if (is_iphone && stbi__de_iphone_flag && s->img_out_n > 2)
-          stbi__de_iphone(z);
         if (pal_img_n) {
           // pal_img_n == 3 or 4
           s->img_n = pal_img_n; // record the actual colors we had
