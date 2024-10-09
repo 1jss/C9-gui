@@ -206,10 +206,6 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 //
 ////   end header file   /////////////////////////////////////////////////////
 
-#if defined(STBI_NO_PNG) && !defined(STBI_SUPPORT_ZLIB) && !defined(STBI_NO_ZLIB)
-#define STBI_NO_ZLIB
-#endif
-
 #include <limits.h>
 #include <stdarg.h>
 #include <stddef.h> // ptrdiff_t on osx
@@ -226,20 +222,13 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 #endif
 
 #define STBI_EXTERN extern
-
-#ifndef _MSC_VER
 #define stbi_inline
-#else
-#define stbi_inline __forceinline
-#endif
 
 #ifndef STBI_NO_THREAD_LOCALS
 #if defined(__cplusplus) && __cplusplus >= 201103L
 #define STBI_THREAD_LOCAL thread_local
 #elif defined(__GNUC__) && __GNUC__ < 5
 #define STBI_THREAD_LOCAL __thread
-#elif defined(_MSC_VER)
-#define STBI_THREAD_LOCAL __declspec(thread)
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
 #define STBI_THREAD_LOCAL _Thread_local
 #endif
@@ -251,37 +240,18 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 #endif
 #endif
 
-#if defined(_MSC_VER) || defined(__SYMBIAN32__)
-typedef unsigned short stbi__uint16;
-typedef signed short stbi__int16;
-typedef unsigned int stbi__uint32;
-typedef signed int stbi__int32;
-#else
 #include <stdint.h>
 typedef uint16_t stbi__uint16;
 typedef int16_t stbi__int16;
 typedef uint32_t stbi__uint32;
 typedef int32_t stbi__int32;
-#endif
 
 // should produce compiler error if size is wrong
 typedef unsigned char validate_uint32[sizeof(stbi__uint32) == 4 ? 1 : -1];
 
-#ifdef _MSC_VER
-#define STBI_NOTUSED(v) (void)(v)
-#else
 #define STBI_NOTUSED(v) (void)sizeof(v)
-#endif
 
-#ifdef _MSC_VER
-#define STBI_HAS_LROTL
-#endif
-
-#ifdef STBI_HAS_LROTL
-#define stbi_lrot(x, y) _lrotl(x, y)
-#else
 #define stbi_lrot(x, y) (((x) << (y)) | ((x) >> (-(y) & 31)))
-#endif
 
 #if defined(STBI_MALLOC) && defined(STBI_FREE) && (defined(STBI_REALLOC) || defined(STBI_REALLOC_SIZED))
 // ok
@@ -416,12 +386,10 @@ typedef struct
   int channel_order;
 } stbi__result_info;
 
-#ifndef STBI_NO_PNG
 static int stbi__png_test(stbi__context *s);
 static void *stbi__png_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri);
 static int stbi__png_info(stbi__context *s, int *x, int *y, int *comp);
 static int stbi__png_is16(stbi__context *s);
-#endif
 
 static
 #ifdef STBI_THREAD_LOCAL
@@ -474,12 +442,10 @@ static int stbi__mul2sizes_valid(int a, int b) {
   return a <= INT_MAX / b;
 }
 
-#if !defined(STBI_NO_PNG)
 // returns 1 if "a*b + add" has no negative terms/factors and doesn't overflow
 static int stbi__mad2sizes_valid(int a, int b, int add) {
   return stbi__mul2sizes_valid(a, b) && stbi__addsizes_valid(a * b, add);
 }
-#endif
 
 // returns 1 if "a*b*c + add" has no negative terms/factors and doesn't overflow
 static int stbi__mad3sizes_valid(int a, int b, int c, int add) {
@@ -487,13 +453,11 @@ static int stbi__mad3sizes_valid(int a, int b, int c, int add) {
          stbi__addsizes_valid(a * b * c, add);
 }
 
-#if !defined(STBI_NO_PNG)
 // mallocs with size overflow checking
 static void *stbi__malloc_mad2(int a, int b, int add) {
   if (!stbi__mad2sizes_valid(a, b, add)) return NULL;
   return stbi__malloc(a * b + add);
 }
-#endif
 
 static void *stbi__malloc_mad3(int a, int b, int c, int add) {
   if (!stbi__mad3sizes_valid(a, b, c, add)) return NULL;
@@ -527,9 +491,7 @@ static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int re
 
   // test the formats with a very explicit header first (at least a FOURCC
   // or distinctive magic number first)
-#ifndef STBI_NO_PNG
   if (stbi__png_test(s)) return stbi__png_load(s, x, y, comp, req_comp, ri);
-#endif
 
   return stbi__errpuc("unknown image type", "Image not of any known type, or corrupt");
 }
@@ -609,12 +571,7 @@ static stbi__uint16 *stbi__load_and_postprocess_16bit(stbi__context *s, int *x, 
 
 static FILE *stbi__fopen(char const *filename, char const *mode) {
   FILE *f;
-#if defined(_MSC_VER) && _MSC_VER >= 1400
-  if (0 != fopen_s(&f, filename, mode))
-    f = 0;
-#else
   f = fopen(filename, mode);
-#endif
   return f;
 }
 
@@ -723,9 +680,6 @@ stbi_inline static stbi_uc stbi__get8(stbi__context *s) {
   return 0;
 }
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static void stbi__skip(stbi__context *s, int n) {
   if (n == 0) return; // already there!
   if (n < 0) {
@@ -742,11 +696,7 @@ static void stbi__skip(stbi__context *s, int n) {
   }
   s->img_buffer += n;
 }
-#endif
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static int stbi__getn(stbi__context *s, stbi_uc *buffer, int n) {
   if (s->io.read) {
     int blen = (int)(s->img_buffer_end - s->img_buffer);
@@ -769,31 +719,19 @@ static int stbi__getn(stbi__context *s, stbi_uc *buffer, int n) {
   } else
     return 0;
 }
-#endif
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static int stbi__get16be(stbi__context *s) {
   int z = stbi__get8(s);
   return (z << 8) + stbi__get8(s);
 }
-#endif
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static stbi__uint32 stbi__get32be(stbi__context *s) {
   stbi__uint32 z = stbi__get16be(s);
   return (z << 16) + stbi__get16be(s);
 }
-#endif
 
 #define STBI__BYTECAST(x) ((stbi_uc)((x) & 255)) // truncate int to byte without warnings
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 //////////////////////////////////////////////////////////////////////////////
 //
 //  generic converter from built-in img_n to req_comp
@@ -808,11 +746,7 @@ static stbi__uint32 stbi__get32be(stbi__context *s) {
 static stbi_uc stbi__compute_y(int r, int g, int b) {
   return (stbi_uc)(((r * 77) + (g * 150) + (29 * b)) >> 8);
 }
-#endif
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static unsigned char *stbi__convert_format(unsigned char *data, int img_n, int req_comp, unsigned int x, unsigned int y) {
   int i, j;
   unsigned char *good;
@@ -897,19 +831,11 @@ static unsigned char *stbi__convert_format(unsigned char *data, int img_n, int r
   STBI_FREE(data);
   return good;
 }
-#endif
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static stbi__uint16 stbi__compute_y_16(int r, int g, int b) {
   return (stbi__uint16)(((r * 77) + (g * 150) + (29 * b)) >> 8);
 }
-#endif
 
-#if defined(STBI_NO_PNG)
-// nothing
-#else
 static stbi__uint16 *stbi__convert_format16(stbi__uint16 *data, int img_n, int req_comp, unsigned int x, unsigned int y) {
   int i, j;
   stbi__uint16 *good;
@@ -994,7 +920,6 @@ static stbi__uint16 *stbi__convert_format16(stbi__uint16 *data, int img_n, int r
   STBI_FREE(data);
   return good;
 }
-#endif
 
 // public domain zlib decode    v0.2  Sean Barrett 2006-11-18
 //    simple implementation
@@ -1003,15 +928,12 @@ static stbi__uint16 *stbi__convert_format16(stbi__uint16 *data, int img_n, int r
 //    performance
 //      - fast huffman
 
-#ifndef STBI_NO_ZLIB
-
 // fast-way is faster to check than jpeg huffman, but slow way is slower
 #define STBI__ZFAST_BITS 9 // accelerate all cases in default tables
 #define STBI__ZFAST_MASK ((1 << STBI__ZFAST_BITS) - 1)
 #define STBI__ZNSYMS 288 // number of symbols in literal/length alphabet
 
 // zlib-style huffman encoding
-// (jpegs packs from left, zlib from right, so can't share code)
 typedef struct
 {
   stbi__uint16 fast[1 << STBI__ZFAST_BITS];
@@ -1496,7 +1418,6 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
   else
     return -1;
 }
-#endif
 
 // public domain "baseline" PNG decoder   v0.10  Sean Barrett 2006-11-18
 //    simple implementation
@@ -1508,7 +1429,6 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 //    performance
 //      - uses stb_zlib, a PD zlib implementation with fast huffman decoding
 
-#ifndef STBI_NO_PNG
 typedef struct
 {
   stbi__uint32 length;
@@ -2156,19 +2076,14 @@ static int stbi__png_is16(stbi__context *s) {
   }
   return 1;
 }
-#endif
 
 static int stbi__info_main(stbi__context *s, int *x, int *y, int *comp) {
-#ifndef STBI_NO_PNG
   if (stbi__png_info(s, x, y, comp)) return 1;
-#endif
   return stbi__err("unknown image type", "Image not of any known type, or corrupt");
 }
 
 static int stbi__is_16_main(stbi__context *s) {
-#ifndef STBI_NO_PNG
   if (stbi__png_is16(s)) return 1;
-#endif
   return 0;
 }
 
