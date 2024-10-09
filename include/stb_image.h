@@ -2,86 +2,46 @@
 
 #ifndef STBI_INCLUDE_STB_IMAGE
 
-// DOCUMENTATION
-//
-// Basic usage:
-//    int x,y,n;
-//    unsigned char *data = stbi_load(filename, &x, &y, &n, 0);
-//    // ... process data if not NULL ...
-//    // ... x = width, y = height, n = # 8-bit components per pixel ...
-//    // ... replace '0' with '1'..'4' to force that many components per pixel
-//    // ... but 'n' will always be the number that it would have been if you said 0
-//    stbi_image_free(data);
-//
-// Standard parameters:
-//    int *x                 -- outputs image width in pixels
-//    int *y                 -- outputs image height in pixels
-//    int *channels_in_file  -- outputs # of image components in image file
-//    int desired_channels   -- if non-zero, # of image components requested in result
-//
-// The return value from an image loader is an 'unsigned char *' which points
-// to the pixel data, or NULL on an allocation failure or if the image is
-// corrupt or invalid. The pixel data consists of *y scanlines of *x pixels,
-// with each pixel consisting of N interleaved 8-bit components; the first
-// pixel pointed to is top-left-most in the image. There is no padding between
-// image scanlines or between pixels, regardless of format. The number of
-// components N is 'desired_channels' if desired_channels is non-zero, or
-// *channels_in_file otherwise. If desired_channels is non-zero,
-// *channels_in_file has the number of components that _would_ have been
-// output otherwise. E.g. if you set desired_channels to 4, you will always
-// get RGBA output, but you can check *channels_in_file to see if it's trivially
-// opaque because e.g. there were only 3 channels in the source image.
-//
-// An output image with N components has the following components interleaved
-// in this order in each pixel:
-//
-//     N=#comp     components
-//       1           grey
-//       2           grey, alpha
-//       3           red, green, blue
-//       4           red, green, blue, alpha
-//
-// If image loading fails for any reason, the return value will be NULL,
-// and *x, *y, *channels_in_file will be unchanged. The function
-// stbi_failure_reason() can be queried for an extremely brief, end-user
-// unfriendly explanation of why the load failed. Define STBI_NO_FAILURE_STRINGS
-// to avoid compiling these strings at all, and STBI_FAILURE_USERMSG to get slightly
-// more user-friendly ones.
-//
-// Paletted PNG images are automatically depalettized.
-//
-// To query the width, height and component count of an image without having to
-// decode the full file, you can use the stbi_info family of functions:
-//
-//   int x,y,n,ok;
-//   ok = stbi_info(filename, &x, &y, &n);
-//   // returns ok=1 and sets x, y, n if image is a supported format,
-//   // 0 otherwise.
-//
-// Note that stb_image pervasively uses ints in its public API for sizes,
-// including sizes of memory buffers. This is now part of the API and thus
-// hard to change without causing breakage. As a result, the various image
-// loaders all have certain limits on image size; these differ somewhat
-// by format but generally boil down to either just under 2GB or just under
-// 1GB. When the decoded image would be larger than this, stb_image decoding
-// will fail.
-//
-// Additionally, stb_image will reject image files that have any of their
-// dimensions set to a larger value than the configurable STBI_MAX_DIMENSIONS,
-// which defaults to 2**24 = 16777216 pixels. Due to the above memory limit,
-// the only way to have an image with such dimensions load correctly
-// is for it to have a rather extreme aspect ratio. Either way, the
-// assumption here is that such larger images are likely to be malformed
-// or malicious. If you do need to load an image with individual dimensions
-// larger than that, and it still fits in the overall size limit, you can
-// #define STBI_MAX_DIMENSIONS on your own to be something larger.
-//
+#if 0
+DOCUMENTATION
 
-#ifndef STBI_NO_STDIO
+Basic usage:
+   int x; // width of image in pixels
+   int y; // height of image in pixels
+   int cif; // actual number of components per pixel in image
+   int dc; // desired components per pixel in output data (0-4) where 0 is auto
+   uint8_t *data = stbi_load(filename, &x, &y, &cif, d);
+   // process result data
+   stbi_image_free(data);
+
+The return value from an image loader is an 'uint8_t *' which points to the pixel data, or NULL on an allocation failure or if the image is corrupt or invalid. The pixel data consists of *y scanlines of *x pixels, with each pixel consisting of N interleaved 8-bit components; the first pixel pointed to is top-left-most in the image. There is no padding between image scanlines or between pixels, regardless of format. The number of components N is 'desired_channels' if desired_channels is non-zero. If desired_channels is non-zero, *channels_in_file has the number of components that _would_ have been output otherwise. E.g. if you set desired_channels to 4, you will always get RGBA output, but you can check *channels_in_file to see if it's trivially opaque because e.g. there were only 3 channels in the source image.
+
+An output image with N components has the following components interleaved in this order in each pixel:
+
+    N=#comp     components
+      1           grey
+      2           grey, alpha
+      3           red, green, blue
+      4           red, green, blue, alpha
+
+If image loading fails for any reason, the return value will be NULL, and *x, *y, *channels_in_file will be unchanged. The function stbi_failure_reason() can be queried for an extremely brief, end-user unfriendly explanation of why the load failed. Define STBI_NO_FAILURE_STRINGS to avoid compiling these strings at all, and STBI_FAILURE_USERMSG to get slightly more user-friendly ones.
+
+Paletted PNG images are automatically depalettized.
+
+To query the width, height and component count of an image without having to decode the full file, you can use the stbi_info family of functions:
+
+  int x,y,n,ok;
+  ok = stbi_info(filename, &x, &y, &n);
+  // returns ok=1 and sets x, y, n if image is a supported format,
+  // 0 otherwise.
+
+Note that stb_image pervasively uses ints in its public API for sizes, including sizes of memory buffers. This is now part of the API and thus hard to change without causing breakage. As a result, the various image loaders all have certain limits on image size; these differ somewhat by format but generally boil down to either just under 2GB or just under 1GB. When the decoded image would be larger than this, stb_image decoding will fail.
+
+Additionally, stb_image will reject image files that have any of their dimensions set to a larger value than the configurable STBI_MAX_DIMENSIONS, which defaults to 2**24 = 16777216 pixels. Due to the above memory limit, the only way to have an image with such dimensions load correctly is for it to have a rather extreme aspect ratio. Either way, the assumption here is that such larger images are likely to be malformed or malicious. If you do need to load an image with individual dimensions larger than that, and it still fits in the overall size limit, you can #define STBI_MAX_DIMENSIONS on your own to be something larger.
+
+#endif
+
 #include <stdio.h>
-#endif // STBI_NO_STDIO
-
-#define STBI_VERSION 1
 
 enum {
   STBI_default = 0, // only used for desired_channels
@@ -103,14 +63,9 @@ typedef unsigned short stbi_us;
 #endif
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
-//
 // PRIMARY API
-//
 
-//
 // load image by filename, open file, or memory buffer
-//
 
 typedef struct {
   int (*read)(void *user, char *data, int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
@@ -118,33 +73,22 @@ typedef struct {
   int (*eof)(void *user); // returns nonzero if we are at end of file/data
 } stbi_io_callbacks;
 
-////////////////////////////////////
-//
 // 8-bits-per-channel interface
-//
 
 STBIDEF stbi_uc *stbi_load_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
 
-#ifndef STBI_NO_STDIO
 STBIDEF stbi_uc *stbi_load(char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_uc *stbi_load_from_file(FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 // for stbi_load_from_file, file pointer is left pointing immediately after image
-#endif
 
-////////////////////////////////////
-//
 // 16-bits-per-channel interface
-//
 
 STBIDEF stbi_us *stbi_load_16_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
 
-#ifndef STBI_NO_STDIO
 STBIDEF stbi_us *stbi_load_16(char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
-#endif
 
-// get a VERY brief reason for failure
-// on most compilers (and ALL modern mainstream compilers) this is threadsafe
+// get a VERY brief reason for failure on most compilers (and ALL modern mainstream compilers) this is threadsafe
 STBIDEF const char *stbi_failure_reason(void);
 
 // free the loaded image -- this is just free()
@@ -154,12 +98,10 @@ STBIDEF void stbi_image_free(void *retval_from_stbi_load);
 STBIDEF int stbi_info_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *comp);
 STBIDEF int stbi_is_16_bit_from_memory(stbi_uc const *buffer, int len);
 
-#ifndef STBI_NO_STDIO
 STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp);
 STBIDEF int stbi_info_from_file(FILE *f, int *x, int *y, int *comp);
 STBIDEF int stbi_is_16_bit(char const *filename);
 STBIDEF int stbi_is_16_bit_from_file(FILE *f);
-#endif
 
 // ZLIB client - used by PNG, available for other purposes
 
@@ -171,18 +113,9 @@ STBIDEF int stbi_zlib_decode_buffer(char *obuffer, int olen, const char *ibuffer
 STBIDEF char *stbi_zlib_decode_noheader_malloc(const char *buffer, int len, int *outlen);
 STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char *ibuffer, int ilen);
 
-//
-//
-////   end header file   /////////////////////////////////////////////////////
-
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifndef STBI_NO_STDIO
-#include <stdio.h>
-#endif
-
 #ifndef STBI_ASSERT
 #include <assert.h>
 #define STBI_ASSERT(x) assert(x)
@@ -253,12 +186,9 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32) == 4 ? 1 : -1];
 #define STBI_MAX_DIMENSIONS (1 << 24)
 #endif
 
-///////////////////////////////////////////////
-//
 //  stbi__context struct and start_xxx functions
 
-// stbi__context structure is our basic context used by all images, so it
-// contains all the IO context, plus some basic image information
+// stbi__context structure is our basic context used by all images, so it contains all the IO context, plus some basic image information
 typedef struct {
   stbi__uint32 img_x, img_y;
   int img_n, img_out_n;
@@ -298,8 +228,6 @@ static void stbi__start_callbacks(stbi__context *s, stbi_io_callbacks *c, void *
   s->img_buffer_original_end = s->img_buffer_end;
 }
 
-#ifndef STBI_NO_STDIO
-
 static int stbi__stdio_read(void *user, char *data, int size) {
   return (int)fread(data, 1, size, (FILE *)user);
 }
@@ -307,9 +235,9 @@ static int stbi__stdio_read(void *user, char *data, int size) {
 static void stbi__stdio_skip(void *user, int n) {
   int ch;
   fseek((FILE *)user, n, SEEK_CUR);
-  ch = fgetc((FILE *)user); /* have to read a byte to reset feof()'s flag */
+  ch = fgetc((FILE *)user); // have to read a byte to reset feof()'s flag
   if (ch != EOF) {
-    ungetc(ch, (FILE *)user); /* push byte back onto stream if valid. */
+    ungetc(ch, (FILE *)user); // push byte back onto stream if valid.
   }
 }
 
@@ -317,23 +245,18 @@ static int stbi__stdio_eof(void *user) {
   return feof((FILE *)user) || ferror((FILE *)user);
 }
 
-static stbi_io_callbacks stbi__stdio_callbacks =
-  {
-    stbi__stdio_read,
-    stbi__stdio_skip,
-    stbi__stdio_eof,
+static stbi_io_callbacks stbi__stdio_callbacks = {
+  stbi__stdio_read,
+  stbi__stdio_skip,
+  stbi__stdio_eof,
 };
 
 static void stbi__start_file(stbi__context *s, FILE *f) {
   stbi__start_callbacks(s, &stbi__stdio_callbacks, (void *)f);
 }
 
-#endif // !STBI_NO_STDIO
-
 static void stbi__rewind(stbi__context *s) {
-  // conceptually rewind SHOULD rewind to the beginning of the stream,
-  // but we just rewind to the beginning of the initial buffer, because
-  // we only use it after doing 'test', which only ever looks at at most 92 bytes
+  // conceptually rewind SHOULD rewind to the beginning of the stream, but we just rewind to the beginning of the initial buffer, because we only use it after doing 'test', which only ever looks at at most 92 bytes
   s->img_buffer = s->img_buffer_original;
   s->img_buffer_end = s->img_buffer_original_end;
 }
@@ -375,15 +298,8 @@ static void *stbi__malloc(size_t size) {
   return STBI_MALLOC(size);
 }
 
-// stb_image uses ints pervasively, including for offset calculations.
-// therefore the largest decoded image size we can support with the
-// current code, even on 64-bit targets, is INT_MAX. this is not a
-// significant limitation for the intended use case.
-//
-// we do, however, need to make sure our size calculations don't
-// overflow. hence a few helper functions for size calculations that
-// multiply integers together, making sure that they're non-negative
-// and no overflow occurs.
+// stb_image uses ints pervasively, including for offset calculations. therefore the largest decoded image size we can support with the current code, even on 64-bit targets, is INT_MAX. this is not a significant limitation for the intended use case.
+// we do, however, need to make sure our size calculations don't overflow. hence a few helper functions for size calculations that multiply integers together, making sure that they're non-negative and no overflow occurs.
 
 // return 1 if the sum is valid, 0 on overflow.
 // negative terms are considered invalid.
@@ -452,8 +368,7 @@ static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int re
   ri->channel_order = STBI_ORDER_RGB; // all current input & output are this, but this is here so we can add BGR order
   ri->num_channels = 0;
 
-  // test the formats with a very explicit header first (at least a FOURCC
-  // or distinctive magic number first)
+  // test the formats with a very explicit header first (at least a FOURCC or distinctive magic number first)
   if (stbi__png_test(s)) return stbi__png_load(s, x, y, comp, req_comp, ri);
 
   return stbi__errpuc("unknown image type", "Image not of any known type, or corrupt");
@@ -504,8 +419,6 @@ static unsigned char *stbi__load_and_postprocess_8bit(stbi__context *s, int *x, 
     ri.bits_per_channel = 8;
   }
 
-  // @TODO: move stbi__convert_format to here
-
   return (unsigned char *)result;
 }
 
@@ -524,13 +437,8 @@ static stbi__uint16 *stbi__load_and_postprocess_16bit(stbi__context *s, int *x, 
     ri.bits_per_channel = 16;
   }
 
-  // @TODO: move stbi__convert_format16 to here
-  // @TODO: special case RGB-to-Y (and RGBA-to-YA) for 8-bit-to-16-bit case to keep more precision
-
   return (stbi__uint16 *)result;
 }
-
-#ifndef STBI_NO_STDIO
 
 static FILE *stbi__fopen(char const *filename, char const *mode) {
   FILE *f;
@@ -580,8 +488,6 @@ STBIDEF stbi_us *stbi_load_16(char const *filename, int *x, int *y, int *comp, i
   return result;
 }
 
-#endif //!STBI_NO_STDIO
-
 STBIDEF stbi_us *stbi_load_16_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels) {
   stbi__context s;
   stbi__start_mem(&s, buffer, len);
@@ -594,10 +500,7 @@ STBIDEF stbi_uc *stbi_load_from_memory(stbi_uc const *buffer, int len, int *x, i
   return stbi__load_and_postprocess_8bit(&s, x, y, comp, req_comp);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//
 // Common code used by all image loaders
-//
 
 enum {
   STBI__SCAN_load = 0,
@@ -609,8 +512,7 @@ static void stbi__refill_buffer(stbi__context *s) {
   int n = (s->io.read)(s->io_user_data, (char *)s->buffer_start, s->buflen);
   s->callback_already_read += (int)(s->img_buffer - s->img_buffer_original);
   if (n == 0) {
-    // at end of file, treat same as if from memory, but need to handle case
-    // where s->img_buffer isn't pointing to safe memory, e.g. 0-byte file
+    // at end of file, treat same as if from memory, but need to handle case where s->img_buffer isn't pointing to safe memory, e.g. 0-byte file
     s->read_from_callbacks = 0;
     s->img_buffer = s->buffer_start;
     s->img_buffer_end = s->buffer_start + 1;
@@ -683,14 +585,7 @@ static stbi__uint32 stbi__get32be(stbi__context *s) {
 
 #define STBI__BYTECAST(x) ((stbi_uc)((x) & 255)) // truncate int to byte without warnings
 
-//////////////////////////////////////////////////////////////////////////////
-//
 //  generic converter from built-in img_n to req_comp
-//    individual types do this automatically as much as possible (e.g. jpeg
-//    does all cases internally since it needs to colorspace convert anyway,
-//    and it never has alpha, so very few cases ). png can automatically
-//    interleave an alpha=255 channel, but falls back to this for other cases
-//
 //  assume data buffer is malloced, so malloc a new one and free that one
 //  only failure mode is malloc failing
 
@@ -719,8 +614,7 @@ static unsigned char *stbi__convert_format(unsigned char *data, int img_n, int r
 #define STBI__CASE(a, b) \
   case STBI__COMBO(a, b): \
     for (i = x - 1; i >= 0; --i, src += a, dest += b)
-    // convert source image with img_n components to one with req_comp components;
-    // avoid switch per pixel, so use switch per scanline and massive macros
+    // convert source image with img_n components to one with req_comp components; avoid switch per pixel, so use switch per scanline and massive macros
     switch (STBI__COMBO(img_n, req_comp)) {
       STBI__CASE(1, 2) {
         dest[0] = src[0];
@@ -808,8 +702,7 @@ static stbi__uint16 *stbi__convert_format16(stbi__uint16 *data, int img_n, int r
 #define STBI__CASE(a, b) \
   case STBI__COMBO(a, b): \
     for (i = x - 1; i >= 0; --i, src += a, dest += b)
-    // convert source image with img_n components to one with req_comp components;
-    // avoid switch per pixel, so use switch per scanline and massive macros
+    // convert source image with img_n components to one with req_comp components; avoid switch per pixel, so use switch per scanline and massive macros
     switch (STBI__COMBO(img_n, req_comp)) {
       STBI__CASE(1, 2) {
         dest[0] = src[0];
@@ -956,10 +849,7 @@ static int stbi__zbuild_huffman(stbi__zhuffman *z, const stbi_uc *sizelist, int 
 }
 
 // zlib-from-memory implementation for PNG reading
-//    because PNG allows splitting the zlib stream arbitrarily,
-//    and it's annoying structurally to have PNG call ZLIB call PNG,
-//    we require PNG read all the IDATs and combine them into a single
-//    memory buffer
+// because PNG allows splitting the zlib stream arbitrarily, and it's annoying structurally to have PNG call ZLIB call PNG, we require PNG read all the IDATs and combine them into a single memory buffer
 
 typedef struct {
   stbi_uc *zbuffer, *zbuffer_end;
@@ -986,7 +876,7 @@ stbi_inline static stbi_uc stbi__zget8(stbi__zbuf *z) {
 static void stbi__fill_bits(stbi__zbuf *z) {
   do {
     if (z->code_buffer >= (1U << z->num_bits)) {
-      z->zbuffer = z->zbuffer_end; /* treat this as EOF so we fail. */
+      z->zbuffer = z->zbuffer_end; // treat this as EOF so we fail
       return;
     }
     z->code_buffer |= (unsigned int)stbi__zget8(z) << z->num_bits;
@@ -1026,14 +916,11 @@ stbi_inline static int stbi__zhuffman_decode(stbi__zbuf *a, stbi__zhuffman *z) {
   if (a->num_bits < 16) {
     if (stbi__zeof(a)) {
       if (!a->hit_zeof_once) {
-        // This is the first time we hit eof, insert 16 extra padding btis
-        // to allow us to keep going; if we actually consume any of them
-        // though, that is invalid data. This is caught later.
+        // This is the first time we hit eof, insert 16 extra padding bits to allow us to keep going; if we actually consume any of them though, that is invalid data. This is caught later.
         a->hit_zeof_once = 1;
         a->num_bits += 16; // add 16 implicit zero bits
       } else {
-        // We already inserted our extra 16 padding bits and are again
-        // out, this stream is actually prematurely terminated.
+        // We already inserted our extra 16 padding bits and are again out, this stream is actually prematurely terminated.
         return -1;
       }
     } else {
@@ -1103,10 +990,7 @@ static int stbi__parse_huffman_block(stbi__zbuf *a) {
       if (z == 256) {
         a->zout = zout;
         if (a->hit_zeof_once && a->num_bits < 16) {
-          // The first time we hit zeof, we inserted 16 extra zero bits into our bit
-          // buffer so the decoder can just do its speculative decoding. But if we
-          // actually consumed any of those bits (which is the case when num_bits < 16),
-          // the stream actually read past the end so it is malformed.
+          // The first time we hit zeof, we inserted 16 extra zero bits into our bit buffer so the decoder can just do its speculative decoding. But if we actually consumed any of those bits (which is the case when num_bits < 16), the stream actually read past the end so it is malformed.
           return stbi__err("unexpected end", "Corrupt PNG");
         }
         return 1;
@@ -1223,44 +1107,28 @@ static int stbi__parse_uncompressed_block(stbi__zbuf *a) {
 static int stbi__parse_zlib_header(stbi__zbuf *a) {
   int cmf = stbi__zget8(a);
   int cm = cmf & 15;
-  /* int cinfo = cmf >> 4; */
   int flg = stbi__zget8(a);
   if (stbi__zeof(a)) return stbi__err("bad zlib header", "Corrupt PNG"); // zlib spec
   if ((cmf * 256 + flg) % 31 != 0) return stbi__err("bad zlib header", "Corrupt PNG"); // zlib spec
   if (flg & 32) return stbi__err("no preset dict", "Corrupt PNG"); // preset dictionary not allowed in png
   if (cm != 8) return stbi__err("bad compression", "Corrupt PNG"); // DEFLATE required for png
-  // window = 1 << (8 + cinfo)... but who cares, we fully buffer output
   return 1;
 }
 
-static const stbi_uc stbi__zdefault_length[STBI__ZNSYMS] =
-  {
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8
+static const stbi_uc stbi__zdefault_length[STBI__ZNSYMS] = {
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+  9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+  9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+  9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8
 };
-static const stbi_uc stbi__zdefault_distance[32] =
-  {
-    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
+static const stbi_uc stbi__zdefault_distance[32] = {
+  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
 };
-/*
-Init algorithm:
-{
-   int i;   // use <= to match clearly with spec
-   for (i=0; i <= 143; ++i)     stbi__zdefault_length[i]   = 8;
-   for (   ; i <= 255; ++i)     stbi__zdefault_length[i]   = 9;
-   for (   ; i <= 279; ++i)     stbi__zdefault_length[i]   = 7;
-   for (   ; i <= 287; ++i)     stbi__zdefault_length[i]   = 8;
-
-   for (i=0; i <=  31; ++i)     stbi__zdefault_distance[i] = 5;
-}
-*/
 
 static int stbi__parse_zlib(stbi__zbuf *a, int parse_header) {
   int final, type;
@@ -1424,9 +1292,7 @@ static stbi_uc first_row_filter[5] =
 };
 
 static int stbi__paeth(int a, int b, int c) {
-  // This formulation looks very different from the reference in the PNG spec, but is
-  // actually equivalent and has favorable data dependencies and admits straightforward
-  // generation of branch-free code, which helps performance significantly.
+  // This formulation looks very different from the reference in the PNG spec, but is actually equivalent and has favorable data dependencies and admits straightforward generation of branch-free code, which helps performance significantly.
   int thresh = c * 3 - (a + b);
   int lo = a < b ? a : b;
   int hi = a < b ? b : a;
@@ -1891,7 +1757,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
         if (z->idata == NULL) return stbi__err("no IDAT", "Corrupt PNG");
         // initial guess for decoded data size to avoid unnecessary reallocs
         bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
-        raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per row */;
+        raw_len = bpl * s->img_y * s->img_n + s->img_y;
         z->expanded = (stbi_uc *)stbi_zlib_decode_malloc_guesssize_headerflag((char *)z->idata, ioff, raw_len, (int *)&raw_len, true);
         if (z->expanded == NULL) return 0; // zlib should set error
         STBI_FREE(z->idata);
@@ -2034,7 +1900,6 @@ static int stbi__is_16_main(stbi__context *s) {
   return 0;
 }
 
-#ifndef STBI_NO_STDIO
 STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp) {
   FILE *f = stbi__fopen(filename, "rb");
   int result;
@@ -2072,7 +1937,6 @@ STBIDEF int stbi_is_16_bit_from_file(FILE *f) {
   fseek(f, pos, SEEK_SET);
   return r;
 }
-#endif // !STBI_NO_STDIO
 
 STBIDEF int stbi_info_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *comp) {
   stbi__context s;
