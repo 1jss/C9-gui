@@ -76,30 +76,6 @@
 // larger than that, and it still fits in the overall size limit, you can
 // #define STBI_MAX_DIMENSIONS on your own to be something larger.
 //
-// ===========================================================================
-//
-// I/O callbacks
-//
-// I/O callbacks allow you to read from arbitrary sources, like packaged
-// files or some other source. Data read from callbacks are processed
-// through a small internal buffer (currently 128 bytes) to try to reduce
-// overhead.
-//
-// The three functions you must define are "read" (reads some bytes of data),
-// "skip" (skips some bytes of data), "eof" (reports if the stream is at the end).
-//
-// ===========================================================================
-//
-// ADDITIONAL CONFIGURATION
-//
-//  - If you define STBI_MAX_DIMENSIONS, stb_image will reject images greater
-//    than that size (in either width or height) without further processing.
-//    This is to let programs in the wild set an upper bound to prevent
-//    denial-of-service attacks on untrusted data, as one could generate a
-//    valid image of gigantic dimensions and force stb_image to allocate a
-//    huge block of memory and spend disproportionate time decoding it. By
-//    default this is set to (1 << 24), which is 16777216, but that's still
-//    very big.
 
 #ifndef STBI_NO_STDIO
 #include <stdio.h>
@@ -149,7 +125,6 @@ typedef struct
 //
 
 STBIDEF stbi_uc *stbi_load_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-STBIDEF stbi_uc *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
 STBIDEF stbi_uc *stbi_load(char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
@@ -163,7 +138,6 @@ STBIDEF stbi_uc *stbi_load_from_file(FILE *f, int *x, int *y, int *channels_in_f
 //
 
 STBIDEF stbi_us *stbi_load_16_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-STBIDEF stbi_us *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
 STBIDEF stbi_us *stbi_load_16(char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
@@ -179,9 +153,7 @@ STBIDEF void stbi_image_free(void *retval_from_stbi_load);
 
 // get image dimensions & components without fully decoding
 STBIDEF int stbi_info_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *comp);
-STBIDEF int stbi_info_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp);
 STBIDEF int stbi_is_16_bit_from_memory(stbi_uc const *buffer, int len);
-STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *clbk, void *user);
 
 #ifndef STBI_NO_STDIO
 STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp);
@@ -357,8 +329,6 @@ static stbi_io_callbacks stbi__stdio_callbacks =
 static void stbi__start_file(stbi__context *s, FILE *f) {
   stbi__start_callbacks(s, &stbi__stdio_callbacks, (void *)f);
 }
-
-//static void stop_file(stbi__context *s) { }
 
 #endif // !STBI_NO_STDIO
 
@@ -621,21 +591,9 @@ STBIDEF stbi_us *stbi_load_16_from_memory(stbi_uc const *buffer, int len, int *x
   return stbi__load_and_postprocess_16bit(&s, x, y, channels_in_file, desired_channels);
 }
 
-STBIDEF stbi_us *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels) {
-  stbi__context s;
-  stbi__start_callbacks(&s, (stbi_io_callbacks *)clbk, user);
-  return stbi__load_and_postprocess_16bit(&s, x, y, channels_in_file, desired_channels);
-}
-
 STBIDEF stbi_uc *stbi_load_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
   stbi__start_mem(&s, buffer, len);
-  return stbi__load_and_postprocess_8bit(&s, x, y, comp, req_comp);
-}
-
-STBIDEF stbi_uc *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
-  stbi__context s;
-  stbi__start_callbacks(&s, (stbi_io_callbacks *)clbk, user);
   return stbi__load_and_postprocess_8bit(&s, x, y, comp, req_comp);
 }
 
@@ -2129,21 +2087,9 @@ STBIDEF int stbi_info_from_memory(stbi_uc const *buffer, int len, int *x, int *y
   return stbi__info_main(&s, x, y, comp);
 }
 
-STBIDEF int stbi_info_from_callbacks(stbi_io_callbacks const *c, void *user, int *x, int *y, int *comp) {
-  stbi__context s;
-  stbi__start_callbacks(&s, (stbi_io_callbacks *)c, user);
-  return stbi__info_main(&s, x, y, comp);
-}
-
 STBIDEF int stbi_is_16_bit_from_memory(stbi_uc const *buffer, int len) {
   stbi__context s;
   stbi__start_mem(&s, buffer, len);
-  return stbi__is_16_main(&s);
-}
-
-STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user) {
-  stbi__context s;
-  stbi__start_callbacks(&s, (stbi_io_callbacks *)c, user);
   return stbi__is_16_main(&s);
 }
 
