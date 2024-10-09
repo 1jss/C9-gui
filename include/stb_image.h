@@ -954,7 +954,7 @@ static const int stbi__zdist_extra[32] =
 
 static int stbi__parse_huffman_block(stbi__zbuf *a) {
   char *zout = a->zout;
-  for (;;) {
+  while (true) {
     int z = stbi__zhuffman_decode(a, &a->z_length);
     if (z < 256) {
       if (z < 0) return stbi__err("bad huffman code", "Corrupt PNG"); // error in huffman codes
@@ -1614,7 +1614,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
 
   if (scan == STBI__SCAN_type) return 1;
 
-  for (;;) {
+  while (true) {
     stbi__pngchunk c = stbi__get_chunk_header(s);
     switch (c.type) {
       case STBI__PNG_TYPE('I', 'H', 'D', 'R'): {
@@ -1828,14 +1828,12 @@ static void *stbi__do_png(stbi__png *p, int *x, int *y, int *n, int req_comp, st
 }
 
 static void *stbi__png_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri) {
-  stbi__png p;
-  p.s = s;
+  stbi__png p = {.s = s};
   return stbi__do_png(&p, x, y, comp, req_comp, ri);
 }
 
 static int stbi__png_test(stbi__context *s) {
-  int r;
-  r = stbi__check_png_header(s);
+  int r = stbi__check_png_header(s);
   stbi__rewind(s);
   return r;
 }
@@ -1852,14 +1850,12 @@ static int stbi__png_info_raw(stbi__png *p, int *x, int *y, int *comp) {
 }
 
 static int stbi__png_info(stbi__context *s, int *x, int *y, int *comp) {
-  stbi__png p;
-  p.s = s;
+  stbi__png p = {.s = s};
   return stbi__png_info_raw(&p, x, y, comp);
 }
 
 static int stbi__png_is16(stbi__context *s) {
-  stbi__png p;
-  p.s = s;
+  stbi__png p = {.s = s};
   if (!stbi__png_info_raw(&p, NULL, NULL, NULL))
     return 0;
   if (p.depth != 16) {
@@ -1881,38 +1877,34 @@ static int stbi__is_16_main(stbi__context *s) {
 
 STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp) {
   FILE *f = stbi__fopen(filename, "rb");
-  int result;
   if (!f) return stbi__err("can't fopen", "Unable to open file");
-  result = stbi_info_from_file(f, x, y, comp);
+  int result = stbi_info_from_file(f, x, y, comp);
   fclose(f);
   return result;
 }
 
 STBIDEF int stbi_info_from_file(FILE *f, int *x, int *y, int *comp) {
-  int r;
   stbi__context s;
   long pos = ftell(f);
   stbi__start_file(&s, f);
-  r = stbi__info_main(&s, x, y, comp);
+  int r = stbi__info_main(&s, x, y, comp);
   fseek(f, pos, SEEK_SET);
   return r;
 }
 
 STBIDEF int stbi_is_16_bit(char const *filename) {
   FILE *f = stbi__fopen(filename, "rb");
-  int result;
   if (!f) return stbi__err("can't fopen", "Unable to open file");
-  result = stbi_is_16_bit_from_file(f);
+  int result = stbi_is_16_bit_from_file(f);
   fclose(f);
   return result;
 }
 
 STBIDEF int stbi_is_16_bit_from_file(FILE *f) {
-  int r;
   stbi__context s;
   long pos = ftell(f);
   stbi__start_file(&s, f);
-  r = stbi__is_16_main(&s);
+  int r = stbi__is_16_main(&s);
   fseek(f, pos, SEEK_SET);
   return r;
 }
