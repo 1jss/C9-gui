@@ -101,8 +101,6 @@
 //    default this is set to (1 << 24), which is 16777216, but that's still
 //    very big.
 
-#define STBI_NO_LINEAR
-
 #ifndef STBI_NO_STDIO
 #include <stdio.h>
 #endif // STBI_NO_STDIO
@@ -207,8 +205,6 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 ////   end header file   /////////////////////////////////////////////////////
 
 #include <limits.h>
-#include <stdarg.h>
-#include <stddef.h> // ptrdiff_t on osx
 #include <stdlib.h>
 #include <string.h>
 
