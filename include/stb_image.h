@@ -944,13 +944,11 @@ static const int stbi__zlength_base[31] = {
   67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0
 };
 
-static const int stbi__zlength_extra[31] =
-  {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 0, 0};
+static const int stbi__zlength_extra[31] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 0, 0};
 
 static const int stbi__zdist_base[32] = {1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577, 0, 0};
 
-static const int stbi__zdist_extra[32] =
-  {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
+static const int stbi__zdist_extra[32] = {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
 
 static int stbi__parse_huffman_block(stbi__zbuf *a) {
   char *zout = a->zout;
@@ -1261,13 +1259,12 @@ enum {
   STBI__F_avg_first
 };
 
-static stbi_uc first_row_filter[5] =
-  {
-    STBI__F_none,
-    STBI__F_sub,
-    STBI__F_none,
-    STBI__F_avg_first,
-    STBI__F_sub // Paeth with b=c=0 turns out to be equivalent to sub
+static stbi_uc first_row_filter[5] = {
+  STBI__F_none,
+  STBI__F_sub,
+  STBI__F_none,
+  STBI__F_avg_first,
+  STBI__F_sub // Paeth with b=c=0 turns out to be equivalent to sub
 };
 
 static int stbi__paeth(int a, int b, int c) {
