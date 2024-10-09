@@ -121,13 +121,10 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 #define STBI_ASSERT(x) assert(x)
 #endif
 
-#define STBI_EXTERN extern
 #define stbi_inline
 
 #ifndef STBI_NO_THREAD_LOCALS
-#if defined(__cplusplus) && __cplusplus >= 201103L
-#define STBI_THREAD_LOCAL thread_local
-#elif defined(__GNUC__) && __GNUC__ < 5
+#if defined(__GNUC__) && __GNUC__ < 5
 #define STBI_THREAD_LOCAL __thread
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
 #define STBI_THREAD_LOCAL _Thread_local
@@ -169,17 +166,6 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32) == 4 ? 1 : -1];
 
 #ifndef STBI_REALLOC_SIZED
 #define STBI_REALLOC_SIZED(p, oldsz, newsz) STBI_REALLOC(p, newsz)
-#endif
-
-// x86/x64 detection
-#if defined(__x86_64__) || defined(_M_X64)
-#define STBI__X64_TARGET
-#elif defined(__i386) || defined(_M_IX86)
-#define STBI__X86_TARGET
-#endif
-
-#ifndef STBI_SIMD_ALIGN
-#define STBI_SIMD_ALIGN(type, name) type name
 #endif
 
 #ifndef STBI_MAX_DIMENSIONS
@@ -261,15 +247,9 @@ static void stbi__rewind(stbi__context *s) {
   s->img_buffer_end = s->img_buffer_original_end;
 }
 
-enum {
-  STBI_ORDER_RGB,
-  STBI_ORDER_BGR
-};
-
 typedef struct {
   int bits_per_channel;
   int num_channels;
-  int channel_order;
 } stbi__result_info;
 
 static int stbi__png_test(stbi__context *s);
@@ -365,7 +345,6 @@ STBIDEF void stbi_image_free(void *retval_from_stbi_load) {
 static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri, int bpc) {
   memset(ri, 0, sizeof(*ri)); // make sure it's initialized if we add new fields
   ri->bits_per_channel = bpc; // default is 8 so most paths don't have to be changed
-  ri->channel_order = STBI_ORDER_RGB; // all current input & output are this, but this is here so we can add BGR order
   ri->num_channels = 0;
 
   // test the formats with a very explicit header first (at least a FOURCC or distinctive magic number first)
