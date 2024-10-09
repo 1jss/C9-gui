@@ -192,14 +192,6 @@ STBIDEF int stbi_is_16_bit(char const *filename);
 STBIDEF int stbi_is_16_bit_from_file(FILE *f);
 #endif
 
-// flip the image vertically, so the first pixel in the output array is the bottom left
-STBIDEF void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip);
-
-// as above, but only applies to images loaded on the thread that calls the function
-// this function is only available if your compiler supports thread-local variables;
-// calling it will fail to link if your compiler doesn't
-STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_flip);
-
 // ZLIB client - used by PNG, available for other purposes
 
 STBIDEF char *stbi_zlib_decode_malloc_guesssize(const char *buffer, int len, int initial_size, int *outlen);
@@ -527,25 +519,6 @@ STBIDEF void stbi_image_free(void *retval_from_stbi_load) {
   STBI_FREE(retval_from_stbi_load);
 }
 
-static int stbi__vertically_flip_on_load_global = 0;
-
-STBIDEF void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip) {
-  stbi__vertically_flip_on_load_global = flag_true_if_should_flip;
-}
-
-#ifndef STBI_THREAD_LOCAL
-#define stbi__vertically_flip_on_load stbi__vertically_flip_on_load_global
-#else
-static STBI_THREAD_LOCAL int stbi__vertically_flip_on_load_local, stbi__vertically_flip_on_load_set;
-
-STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_flip) {
-  stbi__vertically_flip_on_load_local = flag_true_if_should_flip;
-  stbi__vertically_flip_on_load_set = 1;
-}
-
-#define stbi__vertically_flip_on_load (stbi__vertically_flip_on_load_set ? stbi__vertically_flip_on_load_local : stbi__vertically_flip_on_load_global)
-#endif // STBI_THREAD_LOCAL
-
 static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri, int bpc) {
   memset(ri, 0, sizeof(*ri)); // make sure it's initialized if we add new fields
   ri->bits_per_channel = bpc; // default is 8 so most paths don't have to be changed
@@ -591,29 +564,6 @@ static stbi__uint16 *stbi__convert_8_to_16(stbi_uc *orig, int w, int h, int chan
   return enlarged;
 }
 
-static void stbi__vertical_flip(void *image, int w, int h, int bytes_per_pixel) {
-  int row;
-  size_t bytes_per_row = (size_t)w * bytes_per_pixel;
-  stbi_uc temp[2048];
-  stbi_uc *bytes = (stbi_uc *)image;
-
-  for (row = 0; row < (h >> 1); row++) {
-    stbi_uc *row0 = bytes + row * bytes_per_row;
-    stbi_uc *row1 = bytes + (h - row - 1) * bytes_per_row;
-    // swap row0 with row1
-    size_t bytes_left = bytes_per_row;
-    while (bytes_left) {
-      size_t bytes_copy = (bytes_left < sizeof(temp)) ? bytes_left : sizeof(temp);
-      memcpy(temp, row0, bytes_copy);
-      memcpy(row0, row1, bytes_copy);
-      memcpy(row1, temp, bytes_copy);
-      row0 += bytes_copy;
-      row1 += bytes_copy;
-      bytes_left -= bytes_copy;
-    }
-  }
-}
-
 static unsigned char *stbi__load_and_postprocess_8bit(stbi__context *s, int *x, int *y, int *comp, int req_comp) {
   stbi__result_info ri;
   void *result = stbi__load_main(s, x, y, comp, req_comp, &ri, 8);
@@ -630,11 +580,6 @@ static unsigned char *stbi__load_and_postprocess_8bit(stbi__context *s, int *x, 
   }
 
   // @TODO: move stbi__convert_format to here
-
-  if (stbi__vertically_flip_on_load) {
-    int channels = req_comp ? req_comp : *comp;
-    stbi__vertical_flip(result, *x, *y, channels * sizeof(stbi_uc));
-  }
 
   return (unsigned char *)result;
 }
@@ -656,11 +601,6 @@ static stbi__uint16 *stbi__load_and_postprocess_16bit(stbi__context *s, int *x, 
 
   // @TODO: move stbi__convert_format16 to here
   // @TODO: special case RGB-to-Y (and RGBA-to-YA) for 8-bit-to-16-bit case to keep more precision
-
-  if (stbi__vertically_flip_on_load) {
-    int channels = req_comp ? req_comp : *comp;
-    stbi__vertical_flip(result, *x, *y, channels * sizeof(stbi__uint16));
-  }
 
   return (stbi__uint16 *)result;
 }
