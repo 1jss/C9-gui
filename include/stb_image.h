@@ -112,8 +112,7 @@ typedef unsigned short stbi_us;
 // load image by filename, open file, or memory buffer
 //
 
-typedef struct
-{
+typedef struct {
   int (*read)(void *user, char *data, int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
   void (*skip)(void *user, int n); // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
   int (*eof)(void *user); // returns nonzero if we are at end of file/data
@@ -260,8 +259,7 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32) == 4 ? 1 : -1];
 
 // stbi__context structure is our basic context used by all images, so it
 // contains all the IO context, plus some basic image information
-typedef struct
-{
+typedef struct {
   stbi__uint32 img_x, img_y;
   int img_n, img_out_n;
 
@@ -345,8 +343,7 @@ enum {
   STBI_ORDER_BGR
 };
 
-typedef struct
-{
+typedef struct {
   int bits_per_channel;
   int num_channels;
   int channel_order;
@@ -888,8 +885,7 @@ static stbi__uint16 *stbi__convert_format16(stbi__uint16 *data, int img_n, int r
 #define STBI__ZNSYMS 288 // number of symbols in literal/length alphabet
 
 // zlib-style huffman encoding
-typedef struct
-{
+typedef struct {
   stbi__uint16 fast[1 << STBI__ZFAST_BITS];
   stbi__uint16 firstcode[16];
   int maxcode[17];
@@ -965,8 +961,7 @@ static int stbi__zbuild_huffman(stbi__zhuffman *z, const stbi_uc *sizelist, int 
 //    we require PNG read all the IDATs and combine them into a single
 //    memory buffer
 
-typedef struct
-{
+typedef struct {
   stbi_uc *zbuffer, *zbuffer_end;
   int num_bits;
   int hit_zeof_once;
@@ -1383,8 +1378,7 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 //    performance
 //      - uses stb_zlib, a PD zlib implementation with fast huffman decoding
 
-typedef struct
-{
+typedef struct {
   stbi__uint32 length;
   stbi__uint32 type;
 } stbi__pngchunk;
@@ -1404,8 +1398,7 @@ static int stbi__check_png_header(stbi__context *s) {
   return 1;
 }
 
-typedef struct
-{
+typedef struct {
   stbi__context *s;
   stbi_uc *idata, *expanded, *out;
   int depth;
