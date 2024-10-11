@@ -8,23 +8,23 @@
 bool font_initialized = false;
 
 SFT inter_regular = {
-  .xScale = 14,
-  .yScale = 14,
+  .xScale = 15,
+  .yScale = 15,
 };
 
 SFT inter_bold = {
-  .xScale = 14,
-  .yScale = 14,
+  .xScale = 15,
+  .yScale = 15,
 };
 
 SFT inter_small = {
-  .xScale = 12,
-  .yScale = 12,
+  .xScale = 13,
+  .yScale = 13,
 };
 
 SFT inter_large = {
-  .xScale = 18,
-  .yScale = 18,
+  .xScale = 19,
+  .yScale = 19,
 };
 
 typedef struct {
@@ -97,16 +97,16 @@ SFT *get_sft(u8 variant) {
 
 i32 get_font_height(u8 variant) {
   if (variant == font_variant.regular) {
-    return 17;
+    return 19;
   }
   if (variant == font_variant.bold) {
-    return 17;
+    return 19;
   } else if (variant == font_variant.small) {
-    return 15;
+    return 16;
   } else if (variant == font_variant.large) {
-    return 22;
+    return 23;
   } else {
-    return 17;
+    return 19;
   }
 }
 
