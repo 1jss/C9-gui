@@ -1,4 +1,5 @@
 // This file is based on libschrift (C) 2019-2022 Thomas Oltmann and contributors
+// This file is not conformant to the C9 standard
 #ifndef SCHRIFT_TTF
 
 #include <assert.h> // assert
