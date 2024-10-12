@@ -372,20 +372,57 @@ int sft_render(const SFT *sft, SFT_Glyph glyph, SFT_Image image) {
   transform[5] = bbox[3] - sft->yOffset;
 
   memset(&outl, 0, sizeof outl);
-  if (init_outline(&outl) < 0)
-    goto failure;
-
-  if (decode_outline(sft->font, outline, 0, &outl) < 0)
-    goto failure;
-  if (render_outline(&outl, transform, image) < 0)
-    goto failure;
-
+  if (init_outline(&outl) < 0) {
+    free_outline(&outl);
+    return -1;
+  }
+  if (decode_outline(sft->font, outline, 0, &outl) < 0) {
+    free_outline(&outl);
+    return -1;
+  }
+  if (render_outline(&outl, transform, image) < 0) {
+    free_outline(&outl);
+    return -1;
+  }
   free_outline(&outl);
   return 0;
+}
 
-failure:
+// Renders a glyph to an image buffer with a float offset applied before pixlating.
+int sft_render_at_offset(const SFT *sft, SFT_Glyph glyph, SFT_Image image, double xOffset) {
+  uint_fast32_t outline;
+  double transform[6];
+  int bbox[4];
+  SFT_Outline outl;
+
+  if (outline_offset(sft->font, glyph, &outline) < 0) return -1;
+  if (!outline) return 0;
+  if (glyph_bbox(sft, outline, bbox) < 0) return -1;
+  // Set up the transformation matrix such that
+  // the transformed bounding boxes min corner lines
+  // up with the (0, 0) point.
+  transform[0] = sft->xScale / sft->font->unitsPerEm;
+  transform[1] = 0.0;
+  transform[2] = 0.0;
+  transform[4] = xOffset - bbox[0];
+  transform[3] = -sft->yScale / sft->font->unitsPerEm;
+  transform[5] = bbox[3];
+
+  memset(&outl, 0, sizeof outl);
+  if (init_outline(&outl) < 0) {
+    free_outline(&outl);
+    return -1;
+  }
+  if (decode_outline(sft->font, outline, 0, &outl) < 0) {
+    free_outline(&outl);
+    return -1;
+  }
+  if (render_outline(&outl, transform, image) < 0) {
+    free_outline(&outl);
+    return -1;
+  }
   free_outline(&outl);
-  return -1;
+  return 0;
 }
 
 // This is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
@@ -1447,15 +1484,15 @@ int SFT_RenderUTF8(SFT *sft, uint8_t *text, SFT_Image image) {
       return -1;
     }
     // Allocate memory for the character image
-    uint8_t *char_pixels = (uint8_t *)malloc(metrics.minWidth * metrics.minHeight * sizeof(uint8_t));
+    uint32_t num_pixels = (metrics.minWidth + 1) * metrics.minHeight;
+    uint8_t *char_pixels = (uint8_t *)malloc(num_pixels * sizeof(uint8_t));
     // Fill the pixels with 0
-    memset(char_pixels, 0, metrics.minWidth * metrics.minHeight);
+    memset(char_pixels, 0, num_pixels);
     charImage = (SFT_Image){
-      .width = metrics.minWidth,
+      .width = metrics.minWidth + 1,
       .height = metrics.minHeight,
       .pixels = char_pixels
     };
-    sft_render(sft, glyph, charImage);
 
     if (lastGlyph != 0) {
       if (sft_kerning(sft, lastGlyph, glyph, &kerning) < 0) return -1;
@@ -1464,25 +1501,20 @@ int SFT_RenderUTF8(SFT *sft, uint8_t *text, SFT_Image image) {
     glyph_start = fast_floor(charStart + metrics.leftSideBearing);
     // Rounding error for subpixel placement
     rounding_error = (charStart + metrics.leftSideBearing) - glyph_start;
+    sft_render_at_offset(sft, glyph, charImage, rounding_error);
+
     // Copy the character pixels to the image
     for (int y = 0; y < charImage.height; y++) {
       int target_y = y + lmetrics.ascender + metrics.yOffset;
-      // First pixel of the glyph transparent
-      uint8_t last_pixel = 0;
       if (target_y < image.height) {
-        for (int x = 0; x < charImage.width + 1; x++) {
+        for (int x = 0; x < charImage.width; x++) {
           int target_x = glyph_start + x;
           if (target_x < image.width) {
             uint8_t *target_pixel = &target_pixels[(target_y * image.width) + target_x];
             if (x < charImage.width) {
               uint8_t pixel = char_pixels[y * charImage.width + x];
-              uint8_t new_value = pixel * (1 - rounding_error) + last_pixel * rounding_error;
               // If glyphs overlap, take the maximum value
-              *target_pixel = *target_pixel > new_value ? *target_pixel : new_value;
-              last_pixel = pixel;
-            } else {
-              // Last pixel is rounding overflow from the glyph placement
-              *target_pixel = last_pixel * rounding_error;
+              *target_pixel = *target_pixel > pixel ? *target_pixel : pixel;
             }
           }
         }
