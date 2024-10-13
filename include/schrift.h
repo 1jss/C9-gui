@@ -277,7 +277,7 @@ int sft_gmetrics(const SFT *sft, SFT_Glyph glyph, SFT_GMetrics *metrics) {
 
   if (hor_metrics(sft->font, glyph, &adv, &lsb) < 0) return -1;
   metrics->advanceWidth = adv * xScale;
-  metrics->leftSideBearing = lsb * xScale + sft->xOffset;
+  metrics->leftSideBearing = lsb * xScale;
 
   if (outline_offset(sft->font, glyph, &outline) < 0) return -1;
   if (!outline) return 0;
@@ -370,43 +370,6 @@ int sft_render(const SFT *sft, SFT_Glyph glyph, SFT_Image image) {
   transform[4] = sft->xOffset - bbox[0];
   transform[3] = -sft->yScale / sft->font->unitsPerEm;
   transform[5] = bbox[3] - sft->yOffset;
-
-  memset(&outl, 0, sizeof outl);
-  if (init_outline(&outl) < 0) {
-    free_outline(&outl);
-    return -1;
-  }
-  if (decode_outline(sft->font, outline, 0, &outl) < 0) {
-    free_outline(&outl);
-    return -1;
-  }
-  if (render_outline(&outl, transform, image) < 0) {
-    free_outline(&outl);
-    return -1;
-  }
-  free_outline(&outl);
-  return 0;
-}
-
-// Renders a glyph to an image buffer with a float offset applied before pixlating.
-int sft_render_at_offset(const SFT *sft, SFT_Glyph glyph, SFT_Image image, double xOffset) {
-  uint_fast32_t outline;
-  double transform[6];
-  int bbox[4];
-  SFT_Outline outl;
-
-  if (outline_offset(sft->font, glyph, &outline) < 0) return -1;
-  if (!outline) return 0;
-  if (glyph_bbox(sft, outline, bbox) < 0) return -1;
-  // Set up the transformation matrix such that
-  // the transformed bounding boxes min corner lines
-  // up with the (0, 0) point.
-  transform[0] = sft->xScale / sft->font->unitsPerEm;
-  transform[1] = 0.0;
-  transform[2] = 0.0;
-  transform[4] = xOffset - bbox[0];
-  transform[3] = -sft->yScale / sft->font->unitsPerEm;
-  transform[5] = bbox[3];
 
   memset(&outl, 0, sizeof outl);
   if (init_outline(&outl) < 0) {
@@ -856,10 +819,10 @@ static int glyph_bbox(const SFT *sft, uint_fast32_t outline, int box[4]) {
   // Transform the bounding box into SFT coordinate space.
   xScale = sft->xScale / sft->font->unitsPerEm;
   yScale = sft->yScale / sft->font->unitsPerEm;
-  box[0] = (int)floor(box[0] * xScale + sft->xOffset);
-  box[1] = (int)floor(box[1] * yScale + sft->yOffset);
-  box[2] = (int)ceil(box[2] * xScale + sft->xOffset);
-  box[3] = (int)ceil(box[3] * yScale + sft->yOffset);
+  box[0] = (int)floor(box[0] * xScale);
+  box[1] = (int)floor(box[1] * yScale);
+  box[2] = (int)ceil(box[2] * xScale);
+  box[3] = (int)ceil(box[3] * yScale);
   return 0;
 }
 
@@ -1501,7 +1464,8 @@ int SFT_RenderUTF8(SFT *sft, uint8_t *text, SFT_Image image) {
     glyph_start = fast_floor(charStart + metrics.leftSideBearing);
     // Rounding error for subpixel placement
     rounding_error = (charStart + metrics.leftSideBearing) - glyph_start;
-    sft_render_at_offset(sft, glyph, charImage, rounding_error);
+    sft->xOffset = rounding_error;
+    sft_render(sft, glyph, charImage);
 
     // Copy the character pixels to the image
     for (int y = 0; y < charImage.height; y++) {
