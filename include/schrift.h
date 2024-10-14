@@ -1439,20 +1439,15 @@ int SFT_RenderUTF8(SFT *sft, uint8_t *text, SFT_Image image) {
     // Get the UTF-32 character code
     i += utf8_to_utf32(&text[i], &charCode);
     // Get the glyph for the character
-    if (glyph_id(sft->font, charCode, &glyph) < 0) {
-      return -1;
-    }
-    if (sft_gmetrics(sft, glyph, &metrics) < 0) {
-      printf("sft_metrics failed\n");
-      return -1;
-    }
+    if (glyph_id(sft->font, charCode, &glyph) < 0) return -1;
+    if (sft_gmetrics(sft, glyph, &metrics) < 0) return -1;
     // Allocate memory for the character image
-    uint32_t num_pixels = (metrics.minWidth + 1) * metrics.minHeight;
+    uint32_t num_pixels = (metrics.minWidth) * metrics.minHeight;
     uint8_t *char_pixels = (uint8_t *)malloc(num_pixels * sizeof(uint8_t));
     // Fill the pixels with 0
     memset(char_pixels, 0, num_pixels);
     charImage = (SFT_Image){
-      .width = metrics.minWidth + 1,
+      .width = metrics.minWidth,
       .height = metrics.minHeight,
       .pixels = char_pixels
     };
