@@ -135,13 +135,13 @@ Running:
     - Compare newline list length with child element list length. If different, rerender.
     - Compare text length with child element text length. If different, rerender.
     - Compare text content with child element text content. If different, rerender.
-- Fixed height multiline input scroll grows in layout
-  - Might be fixed by adding input text as actual children, not as text in the same element.
-- Dark theme example
 - Better boolean values? boolean.TRUE, boolean.FALSE
   - https://github.com/leowhitehead/c-bool-value
 - Make SFT_MeasureUTF8 return u8 indexes instead of utf8 characters
 - Make stb_image.h and schrift.h more C9 conformant
+- Switches as texts? C9_SWITCH_ON, C9_SWITCH_OFF plus onclick that changes between them?
+- Scroll jumps when mouse exits a scrollable element while scrolling
+- Debug: Endless loop on input sometimes rapid input?
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius

@@ -36,6 +36,9 @@ void populate_input_text(Arena *arena, Element *element) {
     if (element->children == 0) {
       element->layout_direction = layout_direction.vertical;
       element->gutter = line_spacing;
+      if (element->height > 0) {
+        element->overflow = overflow_type.scroll_y;
+      }
 
       // Split into lines and save them for later
       Array *indexes = split_string_at_width(arena, 0, input_text, max_width);
@@ -293,10 +296,13 @@ i32 fill_scroll_width(Element *element) {
   }
   if (child_width > self_width) {
     element->layout.scroll_width = child_width;
-    return child_width;
   } else {
     element->layout.scroll_width = self_width;
+  }
+  if (self_width > 0) {
     return self_width;
+  } else {
+    return child_width;
   }
 }
 
@@ -335,10 +341,13 @@ i32 fill_scroll_height(Element *element) {
   }
   if (child_height > self_height) {
     element->layout.scroll_height = child_height;
-    return child_height;
   } else {
     element->layout.scroll_height = self_height;
+  }
+  if (self_height > 0) {
     return self_height;
+  } else {
+    return child_height;
   }
 }
 
