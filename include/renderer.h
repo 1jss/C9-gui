@@ -193,7 +193,7 @@ void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rec
       }
     } else if (element->input != 0 && element == active_element) {
       // If the element is the active element we should also draw the cursor
-      SFT *font = get_sft(font_variant.regular);
+      SFT *font = get_sft(element->font_variant);
       SDL_Rect text_position = {
         .x = element_texture_rect.x + element->padding.left + element->layout.scroll_x,
         .y = element_texture_rect.y + element->padding.top + element->layout.scroll_y,

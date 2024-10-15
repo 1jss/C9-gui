@@ -129,7 +129,6 @@ Running:
 ## Todo
 - Mac .app packaging
 - To-Do example app
-- Font variant in input?
 - Input rerenders when added to layout
   - Only rerender lines that have changed
     - Compare newline list length with child element list length. If different, rerender.

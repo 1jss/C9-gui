@@ -41,7 +41,7 @@ void populate_input_text(Arena *arena, Element *element) {
       }
 
       // Split into lines and save them for later
-      Array *indexes = split_string_at_width(arena, 0, input_text, max_width);
+      Array *indexes = split_string_at_width(arena, element->font_variant, input_text, max_width);
       element->input->lines = indexes;
 
       // Populate children with text lines
@@ -54,16 +54,19 @@ void populate_input_text(Arena *arena, Element *element) {
           .length = line->end_index - line->start_index,
         };
         Element *text_element = add_new_element(arena, element);
-        text_element->text = line_data;
-        text_element->overflow = overflow_type.scroll_x;
-        text_element->changed = true;
+        *text_element = (Element){
+          .text = line_data,
+          .overflow = overflow_type.scroll_x,
+          .font_variant = element->font_variant,
+          .changed = true,
+        };
       }
     }
     // If the child array already exists
     // If the input element has been changed
     else if (element->changed) {
       // Split into lines and save them for later
-      Array *indexes = split_string_at_width(arena, 0, input_text, max_width);
+      Array *indexes = split_string_at_width(arena, element->font_variant, input_text, max_width);
       element->input->lines = indexes;
       // Loop through all children and lines and update the changed lines, add lines that are new and remove old lines.
       i32 line_count = array_length(indexes);
@@ -77,9 +80,12 @@ void populate_input_text(Arena *arena, Element *element) {
         };
         Element *text_element = array_get(element->children, i);
         if (!equal_s8(text_element->text, line_data)) {
-          text_element->text = line_data;
-          text_element->overflow = overflow_type.scroll_x;
-          text_element->changed = true;
+          *text_element = (Element){
+            .text = line_data,
+            .overflow = overflow_type.scroll_x,
+            .font_variant = element->font_variant,
+            .changed = true,
+          };
         }
       }
       // Add elements if there are more lines than children
@@ -91,8 +97,12 @@ void populate_input_text(Arena *arena, Element *element) {
             .length = line->end_index - line->start_index,
           };
           Element *text_element = add_new_element(arena, element);
-          text_element->text = line_data;
-          text_element->changed = true;
+          *text_element = (Element){
+            .text = line_data,
+            .overflow = overflow_type.scroll_x,
+            .font_variant = element->font_variant,
+            .changed = true,
+          };
         }
       }
       // Remove children if there are more children than lines
