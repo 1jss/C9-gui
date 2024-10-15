@@ -10,6 +10,19 @@
 #include "string.h" // s8
 #include "types.h" // i32
 
+void force_input_rerender(Element *element) {
+  if (element->input != 0) {
+    element->changed = true;
+  }
+  Array *children = element->children;
+  if (children != 0) {
+    for (i32 i = 0; i < array_length(children); i++) {
+      Element *child = array_get(children, i);
+      force_input_rerender(child);
+    }
+  }
+}
+
 // Create children from input text, one child per newline
 void populate_input_text(Arena *arena, Element *element) {
   // If the element is an input
@@ -426,6 +439,15 @@ void set_root_element_dimensions(Element *element, i32 window_width, i32 window_
     cap_scroll(element);
     set_x(element, 0);
     set_y(element, 0);
+  }
+}
+
+// Sets rerender flag on all input elements
+// Useful when the window size has changed and rows need to be recalculated
+void rerender_inputs(ElementTree *tree) {
+  force_input_rerender(tree->root);
+  if (tree->overlay != 0) {
+    force_input_rerender(tree->overlay);
   }
 }
 

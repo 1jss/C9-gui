@@ -123,6 +123,8 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           tree->size.width = width;
           tree->size.height = height;
           set_dimensions(tree);
+          rerender_inputs(tree);
+          populate_inputs(tree);
           tree->rerender = true;
         }
       } else if (event.type == SDL_KEYDOWN) {
