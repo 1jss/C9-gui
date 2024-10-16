@@ -533,15 +533,20 @@ i32 scroll_x(Element *element, i32 x, i32 y, i32 scroll_delta) {
       if (scroll_delta > 0 || element->layout.scroll_x > max_scroll_x) {
         i32 new_scroll_x = element->layout.scroll_x + scroll_delta;
         // Scroll the element left or right to the min or max
+        // Scroll is at the right
         if (new_scroll_x < max_scroll_x) {
-          scroll_delta = new_scroll_x + max_scroll_x;
+          scroll_delta = new_scroll_x - max_scroll_x;
           element->layout.scroll_x = max_scroll_x;
           element->changed = true;
-        } else if (new_scroll_x > 0) {
+        }
+        // Scroll is at the left
+        else if (new_scroll_x > 0) {
           scroll_delta = new_scroll_x;
           element->layout.scroll_x = 0;
           element->changed = true;
-        } else {
+        }
+        // Scroll is somewhere in the middle
+        else {
           scroll_delta = 0;
           element->layout.scroll_x = new_scroll_x;
           element->changed = true;
@@ -572,15 +577,20 @@ i32 scroll_y(Element *element, i32 x, i32 y, i32 scroll_delta) {
       if (scroll_delta > 0 || element->layout.scroll_y > max_scroll_y) {
         i32 new_scroll_y = element->layout.scroll_y + scroll_delta;
         // Scroll the element up or down to the min or max
+        // Scroll is at the bottom
         if (new_scroll_y < max_scroll_y) {
-          scroll_delta = new_scroll_y + max_scroll_y;
+          scroll_delta = new_scroll_y - max_scroll_y;
           element->changed = true;
           element->layout.scroll_y = max_scroll_y;
-        } else if (new_scroll_y > 0) {
+        }
+        // Scroll is at the top
+        else if (new_scroll_y > 0) {
           scroll_delta = new_scroll_y;
           element->layout.scroll_y = 0;
           element->changed = true;
-        } else {
+        }
+        // Scroll is somewhere in the middle
+        else {
           scroll_delta = 0;
           element->layout.scroll_y = new_scroll_y;
           element->changed = true;
