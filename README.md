@@ -139,7 +139,6 @@ Running:
 - Make SFT_MeasureUTF8 return u8 indexes instead of utf8 characters
 - Make stb_image.h and schrift.h more C9 conformant
 - Switches as texts? C9_SWITCH_ON, C9_SWITCH_OFF plus onclick that changes between them?
-- Scroll jumps when mouse exits a scrollable element while scrolling
 - Debug: Endless loop on input sometimes rapid input?
 
 ## Notes
