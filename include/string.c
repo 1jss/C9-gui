@@ -2,13 +2,14 @@
 
 #include <stdbool.h> // bool
 #include <string.h> // memcpy
+
+#include "types.c" // u8, u32, i32
 #include "arena.c" // Arena, arena_fill
 #include "status.c" // status
-#include "types.c" // u8, u32, i32
 
-#if 0
+/*
 
-This header defines a string type and helper functions for it. The string type is implemented like a simple struct, ie no pointer tricks. The creative helper functions, like copy and replace are returning new strings, not modifying the input strings. These functions also take an arena as an argument, where it allocates memory for the new string. The same arena can preferably be used for many strings and be freed all at once.
+C9 string defines a string type and helper functions for it. The string type is implemented like a simple struct, ie no pointer tricks. The creative helper functions, like copy and replace are returning new strings, not modifying the input strings. These functions also take an arena as an argument, where it allocates memory for the new string. The same arena can preferably be used for many strings and be freed all at once.
 - s8: a struct that represents a string
 - to_s8: a function that converts a string literal to an s8
 - new_string: a function that returns a growing string with initial space for 32 characters
@@ -23,7 +24,7 @@ This header defines a string type and helper functions for it. The string type i
 - concat3_s8: a function that concatenates three s8 strings
 - replace_s8: a function that replaces all occurrences of a substring in an s8 string
 
-#endif
+*/
 
 const i32 INVALID_STRING_INDEX = -1;
 
