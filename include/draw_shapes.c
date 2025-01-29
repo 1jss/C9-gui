@@ -2,11 +2,11 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h> // bool
-#include "color.h" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
-#include "font_layout.h" // split_string_at_width, get_text_line_height
-#include "stb_image.h" // stbi_load
-#include "types.h" // u8, f32, i32
-#include "types_common.h" // Border, Padding
+#include "color.c" // RGBA, get_dithered_gradient_color, C9_Gradient, red, green, blue, alpha
+#include "font_layout.c" // split_string_at_width, get_text_line_height
+#include "stb_image.c" // stbi_load
+#include "types.c" // u8, f32, i32
+#include "types_common.c" // Border, Padding
 
 // Locked texture as pixel data
 typedef struct {

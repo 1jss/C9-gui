@@ -1,5 +1,5 @@
 #ifndef C9_BLUE_NOISE_TEXTURE_U8
-#include "types.h" // u8
+#include "types.c" // u8
 
 const u8 blue_noise_texture_u8[32][32] = {
   {153, 167, 218, 245, 148, 195, 210, 228, 140, 242, 35, 59, 253, 146, 111, 9, 248, 121, 57, 95, 78, 190, 231, 61, 114, 18, 66, 105, 144, 192, 95, 73},

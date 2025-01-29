@@ -1,7 +1,7 @@
 #ifndef C9_COLOR
 
-#include "types.h" // u8, u32, f32
-#include "blue_noise.h" // get_blue_noise_value
+#include "types.c" // u8, u32, f32
+#include "blue_noise.c" // get_blue_noise_value
 
 typedef u32 RGBA; // 0xRRGGBBAA
 

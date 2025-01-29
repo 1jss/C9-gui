@@ -1,14 +1,14 @@
 #ifndef C9_LAYOUT
 
 #include <stdbool.h> // bool
-#include "arena.h" // Arena
-#include "array.h" // Array
-#include "element_tree.h" // Element, ElementTree
-#include "font.h" // get_sft
-#include "font_layout.h" // get_text_block_height, split_string_at_width
-#include "schrift.h" // SFT, SFT_text_width
-#include "string.h" // s8
-#include "types.h" // i32
+#include "arena.c" // Arena
+#include "array.c" // Array
+#include "element_tree.c" // Element, ElementTree
+#include "font.c" // get_sft
+#include "font_layout.c" // get_text_block_height, split_string_at_width
+#include "schrift.c" // SFT, SFT_text_width
+#include "string.c" // s8
+#include "types.c" // i32
 
 void force_input_rerender(Element *element) {
   if (element->input != 0) {

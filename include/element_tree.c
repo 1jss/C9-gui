@@ -2,13 +2,13 @@
 
 #include <SDL2/SDL.h> // SDL_Texture
 #include <stdbool.h> // bool
-#include "arena.h" // Arena
-#include "array.h" // Array
-#include "color.h" // RGBA, C9_Gradient, gradient
-#include "input.h" // InputData
-#include "string.h" // s8
-#include "types.h" // u8, i32
-#include "types_common.h" // Border, Padding
+#include "arena.c" // Arena
+#include "array.c" // Array
+#include "color.c" // RGBA, C9_Gradient, gradient
+#include "input.c" // InputData
+#include "string.c" // s8
+#include "types.c" // u8, i32
+#include "types_common.c" // Border, Padding
 
 // Layout direction
 typedef struct {

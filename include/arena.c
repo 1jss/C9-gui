@@ -1,7 +1,7 @@
 #ifndef C9_ARENA
 
 #include <stdlib.h> // malloc, free
-#include "types.h" // u8, i32
+#include "types.c" // u8, i32
 
 #if 0
 

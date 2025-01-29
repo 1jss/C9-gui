@@ -1,15 +1,15 @@
 #ifndef C9_FONT_LAYOUT
 
 #include <stdbool.h> // bool
-#include "arena.h" // Arena
-#include "array.h" // Array
-#include "element_tree.h" // Element
-#include "font.h" // get_sft, get_font_height
-#include "schrift.h" // SFT, SFT_MeasureUTF8, SFT_text_width
-#include "status.h" // status
-#include "string.h" // s8
-#include "types.h" // i32, u8
-#include "types_common.h" // Position, Line
+#include "arena.c" // Arena
+#include "array.c" // Array
+#include "element_tree.c" // Element
+#include "font.c" // get_sft, get_font_height
+#include "schrift.c" // SFT, SFT_MeasureUTF8, SFT_text_width
+#include "status.c" // status
+#include "string.c" // s8
+#include "types.c" // i32, u8
+#include "types_common.c" // Position, Line
 
 // Check if a string contains a newline character
 bool contains_newline(s8 text) {

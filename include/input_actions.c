@@ -3,14 +3,14 @@
 #include <SDL2/SDL.h> // SDL_SetClipboardText, SDL_GetClipboardText
 #include <stdbool.h> // bool
 #include <string.h> // memcpy, strcmp
-#include "arena.h" // Arena
-#include "array.h" // Array
-#include "font_layout.h" // has_continuation_byte
-#include "input.h" // EditAction, EditHistory, Selection, InputData
-#include "schrift.h" // SFT, SFT_text_width
-#include "status.h" // status
-#include "string.h" // s8, insert_into_string, delete_from_string, string_from_substring
-#include "types.h" // u8, i32
+#include "arena.c" // Arena
+#include "array.c" // Array
+#include "font_layout.c" // has_continuation_byte
+#include "input.c" // EditAction, EditHistory, Selection, InputData
+#include "schrift.c" // SFT, SFT_text_width
+#include "status.c" // status
+#include "string.c" // s8, insert_into_string, delete_from_string, string_from_substring
+#include "types.c" // u8, i32
 
 // EditHistory is an Array of of EditActions
 void add_edit_action(EditHistory *history, EditAction action) {

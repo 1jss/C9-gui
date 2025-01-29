@@ -1,16 +1,16 @@
 #ifndef C9_RENDERER
 
 #include <SDL2/SDL.h> // SDL_rect, SDL_Texture
-#include "arena.h" // Arena, arena_fill
-#include "array.h" // array_get
-#include "draw_shapes.h" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, has_border
-#include "element_tree.h" // Element, ElementTree
-#include "font.h" // get_sft
-#include "font_layout.h" // get_text_line_height
-#include "input.h" // InputData
-#include "input_actions.h" // measure_selection
-#include "schrift.h" // SFT, SFT_text_width
-#include "types.h" // i32
+#include "arena.c" // Arena, arena_fill
+#include "array.c" // array_get
+#include "draw_shapes.c" // draw_filled_rectangle, draw_horizontal_gradient_rectangle, draw_vertical_gradient_rectangle, draw_rectangle_with_border, draw_rectangle, has_border
+#include "element_tree.c" // Element, ElementTree
+#include "font.c" // get_sft
+#include "font_layout.c" // get_text_line_height
+#include "input.c" // InputData
+#include "input_actions.c" // measure_selection
+#include "schrift.c" // SFT, SFT_text_width
+#include "types.c" // i32
 
 // Recursively draws all elements
 void draw_elements(SDL_Renderer *renderer, Element *element, SDL_Rect target_rect, Element *active_element, SDL_Rect window_rect) {

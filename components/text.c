@@ -1,13 +1,13 @@
 #ifndef TEXT_COMPONENT
 
-#include "../constants/color_theme.h" // gray_1, white
-#include "../constants/element_tags.h" // content_panel_tag
-#include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree, get_element_by_tag
-#include "../include/font.h" // font_variant
-#include "../include/input.h" // new_input
-#include "../include/renderer.h" // bump_rerender
+#include "../constants/color_theme.c" // gray_1, white
+#include "../constants/element_tags.c" // content_panel_tag
+#include "../helpers/style_helpers.c" // set_active_input_style, set_passive_input_style
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree, get_element_by_tag
+#include "../include/font.c" // font_variant
+#include "../include/input.c" // new_input
+#include "../include/renderer.c" // bump_rerender
 
 Element *text_element = 0;
 

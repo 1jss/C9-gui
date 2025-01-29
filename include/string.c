@@ -2,9 +2,9 @@
 
 #include <stdbool.h> // bool
 #include <string.h> // memcpy
-#include "arena.h" // Arena, arena_fill
-#include "status.h" // status
-#include "types.h" // u8, u32, i32
+#include "arena.c" // Arena, arena_fill
+#include "status.c" // status
+#include "types.c" // u8, u32, i32
 
 #if 0
 

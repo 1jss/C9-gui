@@ -1,18 +1,18 @@
 #ifndef MENU_COMPONENT
 
-#include "../components/background.h" // background_element, create_background_element
-#include "../components/border.h" // border_element, create_border_element
-#include "../components/layers.h" // layers_element, create_layers_element
-#include "../components/table.h" // table_element, create_table_element
-#include "../components/text.h" // text_element, create_text_element
-#include "../constants/color_theme.h" // text_color, text_color_active, menu_active_color
-#include "../constants/element_tags.h" // side_panel_tag, content_panel_tag
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, ElementTree, get_element_by_tag, add_new_element, Padding, background_type
-#include "../include/layout.h" //  set_dimensions
-#include "../include/renderer.h" // bump_rerender
-#include "../include/string.h" // to_s8
-#include "../include/types.h" // i32
+#include "../components/background.c" // background_element, create_background_element
+#include "../components/border.c" // border_element, create_border_element
+#include "../components/layers.c" // layers_element, create_layers_element
+#include "../components/table.c" // table_element, create_table_element
+#include "../components/text.c" // text_element, create_text_element
+#include "../constants/color_theme.c" // text_color, text_color_active, menu_active_color
+#include "../constants/element_tags.c" // side_panel_tag, content_panel_tag
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, ElementTree, get_element_by_tag, add_new_element, Padding, background_type
+#include "../include/layout.c" //  set_dimensions
+#include "../include/renderer.c" // bump_rerender
+#include "../include/string.c" // to_s8
+#include "../include/types.c" // i32
 
 void reset_menu_elements(Element *side_panel) {
   Array *children = side_panel->children;

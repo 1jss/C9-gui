@@ -1,14 +1,14 @@
 #ifndef SEARCH_OVERLAY_COMPONENT
 
-#include "../constants/color_theme.h" // white
-#include "../constants/element_tags.h" // search_panel_input_tag
-#include "../helpers/style_helpers.h" // set_active_input_style, set_passive_input_style
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, add_new_element, new_element, background_type, layout_direction, Padding, ElementTree
-#include "../include/font.h" // font_variant
-#include "../include/input.h" // clear_input
-#include "../include/layout.h" // set_overlay_dimensions
-#include "menu.h" // set_content_panel
+#include "../constants/color_theme.c" // white
+#include "../constants/element_tags.c" // search_panel_input_tag
+#include "../helpers/style_helpers.c" // set_active_input_style, set_passive_input_style
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, add_new_element, new_element, background_type, layout_direction, Padding, ElementTree
+#include "../include/font.c" // font_variant
+#include "../include/input.c" // clear_input
+#include "../include/layout.c" // set_overlay_dimensions
+#include "menu.c" // set_content_panel
 
 Element *search_overlay_element = 0;
 

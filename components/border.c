@@ -1,9 +1,9 @@
 #ifndef BORDER_COMPONENT
 
-#include "../constants/color_theme.h" // gray_1, white
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
-#include "../include/font.h" // font_variant
+#include "../constants/color_theme.c" // gray_1, white
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding
+#include "../include/font.c" // font_variant
 
 Element *border_element = 0;
 

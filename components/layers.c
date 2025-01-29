@@ -1,10 +1,10 @@
 #ifndef LAYERS_COMPONENT
 
-#include "../constants/color_theme.h" // gray_1, white
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree
-#include "../include/font.h" // font_variant
-#include "overlay.h" // open_overlay
+#include "../constants/color_theme.c" // gray_1, white
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, add_new_element, new_element, overflow_type, background_type, layout_direction, Padding, ElementTree
+#include "../include/font.c" // font_variant
+#include "overlay.c" // open_overlay
 
 Element *layers_element = 0;
 

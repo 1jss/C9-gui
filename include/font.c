@@ -1,9 +1,9 @@
 #ifndef C9_FONT
 
 #include <stdbool.h> // bool
-#include "schrift.h" // SFT, sft_loadfile, sft_freefont
-#include "status.h" // status
-#include "types.h" // i32, u8
+#include "schrift.c" // SFT, sft_loadfile, sft_freefont
+#include "status.c" // status
+#include "types.c" // i32, u8
 
 bool font_initialized = false;
 

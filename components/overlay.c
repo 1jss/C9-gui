@@ -1,10 +1,10 @@
 #ifndef OVERLAY_COMPONENT
 
-#include "../constants/color_theme.h" // white
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, add_new_element, new_element, background_type, layout_direction, Padding, ElementTree
-#include "../include/font.h" // font_variant
-#include "../include/layout.h" // set_overlay_dimensions
+#include "../constants/color_theme.c" // white
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, add_new_element, new_element, background_type, layout_direction, Padding, ElementTree
+#include "../include/font.c" // font_variant
+#include "../include/layout.c" // set_overlay_dimensions
 
 Element *overlay_element = 0;
 

@@ -1,6 +1,6 @@
 #ifndef C9_ELEMENT_TAGS
 
-#include "../include/types.h" // u32
+#include "../include/types.c" // u32
 
 // Element tags
 const u8 content_panel_tag = 3;

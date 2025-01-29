@@ -1,6 +1,6 @@
 #ifndef C9_RANDOM
 
-#include "types.h"
+#include "types.c"
 
 u32 seed_state = 2;
 

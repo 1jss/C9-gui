@@ -2,19 +2,19 @@
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
 #include <time.h> // clock
-#include "components/border.h" // border_element, create_border_element
-#include "components/menu.h" // add_menu_items
-#include "components/search_bar.h" // search_bar, create_search_bar_element
-#include "constants/color_theme.h" // white, white_2, gray_1, gray_2, border_color, text_color
-#include "constants/element_tags.h" // content_panel_tag, side_panel_tag
-#include "include/arena.h" // Arena, arena_open, arena_close
-#include "include/color.h" // RGBA, C9_Gradient
-#include "include/element_tree.h" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, Border, Padding
-#include "include/event.h" // click_handler, blur_handler, input_handler, handle_events
-#include "include/font.h" // init_fonts, close_fonts
-#include "include/layout.h" // set_dimensions
-#include "include/renderer.h" // render_element_tree
-#include "include/types.h" // i32
+#include "components/border.c" // border_element, create_border_element
+#include "components/menu.c" // add_menu_items
+#include "components/search_bar.c" // search_bar, create_search_bar_element
+#include "constants/color_theme.c" // white, white_2, gray_1, gray_2, border_color, text_color
+#include "constants/element_tags.c" // content_panel_tag, side_panel_tag
+#include "include/arena.c" // Arena, arena_open, arena_close
+#include "include/color.c" // RGBA, C9_Gradient
+#include "include/element_tree.c" // Element, ElementTree, new_element_tree, add_new_element, layout_direction, background_type, Border, Padding
+#include "include/event.c" // click_handler, blur_handler, input_handler, handle_events
+#include "include/font.c" // init_fonts, close_fonts
+#include "include/layout.c" // set_dimensions
+#include "include/renderer.c" // render_element_tree
+#include "include/types.c" // i32
 
 i32 main() {
   i32 window_width = 640;

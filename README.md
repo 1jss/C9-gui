@@ -140,6 +140,8 @@ Running:
 - Make stb_image.h and schrift.h more C9 conformant
 - Switches as texts? C9_SWITCH_ON, C9_SWITCH_OFF plus onclick that changes between them?
 - Debug: Endless loop on input sometimes rapid input?
+- Auto linebroken text parents does not shrink correctly on window resize
+- Extra newline in search panel result items
 
 ## Notes
 - If element has background image, it has no border, other background or corner radius

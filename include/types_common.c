@@ -2,7 +2,7 @@
 
 // Types common for several steps in the drawing process
 
-#include "types.h" // i16
+#include "types.c" // i16
 
 typedef struct {
   u8 top;

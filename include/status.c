@@ -1,6 +1,6 @@
 #ifndef C9_STATUS
 
-#include "types.h" // i32
+#include "types.c" // i32
 
 #if 0
 
@@ -9,7 +9,7 @@ This header defines a struct that can be used as a namespaced enum for status co
 Use the status struct to return status codes from functions. For example:
 
 ```c
-#include "status.h"
+#include "status.c"
 
 int32_t my_function(void) {
   if (error_condition) {

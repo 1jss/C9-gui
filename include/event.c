@@ -3,11 +3,11 @@
 #include <SDL2/SDL.h> // SDL_WaitEvent, SDL_WINDOWEVENT, SDL_WINDOWEVENT_RESIZED, SDL_SetWindowSize, SDL_FlushEvent, SDL_MOUSEWHEEL, SDL_MOUSEBUTTONDOWN, SDL_QUIT, SDL_Event, SDL_Window, SDL_Renderer
 #include <stdbool.h> // bool
 #include <stdio.h> // printf
-#include "element_tree.h" // ElementTree, Element
-#include "input_actions.h" // select_word, set_selection_start_index, set_selection_end_index
-#include "layout.h" // fill_scroll_width, get_clickable_element_at
-#include "types.h" // i32
-#include "types_common.h" // Position
+#include "element_tree.c" // ElementTree, Element
+#include "input_actions.c" // select_word, set_selection_start_index, set_selection_end_index
+#include "layout.c" // fill_scroll_width, get_clickable_element_at
+#include "types.c" // i32
+#include "types_common.c" // Position
 
 void rerender_element(ElementTree *tree, Element *element) {
   element->changed = true;

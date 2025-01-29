@@ -1,10 +1,10 @@
 #ifndef SEARCH_BAR_COMPONENT
 
-#include "../constants/color_theme.h" // white, border_color
-#include "../include/arena.h" // Arena
-#include "../include/element_tree.h" // Element, ElementTree, new_element, overflow_type, background_type, Padding
-#include "../include/string.h" // to_s8
-#include "search_overlay.h" // open_serach_overlay
+#include "../constants/color_theme.c" // white, border_color
+#include "../include/arena.c" // Arena
+#include "../include/element_tree.c" // Element, ElementTree, new_element, overflow_type, background_type, Padding
+#include "../include/string.c" // to_s8
+#include "search_overlay.c" // open_serach_overlay
 
 Element *search_bar = 0;
 

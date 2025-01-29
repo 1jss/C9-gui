@@ -1,10 +1,10 @@
 #ifndef C9_INPUT
 
-#include "arena.h" // Arena
-#include "array.h" // Array, array_create, array_clear
-#include "string.h" // s8, new_string
-#include "types.h" // u8, i32
-#include "types_common.h" // Line
+#include "arena.c" // Arena
+#include "array.c" // Array, array_create, array_clear
+#include "string.c" // s8, new_string
+#include "types.c" // u8, i32
+#include "types_common.c" // Line
 
 typedef struct {
   u8 insert;

@@ -1,6 +1,6 @@
 #ifndef C9_COLOR_THEME
 
-#include "../include/color.h" // RGBA
+#include "../include/color.c" // RGBA
 
 // Colors
 const RGBA white = 0xFFFFFFFF;
