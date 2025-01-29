@@ -2,7 +2,7 @@
 // This file is not conformant to the C9 standard
 #ifndef STBI_INCLUDE_STB_IMAGE
 
-#if 0
+/*
 DOCUMENTATION
 
 Basic usage:
@@ -36,14 +36,15 @@ To query the width, height and component count of an image without having to dec
   // 0 otherwise.
 
 stb_image will reject image files that have any of their dimensions set to a larger value than the configurable STBI_MAX_DIMENSIONS, which defaults to 2**24 = 16777216 pixels. If you need to load an image with individual axis dimensions larger than this, and it still fits in the overall size limit, you can #define STBI_MAX_DIMENSIONS to be larger.
-#endif
+*/
 
-#include <assert.h>
-#include <limits.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <assert.h> // assert
+#include <limits.h> // INT_MAX
+#include <stdint.h> // uint8_t, uint16_t
+#include <stdbool.h> // true, false
+#include <stdio.h> // FILE, fopen, fclose, fseek, fgetc, feof, ferror
+#include <stdlib.h> // malloc, free, realloc
+#include <string.h> // memcpy
 
 enum {
   STBI_default = 0, // only used for desired_channels
