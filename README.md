@@ -121,7 +121,7 @@ Download SDL2 from official releases and move it to `/Library/Frameworks`
 
 ### Clang
 Compiling with SDL2:
-`clang -std=c99 -Wall -Wextra -F /Library/Frameworks -framework SDL2 main.c -o main`
+`clang -std=c99 -Wall -Wextra -F /Library/Frameworks -framework SDL2 -Wl,-rpath,/Library/Frameworks main.c -o main`
 
 Running:
 `./main`

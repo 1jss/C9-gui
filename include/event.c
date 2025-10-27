@@ -206,6 +206,13 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
           char *text = (char *)event.text.text;
           input_handler(tree, text);
         }
+      } else if (event.type == SDL_MOUSEWHEEL) {
+        // Handle mouse wheel scrolling
+        if (tree->scroll.state != scroll_state.blocked) {
+          tree->scroll.state = scroll_state.active;
+          scroll_distance_x += event.wheel.x * 20;
+          scroll_distance_y += event.wheel.y * 20;
+        }
       } else if (event.type == SDL_MULTIGESTURE) {
         if (event.mgesture.numFingers == 2) {
           if (tree->scroll.state == scroll_state.available) {
@@ -269,7 +276,8 @@ bool handle_events(ElementTree *tree, SDL_Window *window, SDL_Renderer *renderer
         main_loop = false;
       }
     }
-    if (tree->scroll.state == scroll_state.active) {
+    // Only process scroll events if the tree has been rendered at least once
+    if (tree->scroll.state == scroll_state.active && tree->root->children != 0) {
       Element *scroll_layer = get_root(tree);
       // Scroll left or right
       if (scroll_distance_x != 0 && absolute(scroll_distance_x) > absolute(scroll_distance_y)) {
